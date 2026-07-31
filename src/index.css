@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+:root {
+  --text: #4b5563;
+  --text-muted: #9ca3af;
+  --text-h: #111827;
+  --bg: #f9fafb;
+  --card-bg: #ffffff;
+  --border: #f3f4f6;
+  --border-strong: #e5e7eb;
+  
+  /* Emerald Palette */
+  --accent: #10b981;
+  --accent-hover: #059669;
+  --accent-bg: rgba(16, 185, 129, 0.08);
+  --accent-border: rgba(16, 185, 129, 0.25);
+  
+  /* Status Colors */
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.08);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.08);
+  --danger-border: rgba(239, 68, 68, 0.2);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.08);
+  --info: #3b82f6;
+  --info-bg: rgba(59, 130, 246, 0.08);
+  
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  
+  --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  
+  box-sizing: border-box;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-muted: #6b7280;
+    --text-h: #f9fafb;
+    --bg: #090d16;
+    --card-bg: #111827;
+    --border: #1f2937;
+    --border-strong: #374151;
+    
+    --accent: #10b981;
+    --accent-hover: #34d399;
+    --accent-bg: rgba(16, 185, 129, 0.12);
+    --accent-border: rgba(16, 185, 129, 0.35);
+    
+    --success: #34d399;
+    --success-bg: rgba(52, 211, 153, 0.12);
+    --danger: #f87171;
+    --danger-bg: rgba(248, 113, 113, 0.12);
+    --danger-border: rgba(248, 113, 113, 0.25);
+    --warning: #fbbf24;
+    --warning-bg: rgba(251, 191, 36, 0.12);
+    --info: #60a5fa;
+    --info-bg: rgba(96, 165, 250, 0.12);
+    
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+  }
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* General Layout utilities */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -1,0 +1,786 @@
+{
+    "stats": {
+        "total_evaluated": 21,
+        "yes_count": 12,
+        "no_count": 9,
+        "blind_final_capital": 99228.14,
+        "smart_final_capital": 102988.21,
+        "smart_total_profit": 2988.21,
+        "blind_total_profit": -771.86,
+        "detailed_results": [
+            {
+                "name": "One97 Communications Limited (Paytm)",
+                "symbol": "PAYTM",
+                "open_date": "2021-11-08",
+                "listing_date": "2021-11-18",
+                "decision": "NO",
+                "score": 0,
+                "listing_gains_pct": -27.25,
+                "allotment_probability_pct": 60.2,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": false,
+                    "capital": false,
+                    "valuation": false,
+                    "sentiment": false,
+                    "anchors": false,
+                    "fundamentals": false,
+                    "issue_size": false,
+                    "promoter_stake": false
+                }
+            },
+            {
+                "name": "Life Insurance Corporation of India (LIC)",
+                "symbol": "LICI",
+                "open_date": "2022-05-04",
+                "listing_date": "2022-05-17",
+                "decision": "NO",
+                "score": 3,
+                "listing_gains_pct": -8.11,
+                "allotment_probability_pct": 50.3,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": false,
+                    "capital": false,
+                    "valuation": false,
+                    "sentiment": false,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": false,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "IdeaForge Technology Limited",
+                "symbol": "IDEAFORGE",
+                "open_date": "2023-06-26",
+                "listing_date": "2023-07-07",
+                "decision": "NO",
+                "score": 3,
+                "listing_gains_pct": 93.45,
+                "allotment_probability_pct": 1.2,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": true,
+                    "capital": false,
+                    "valuation": false,
+                    "sentiment": true,
+                    "anchors": false,
+                    "fundamentals": false,
+                    "issue_size": true,
+                    "promoter_stake": false
+                }
+            },
+            {
+                "name": "Honasa Consumer Limited (Mamaearth)",
+                "symbol": "HONASA",
+                "open_date": "2023-10-31",
+                "listing_date": "2023-11-07",
+                "decision": "NO",
+                "score": 2,
+                "listing_gains_pct": 1.85,
+                "allotment_probability_pct": 74.1,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": false,
+                    "capital": false,
+                    "valuation": false,
+                    "sentiment": false,
+                    "anchors": true,
+                    "fundamentals": false,
+                    "issue_size": true,
+                    "promoter_stake": false
+                }
+            },
+            {
+                "name": "Tata Technologies Limited",
+                "symbol": "TATATECH",
+                "open_date": "2023-11-22",
+                "listing_date": "2023-11-30",
+                "decision": "YES",
+                "score": 6,
+                "listing_gains_pct": 140.0,
+                "allotment_probability_pct": 6.1,
+                "expected_gain": 1272.73,
+                "rules": {
+                    "demand": true,
+                    "capital": false,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": false,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "DOMS Industries Limited",
+                "symbol": "DOMS",
+                "open_date": "2023-12-13",
+                "listing_date": "2023-12-20",
+                "decision": "YES",
+                "score": 7,
+                "listing_gains_pct": 77.22,
+                "allotment_probability_pct": 1.4,
+                "expected_gain": 158.91,
+                "rules": {
+                    "demand": true,
+                    "capital": false,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Inox India Limited",
+                "symbol": "INOXINDIA",
+                "open_date": "2023-12-14",
+                "listing_date": "2023-12-21",
+                "decision": "YES",
+                "score": 6,
+                "listing_gains_pct": 41.36,
+                "allotment_probability_pct": 6.5,
+                "expected_gain": 392.51,
+                "rules": {
+                    "demand": true,
+                    "capital": false,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": false,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Happy Forgings Limited",
+                "symbol": "HAPPYFORGE",
+                "open_date": "2023-12-19",
+                "listing_date": "2023-12-27",
+                "decision": "YES",
+                "score": 7,
+                "listing_gains_pct": 17.76,
+                "allotment_probability_pct": 6.6,
+                "expected_gain": 170.07,
+                "rules": {
+                    "demand": true,
+                    "capital": false,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Mufti Menswear (Credo Brands) Limited",
+                "symbol": "MUFTI",
+                "open_date": "2023-12-19",
+                "listing_date": "2023-12-27",
+                "decision": "NO",
+                "score": 6,
+                "listing_gains_pct": 0.71,
+                "allotment_probability_pct": 5.0,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": true,
+                    "capital": false,
+                    "valuation": true,
+                    "sentiment": false,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Azad Engineering Limited",
+                "symbol": "AZAD",
+                "open_date": "2023-12-20",
+                "listing_date": "2023-12-28",
+                "decision": "YES",
+                "score": 7,
+                "listing_gains_pct": 37.4,
+                "allotment_probability_pct": 4.2,
+                "expected_gain": 231.53,
+                "rules": {
+                    "demand": true,
+                    "capital": false,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Innova Captab Limited",
+                "symbol": "INNOVA",
+                "open_date": "2023-12-21",
+                "listing_date": "2023-12-29",
+                "decision": "YES",
+                "score": 7,
+                "listing_gains_pct": 20.09,
+                "allotment_probability_pct": 5.8,
+                "expected_gain": 173.18,
+                "rules": {
+                    "demand": true,
+                    "capital": true,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": false,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Jyoti CNC Automation Limited",
+                "symbol": "JYOTICNC",
+                "open_date": "2024-01-09",
+                "listing_date": "2024-01-16",
+                "decision": "YES",
+                "score": 6,
+                "listing_gains_pct": 12.39,
+                "allotment_probability_pct": 3.8,
+                "expected_gain": 70.52,
+                "rules": {
+                    "demand": true,
+                    "capital": true,
+                    "valuation": false,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": false,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "EPACK Durable Limited",
+                "symbol": "EPACK",
+                "open_date": "2024-01-19",
+                "listing_date": "2024-01-30",
+                "decision": "NO",
+                "score": 4,
+                "listing_gains_pct": -2.17,
+                "allotment_probability_pct": 15.9,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": false,
+                    "capital": true,
+                    "valuation": false,
+                    "sentiment": false,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": false
+                }
+            },
+            {
+                "name": "Nova AgriTech Limited",
+                "symbol": "NOVAAGRI",
+                "open_date": "2024-01-23",
+                "listing_date": "2024-01-30",
+                "decision": "YES",
+                "score": 8,
+                "listing_gains_pct": 34.15,
+                "allotment_probability_pct": 1.3,
+                "expected_gain": 66.27,
+                "rules": {
+                    "demand": true,
+                    "capital": true,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "BLS E-Services Limited",
+                "symbol": "BLSE",
+                "open_date": "2024-01-30",
+                "listing_date": "2024-02-06",
+                "decision": "YES",
+                "score": 8,
+                "listing_gains_pct": 128.89,
+                "allotment_probability_pct": 0.4,
+                "expected_gain": 79.29,
+                "rules": {
+                    "demand": true,
+                    "capital": true,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Apeejay Surrendra Park Hotels Limited",
+                "symbol": "PARK",
+                "open_date": "2024-02-05",
+                "listing_date": "2024-02-12",
+                "decision": "YES",
+                "score": 7,
+                "listing_gains_pct": 20.0,
+                "allotment_probability_pct": 3.3,
+                "expected_gain": 98.06,
+                "rules": {
+                    "demand": true,
+                    "capital": true,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": false,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Rashi Peripherals Limited",
+                "symbol": "RPTECH",
+                "open_date": "2024-02-05",
+                "listing_date": "2024-02-14",
+                "decision": "YES",
+                "score": 7,
+                "listing_gains_pct": 9.16,
+                "allotment_probability_pct": 9.6,
+                "expected_gain": 130.98,
+                "rules": {
+                    "demand": true,
+                    "capital": true,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": false,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Jana Small Finance Bank Limited",
+                "symbol": "JSFB",
+                "open_date": "2024-02-07",
+                "listing_date": "2024-02-14",
+                "decision": "NO",
+                "score": 5,
+                "listing_gains_pct": -4.35,
+                "allotment_probability_pct": 18.3,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": false,
+                    "capital": true,
+                    "valuation": true,
+                    "sentiment": false,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": false
+                }
+            },
+            {
+                "name": "Capital Small Finance Bank Limited",
+                "symbol": "CSFB",
+                "open_date": "2024-02-07",
+                "listing_date": "2024-02-14",
+                "decision": "NO",
+                "score": 4,
+                "listing_gains_pct": -7.05,
+                "allotment_probability_pct": 40.2,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": false,
+                    "capital": true,
+                    "valuation": false,
+                    "sentiment": false,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": false
+                }
+            },
+            {
+                "name": "Vibhor Steel Tubes Limited",
+                "symbol": "VIBHOR",
+                "open_date": "2024-02-13",
+                "listing_date": "2024-02-20",
+                "decision": "YES",
+                "score": 8,
+                "listing_gains_pct": 181.46,
+                "allotment_probability_pct": 0.5,
+                "expected_gain": 144.16,
+                "rules": {
+                    "demand": true,
+                    "capital": true,
+                    "valuation": true,
+                    "sentiment": true,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": true,
+                    "promoter_stake": true
+                }
+            },
+            {
+                "name": "Hyundai Motor India Limited",
+                "symbol": "HYUNDAI",
+                "open_date": "2024-10-15",
+                "listing_date": "2024-10-22",
+                "decision": "NO",
+                "score": 3,
+                "listing_gains_pct": -6.12,
+                "allotment_probability_pct": 100.0,
+                "expected_gain": 0.0,
+                "rules": {
+                    "demand": false,
+                    "capital": false,
+                    "valuation": false,
+                    "sentiment": false,
+                    "anchors": true,
+                    "fundamentals": true,
+                    "issue_size": false,
+                    "promoter_stake": true
+                }
+            }
+        ],
+        "metric_counts": {
+            "demand": {
+                "passed": 14,
+                "failed": 7
+            },
+            "capital": {
+                "passed": 10,
+                "failed": 11
+            },
+            "valuation": {
+                "passed": 13,
+                "failed": 8
+            },
+            "sentiment": {
+                "passed": 13,
+                "failed": 8
+            },
+            "anchors": {
+                "passed": 19,
+                "failed": 2
+            },
+            "fundamentals": {
+                "passed": 13,
+                "failed": 8
+            },
+            "issue_size": {
+                "passed": 17,
+                "failed": 4
+            },
+            "promoter_stake": {
+                "passed": 15,
+                "failed": 6
+            }
+        }
+    },
+    "blind_history": [
+        {
+            "date": "2021-11-08",
+            "name": "One97 Communications Limited (Paytm)",
+            "capital": 97882.38,
+            "gain": -2117.62
+        },
+        {
+            "date": "2022-05-04",
+            "name": "Life Insurance Corporation of India (LIC)",
+            "capital": 97302.25,
+            "gain": -580.13
+        },
+        {
+            "date": "2023-06-26",
+            "name": "IdeaForge Technology Limited",
+            "capital": 97464.41,
+            "gain": 162.16
+        },
+        {
+            "date": "2023-10-31",
+            "name": "Honasa Consumer Limited (Mamaearth)",
+            "capital": 97668.65,
+            "gain": 204.24
+        },
+        {
+            "date": "2023-11-22",
+            "name": "Tata Technologies Limited",
+            "capital": 98941.37,
+            "gain": 1272.73
+        },
+        {
+            "date": "2023-12-13",
+            "name": "DOMS Industries Limited",
+            "capital": 99100.28,
+            "gain": 158.91
+        },
+        {
+            "date": "2023-12-14",
+            "name": "Inox India Limited",
+            "capital": 99492.8,
+            "gain": 392.51
+        },
+        {
+            "date": "2023-12-19",
+            "name": "Happy Forgings Limited",
+            "capital": 99662.86,
+            "gain": 170.07
+        },
+        {
+            "date": "2023-12-19",
+            "name": "Mufti Menswear (Credo Brands) Limited",
+            "capital": 99668.15,
+            "gain": 5.28
+        },
+        {
+            "date": "2023-12-20",
+            "name": "Azad Engineering Limited",
+            "capital": 99899.68,
+            "gain": 231.53
+        },
+        {
+            "date": "2023-12-21",
+            "name": "Innova Captab Limited",
+            "capital": 100072.87,
+            "gain": 173.18
+        },
+        {
+            "date": "2024-01-09",
+            "name": "Jyoti CNC Automation Limited",
+            "capital": 100143.38,
+            "gain": 70.52
+        },
+        {
+            "date": "2024-01-19",
+            "name": "EPACK Durable Limited",
+            "capital": 100091.81,
+            "gain": -51.58
+        },
+        {
+            "date": "2024-01-23",
+            "name": "Nova AgriTech Limited",
+            "capital": 100158.08,
+            "gain": 66.27
+        },
+        {
+            "date": "2024-01-30",
+            "name": "BLS E-Services Limited",
+            "capital": 100237.37,
+            "gain": 79.29
+        },
+        {
+            "date": "2024-02-05",
+            "name": "Apeejay Surrendra Park Hotels Limited",
+            "capital": 100335.42,
+            "gain": 98.06
+        },
+        {
+            "date": "2024-02-05",
+            "name": "Rashi Peripherals Limited",
+            "capital": 100466.4,
+            "gain": 130.98
+        },
+        {
+            "date": "2024-02-07",
+            "name": "Jana Small Finance Bank Limited",
+            "capital": 100347.66,
+            "gain": -118.74
+        },
+        {
+            "date": "2024-02-07",
+            "name": "Capital Small Finance Bank Limited",
+            "capital": 99923.64,
+            "gain": -424.02
+        },
+        {
+            "date": "2024-02-13",
+            "name": "Vibhor Steel Tubes Limited",
+            "capital": 100067.8,
+            "gain": 144.16
+        },
+        {
+            "date": "2024-10-15",
+            "name": "Hyundai Motor India Limited",
+            "capital": 99228.14,
+            "gain": -839.66
+        }
+    ],
+    "smart_history": [
+        {
+            "date": "2021-11-08",
+            "name": "One97 Communications Limited (Paytm)",
+            "capital": 100000.0,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 0
+        },
+        {
+            "date": "2022-05-04",
+            "name": "Life Insurance Corporation of India (LIC)",
+            "capital": 100000.0,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 3
+        },
+        {
+            "date": "2023-06-26",
+            "name": "IdeaForge Technology Limited",
+            "capital": 100000.0,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 3
+        },
+        {
+            "date": "2023-10-31",
+            "name": "Honasa Consumer Limited (Mamaearth)",
+            "capital": 100000.0,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 2
+        },
+        {
+            "date": "2023-11-22",
+            "name": "Tata Technologies Limited",
+            "capital": 101272.73,
+            "gain": 1272.73,
+            "decision": "YES",
+            "score": 6
+        },
+        {
+            "date": "2023-12-13",
+            "name": "DOMS Industries Limited",
+            "capital": 101431.64,
+            "gain": 158.91,
+            "decision": "YES",
+            "score": 7
+        },
+        {
+            "date": "2023-12-14",
+            "name": "Inox India Limited",
+            "capital": 101824.15,
+            "gain": 392.51,
+            "decision": "YES",
+            "score": 6
+        },
+        {
+            "date": "2023-12-19",
+            "name": "Happy Forgings Limited",
+            "capital": 101994.22,
+            "gain": 170.07,
+            "decision": "YES",
+            "score": 7
+        },
+        {
+            "date": "2023-12-19",
+            "name": "Mufti Menswear (Credo Brands) Limited",
+            "capital": 101994.22,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 6
+        },
+        {
+            "date": "2023-12-20",
+            "name": "Azad Engineering Limited",
+            "capital": 102225.75,
+            "gain": 231.53,
+            "decision": "YES",
+            "score": 7
+        },
+        {
+            "date": "2023-12-21",
+            "name": "Innova Captab Limited",
+            "capital": 102398.94,
+            "gain": 173.18,
+            "decision": "YES",
+            "score": 7
+        },
+        {
+            "date": "2024-01-09",
+            "name": "Jyoti CNC Automation Limited",
+            "capital": 102469.46,
+            "gain": 70.52,
+            "decision": "YES",
+            "score": 6
+        },
+        {
+            "date": "2024-01-19",
+            "name": "EPACK Durable Limited",
+            "capital": 102469.46,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 4
+        },
+        {
+            "date": "2024-01-23",
+            "name": "Nova AgriTech Limited",
+            "capital": 102535.72,
+            "gain": 66.27,
+            "decision": "YES",
+            "score": 8
+        },
+        {
+            "date": "2024-01-30",
+            "name": "BLS E-Services Limited",
+            "capital": 102615.01,
+            "gain": 79.29,
+            "decision": "YES",
+            "score": 8
+        },
+        {
+            "date": "2024-02-05",
+            "name": "Apeejay Surrendra Park Hotels Limited",
+            "capital": 102713.07,
+            "gain": 98.06,
+            "decision": "YES",
+            "score": 7
+        },
+        {
+            "date": "2024-02-05",
+            "name": "Rashi Peripherals Limited",
+            "capital": 102844.05,
+            "gain": 130.98,
+            "decision": "YES",
+            "score": 7
+        },
+        {
+            "date": "2024-02-07",
+            "name": "Jana Small Finance Bank Limited",
+            "capital": 102844.05,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 5
+        },
+        {
+            "date": "2024-02-07",
+            "name": "Capital Small Finance Bank Limited",
+            "capital": 102844.05,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 4
+        },
+        {
+            "date": "2024-02-13",
+            "name": "Vibhor Steel Tubes Limited",
+            "capital": 102988.21,
+            "gain": 144.16,
+            "decision": "YES",
+            "score": 8
+        },
+        {
+            "date": "2024-10-15",
+            "name": "Hyundai Motor India Limited",
+            "capital": 102988.21,
+            "gain": 0.0,
+            "decision": "NO",
+            "score": 3
+        }
+    ]
+}

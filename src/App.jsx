@@ -23,6 +23,7 @@ import {
 // Import JSON data compiled by Python engine
 import dbLocal from './data/db_local.json';
 import backtestData from './data/backtest_results.json';
+import { supabase } from './supabaseClient';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('tracker');
@@ -41,51 +42,110 @@ export default function App() {
   const [ipos, setIpos] = useState([]);
   
   useEffect(() => {
-    if (dbLocal && dbLocal.ipos) {
-      // Re-evaluate current active IPOs using the 8 metrics
-      const evaluated = dbLocal.ipos.map(ipo => {
-        // Fetch matching sub and gmp records
-        const subs = dbLocal.subscriptions.filter(s => s.ipo_id === ipo.id) || [];
-        const gmpRecs = dbLocal.gmp_history.filter(g => g.ipo_id === ipo.id) || [];
-        const peers = dbLocal.peers.filter(p => p.ipo_id === ipo.id) || [];
-        const financials = dbLocal.financials.filter(f => f.ipo_id === ipo.id) || [];
-        const anchors = dbLocal.anchor_investors.filter(a => a.ipo_id === ipo.id) || [];
-        
-        const total_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].total) : 0.0;
-        const qib_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].qib) : 0.0;
-        const retail_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].retail) : 0.0;
-        const gmp_pct = gmpRecs.length > 0 ? parseFloat(gmpRecs[gmpRecs.length - 1].implied_gain_pct) : 0.0;
-        
-        // Calculate P/E values
-        const pe_ratio = ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0; // dummy P/E
-        const peers_median_pe = peers.length > 0 ? peers[0].peer_pe : 35.0;
-        
-        const details = {
-          ...ipo,
-          total_sub,
-          qib_sub,
-          retail_sub,
-          gmp_pct,
-          pe_ratio,
-          peers_median_pe,
-          financials,
-          peers,
-          anchors
-        };
-        
-        // Run frontend evaluation
-        const evalRes = evaluateIpoClient(details);
-        return {
-          ...details,
-          score: evalRes.score,
-          decision: evalRes.decision,
-          rules: evalRes.rules,
-          notes: evalRes.notes
-        };
-      });
-      setIpos(evaluated);
+    async function loadData() {
+      if (supabase) {
+        try {
+          // Fetch IPOs from Supabase
+          const { data: cloudIpos, error: ipoError } = await supabase.from('ipos').select('*');
+          if (ipoError) throw ipoError;
+          
+          if (cloudIpos && cloudIpos.length > 0) {
+            // Fetch related tables
+            const { data: cloudSubs } = await supabase.from('subscriptions').select('*');
+            const { data: cloudGmps } = await supabase.from('gmp_history').select('*');
+            const { data: cloudPeers } = await supabase.from('peers').select('*');
+            const { data: cloudFins } = await supabase.from('financials').select('*');
+            const { data: cloudAnchors } = await supabase.from('anchor_investors').select('*');
+            
+            const evaluated = cloudIpos.map(ipo => {
+              const subs = cloudSubs?.filter(s => s.ipo_id === ipo.id) || [];
+              const gmpRecs = cloudGmps?.filter(g => g.ipo_id === ipo.id) || [];
+              const peers = cloudPeers?.filter(p => p.ipo_id === ipo.id) || [];
+              const financials = cloudFins?.filter(f => f.ipo_id === ipo.id) || [];
+              const anchors = cloudAnchors?.filter(a => a.ipo_id === ipo.id) || [];
+              
+              const total_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].total) : 0.0;
+              const qib_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].qib) : 0.0;
+              const retail_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].retail) : 0.0;
+              const gmp_pct = gmpRecs.length > 0 ? parseFloat(gmpRecs[gmpRecs.length - 1].implied_gain_pct) : 0.0;
+              
+              const pe_ratio = ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0;
+              const peers_median_pe = peers.length > 0 ? peers[0].peer_pe : 35.0;
+              
+              const details = {
+                ...ipo,
+                total_sub,
+                qib_sub,
+                retail_sub,
+                gmp_pct,
+                pe_ratio,
+                peers_median_pe,
+                financials,
+                peers,
+                anchors
+              };
+              
+              const evalRes = evaluateIpoClient(details);
+              return {
+                ...details,
+                score: evalRes.score,
+                decision: evalRes.decision,
+                rules: evalRes.rules,
+                notes: evalRes.notes
+              };
+            });
+            setIpos(evaluated);
+            return; // Load successful
+          }
+        } catch (e) {
+          console.error("Failed to load from Supabase, falling back to local files:", e);
+        }
+      }
+
+      // Offline Fallback
+      if (dbLocal && dbLocal.ipos) {
+        const evaluated = dbLocal.ipos.map(ipo => {
+          const subs = dbLocal.subscriptions.filter(s => s.ipo_id === ipo.id) || [];
+          const gmpRecs = dbLocal.gmp_history.filter(g => g.ipo_id === ipo.id) || [];
+          const peers = dbLocal.peers.filter(p => p.ipo_id === ipo.id) || [];
+          const financials = dbLocal.financials.filter(f => f.ipo_id === ipo.id) || [];
+          const anchors = dbLocal.anchor_investors.filter(a => a.ipo_id === ipo.id) || [];
+          
+          const total_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].total) : 0.0;
+          const qib_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].qib) : 0.0;
+          const retail_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].retail) : 0.0;
+          const gmp_pct = gmpRecs.length > 0 ? parseFloat(gmpRecs[gmpRecs.length - 1].implied_gain_pct) : 0.0;
+          
+          const pe_ratio = ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0;
+          const peers_median_pe = peers.length > 0 ? peers[0].peer_pe : 35.0;
+          
+          const details = {
+            ...ipo,
+            total_sub,
+            qib_sub,
+            retail_sub,
+            gmp_pct,
+            pe_ratio,
+            peers_median_pe,
+            financials,
+            peers,
+            anchors
+          };
+          
+          const evalRes = evaluateIpoClient(details);
+          return {
+            ...details,
+            score: evalRes.score,
+            decision: evalRes.decision,
+            rules: evalRes.rules,
+            notes: evalRes.notes
+          };
+        });
+        setIpos(evaluated);
+      }
     }
-  }, []);
+    loadData();
+  }, [gmpThreshold, subThreshold]);
 
   // Client-side evaluation equivalent to decision_engine.py
   function evaluateIpoClient(ipo) {

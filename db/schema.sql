@@ -111,3 +111,126 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_ipos_modtime BEFORE UPDATE ON ipos FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER update_subscriptions_modtime BEFORE UPDATE ON subscriptions FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER update_gmp_history_modtime BEFORE UPDATE ON gmp_history FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+-- ====================================================
+-- MULTI-USER & FAMILY GROUP EXTENSIONS
+-- ====================================================
+
+-- Enable RLS on core tables
+ALTER TABLE ipos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gmp_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE peers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE financials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE anchor_investors ENABLE ROW LEVEL SECURITY;
+
+-- Setup RLS policies on global market tables
+CREATE POLICY "Public Read Access" ON ipos FOR SELECT USING (true);
+CREATE POLICY "Scraper Admin Access" ON ipos FOR ALL TO service_role USING (true);
+
+CREATE POLICY "Public Read Access" ON subscriptions FOR SELECT USING (true);
+CREATE POLICY "Scraper Admin Access" ON subscriptions FOR ALL TO service_role USING (true);
+
+CREATE POLICY "Public Read Access" ON gmp_history FOR SELECT USING (true);
+CREATE POLICY "Scraper Admin Access" ON gmp_history FOR ALL TO service_role USING (true);
+
+CREATE POLICY "Public Read Access" ON peers FOR SELECT USING (true);
+CREATE POLICY "Scraper Admin Access" ON peers FOR ALL TO service_role USING (true);
+
+CREATE POLICY "Public Read Access" ON financials FOR SELECT USING (true);
+CREATE POLICY "Scraper Admin Access" ON financials FOR ALL TO service_role USING (true);
+
+CREATE POLICY "Public Read Access" ON anchor_investors FOR SELECT USING (true);
+CREATE POLICY "Scraper Admin Access" ON anchor_investors FOR ALL TO service_role USING (true);
+
+-- Create profile and family relation schemas
+CREATE TABLE user_profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    display_name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE family_groups (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    group_name VARCHAR(255) NOT NULL,
+    creator_id UUID REFERENCES user_profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE family_members (
+    id SERIAL PRIMARY KEY,
+    group_id UUID REFERENCES family_groups(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
+    role VARCHAR(50) DEFAULT 'member', -- 'admin', 'member'
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(group_id, user_id)
+);
+
+CREATE TABLE user_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES user_profiles(id) ON DELETE SET NULL,
+    group_id UUID REFERENCES family_groups(id) ON DELETE SET NULL,
+    account_holder_name VARCHAR(255) NOT NULL,
+    pan_mask VARCHAR(10) NOT NULL,
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_applications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
+    account_id UUID REFERENCES user_accounts(id) ON DELETE CASCADE,
+    ipo_id INTEGER REFERENCES ipos(id) ON DELETE CASCADE,
+    lots_applied INTEGER DEFAULT 1,
+    bid_amount NUMERIC(12, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING',
+    listing_profit_rs NUMERIC(12, 2) DEFAULT 0.00,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Enable RLS on new tables
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE family_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE family_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_applications ENABLE ROW LEVEL SECURITY;
+
+-- Set RLS policies for multi-user schemas
+CREATE POLICY "Users can view all profiles" ON user_profiles FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Users can update their own profile" ON user_profiles FOR ALL TO authenticated USING (auth.uid() = id);
+
+CREATE POLICY "Members can view their family group" ON family_groups FOR SELECT TO authenticated 
+    USING (id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid()));
+CREATE POLICY "Users can create family groups" ON family_groups FOR INSERT TO authenticated 
+    WITH CHECK (auth.uid() = creator_id);
+
+CREATE POLICY "Members can view family members list" ON family_members FOR SELECT TO authenticated 
+    USING (group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid()));
+CREATE POLICY "Admins can manage group members" ON family_members FOR ALL TO authenticated 
+    USING (group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid() AND role = 'admin'));
+
+CREATE POLICY "Users can manage personal accounts" ON user_accounts FOR ALL TO authenticated 
+    USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Group members can view family accounts" ON user_accounts FOR SELECT TO authenticated 
+    USING (group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can manage personal applications" ON user_applications FOR ALL TO authenticated 
+    USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Group members can view family applications" ON user_applications FOR SELECT TO authenticated 
+    USING (account_id IN (SELECT id FROM user_accounts WHERE group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid())));
+
+-- Profile auto-creation on trigger
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.user_profiles (id, display_name)
+  VALUES (new.id, COALESCE(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)));
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+

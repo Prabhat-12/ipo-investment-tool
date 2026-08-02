@@ -37,7 +37,12 @@ if not IS_CLOUD_MODE:
                 "gmp_history": [],
                 "peers": [],
                 "financials": [],
-                "anchor_investors": []
+                "anchor_investors": [],
+                "user_profiles": [],
+                "family_groups": [],
+                "family_members": [],
+                "user_accounts": [],
+                "user_applications": []
             }, f, indent=4)
 
 
@@ -46,9 +51,17 @@ def _load_local_db():
     LOCAL_DB_PATH = os.path.join(os.path.dirname(__file__), "src", "data", "db_local.json")
     try:
         with open(LOCAL_DB_PATH, "r") as f:
-            return json.load(f)
+            data = json.load(f)
+            # Ensure new keys exist if loading an older JSON file
+            for key in ["user_profiles", "family_groups", "family_members", "user_accounts", "user_applications"]:
+                if key not in data:
+                    data[key] = []
+            return data
     except Exception:
-        return {"ipos": [], "subscriptions": [], "gmp_history": [], "peers": [], "financials": [], "anchor_investors": []}
+        return {
+            "ipos": [], "subscriptions": [], "gmp_history": [], "peers": [], "financials": [], "anchor_investors": [],
+            "user_profiles": [], "family_groups": [], "family_members": [], "user_accounts": [], "user_applications": []
+        }
 
 def _save_local_db(db):
     LOCAL_DB_PATH = os.path.join(os.path.dirname(__file__), "src", "data", "db_local.json")
@@ -184,6 +197,8 @@ def save_financials(ipo_id, fin_list):
             supabase_client.table("financials").delete().eq("ipo_id", ipo_id).execute()
             for fin in fin_list:
                 fin_copy = fin.copy()
+                if "year" in fin_copy:
+                    fin_copy["fiscal_year"] = fin_copy.pop("year")
                 fin_copy["ipo_id"] = ipo_id
                 supabase_client.table("financials").insert(fin_copy).execute()
         except Exception as e:
@@ -193,6 +208,8 @@ def save_financials(ipo_id, fin_list):
         db["financials"] = [x for x in db["financials"] if x["ipo_id"] != ipo_id]
         for idx, fin in enumerate(fin_list):
             fin_copy = fin.copy()
+            if "year" in fin_copy:
+                fin_copy["fiscal_year"] = fin_copy.pop("year")
             fin_copy["id"] = len(db["financials"]) + idx + 1
             fin_copy["ipo_id"] = ipo_id
             db["financials"].append(fin_copy)

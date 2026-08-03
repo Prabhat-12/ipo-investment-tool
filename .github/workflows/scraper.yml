@@ -1,0 +1,34 @@
+name: IPO Data Scraper — Every 30 Minutes
+
+on:
+  schedule:
+    # Runs every 30 minutes, Mon–Fri, 09:00–15:30 IST (03:30–10:00 UTC)
+    - cron: '*/30 3-10 * * 1-5'
+  workflow_dispatch: # Allow manual trigger any time
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run IPO scraper → push to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python scraper_main.py
+
+      - name: Log completion
+        run: echo "Scrape completed at $(date -u)"

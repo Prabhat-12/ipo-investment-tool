@@ -33,12 +33,7 @@ import dbLocal from './data/db_local.json';
 import backtestData from './data/backtest_results.json';
 import { supabase } from './supabaseClient';
 
-// Mock profiles for Guest / Offline Mode
-const MOCK_PROFILES = [
-  { id: 'mock-prabhat', display_name: 'Prabhat (Self)', email: 'prabhat@example.com' },
-  { id: 'mock-sahil', display_name: 'Sahil (Brother)', email: 'sahil@example.com' },
-  { id: 'mock-father', display_name: 'Anil (Father)', email: 'anil@example.com' }
-];
+// Guest name state is held in component — no MOCK_PROFILES needed
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -66,6 +61,8 @@ export default function App() {
   const [displayName, setDisplayName] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [guestName, setGuestName] = useState('');
+  const [guestLoading, setGuestLoading] = useState(false);
 
   // Capital Rotator State
   const [capital, setCapital] = useState(100000);
@@ -466,13 +463,22 @@ export default function App() {
     setAuthLoading(false);
   };
 
-  const handleGuestLogin = (profile) => {
+  const handleGuestLogin = async (nameOverride) => {
+    const name = (nameOverride || guestName).trim();
+    if (!name) return;
+    setGuestLoading(true);
+    // Fire-and-forget: log the guest visit to Supabase for tracking
+    if (supabase) {
+      supabase.from('guest_visits').insert({ name, visited_at: new Date().toISOString() }).then(() => {});
+    }
+    const guestId = `guest-${Date.now()}`;
     setIsGuestMode(true);
     setSession({
-      id: profile.id,
-      display_name: profile.display_name,
-      user: { id: profile.id, email: profile.email }
+      id: guestId,
+      display_name: name,
+      user: { id: guestId, email: `${name.toLowerCase().replace(/\s+/g, '.')}@guest.local` }
     });
+    setGuestLoading(false);
   };
 
   const handleLogout = async () => {
@@ -965,55 +971,46 @@ export default function App() {
               </form>
             </div>
 
-            {/* Recruiter / Guest Demo Mode Selector */}
+            {/* Guest Access — name entry */}
             <div style={{ borderTop: '1px dashed var(--border-strong)', paddingTop: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 <Sparkles size={14} style={{ color: 'var(--accent)' }} />
                 <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--accent)', letterSpacing: '0.5px' }}>
-                  Recruiter & Guest Access
+                  Guest Access
                 </span>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 14px 0', lineHeight: '1.4' }}>
-                Testing the system workflow without a Supabase cloud database? Launch instantly in simulated Multi-User Offline mode:
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 14px 0', lineHeight: '1.5' }}>
+                Want to explore the portfolio? Enter your name — no email or password needed.
               </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {MOCK_PROFILES.map(profile => (
-                  <button
-                    key={profile.id}
-                    onClick={() => handleGuestLogin(profile)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px 18px',
-                      backgroundColor: 'rgba(139, 130, 115, 0.04)',
-                      border: '1px solid var(--border-strong)',
-                      borderRadius: '999px',
-                      color: 'var(--text-h)',
-                      fontSize: '12.5px',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--accent)';
-                      e.currentTarget.style.backgroundColor = 'var(--accent-bg)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--border-strong)';
-                      e.currentTarget.style.backgroundColor = 'rgba(139, 130, 115, 0.04)';
-                    }}
-                  >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <User size={13} style={{ color: 'var(--accent)' }} />
-                      {profile.display_name}
-                    </span>
-                    <ArrowRight size={13} style={{ color: 'var(--text-muted)' }} />
-                  </button>
-                ))}
-              </div>
+              <form
+                onSubmit={(e) => { e.preventDefault(); handleGuestLogin(); }}
+                style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}
+              >
+                <input
+                  type="text"
+                  placeholder="Your name..."
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="input-field"
+                  style={{
+                    flex: 1,
+                    padding: '11px 16px',
+                    borderRadius: '14px',
+                    backgroundColor: 'rgba(139, 130, 115, 0.04)',
+                    border: '1px solid var(--border-strong)',
+                    color: 'var(--text-h)',
+                    fontSize: '13px'
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={guestLoading || !guestName.trim()}
+                  className="btn btn-primary"
+                  style={{ padding: '11px 20px', borderRadius: '14px', fontSize: '13px', whiteSpace: 'nowrap' }}
+                >
+                  {guestLoading ? 'Entering...' : 'Enter →'}
+                </button>
+              </form>
             </div>
 
           </div>
@@ -1254,12 +1251,12 @@ export default function App() {
     thirtyDaysAgo.setDate(now.getDate() - 30);
 
     const biddingList = ipos.filter(i => i.status === 'bidding');
-    const upcomingList = ipos.filter(i => i.status === 'upcoming');
-    const closedList = ipos.filter(i => 
-      i.status !== 'bidding' && 
-      i.status !== 'upcoming' && 
+    const upcomingList = ipos.filter(i => i.status === 'upcoming').slice(0, 5);
+    const closedList = ipos.filter(i =>
+      i.status !== 'bidding' &&
+      i.status !== 'upcoming' &&
       (i.close_date ? new Date(i.close_date) >= thirtyDaysAgo : true)
-    );
+    ).slice(0, 5);
 
     const handleForceRefresh = async () => {
       setDbLoading(true);
@@ -1302,12 +1299,10 @@ export default function App() {
                   {list.map(ipo => {
                     const dateStr = ipo.close_date ? new Date(ipo.close_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'TBA';
                     return (
-                      <tr 
-                        key={ipo.id} 
+                      <tr
+                        key={ipo.id}
                         onClick={() => setSelectedIpo(ipo)}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.01)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background-color 0.2s ease' }}
+                        style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
                       >
                         <td style={{ padding: '14px 18px' }}>
                           <div style={{ fontWeight: '800', color: 'var(--text-h)' }}>{ipo.name}</div>

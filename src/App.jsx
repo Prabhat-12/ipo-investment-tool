@@ -3072,34 +3072,89 @@ function renderDrawerGmpChart(ipo) {
     };
   });
 
+  const W = 320, H = 160;
+  const padT = 12, padR = 16, padB = 32, padL = 40;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const values = chartData.map(d => d.value);
+  const minV = Math.min(...values, 0);
+  const maxV = Math.max(...values, 1);
+  const range = maxV - minV || 1;
+
+  const toX = (i) => padL + (i / Math.max(chartData.length - 1, 1)) * chartW;
+  const toY = (v) => padT + chartH - ((v - minV) / range) * chartH;
+
+  const linePath = chartData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${toX(i).toFixed(1)} ${toY(d.value).toFixed(1)}`).join(' ');
+  const areaPath = `${linePath} L ${toX(chartData.length - 1).toFixed(1)} ${toY(minV).toFixed(1)} L ${toX(0).toFixed(1)} ${toY(minV).toFixed(1)} Z`;
+
+  const latestVal = chartData[chartData.length - 1]?.value || 0;
+  const isPositive = latestVal >= 20;
+
+  // Pick a few evenly-spaced date labels
+  const labelIdxs = chartData.length <= 3
+    ? chartData.map((_, i) => i)
+    : [0, Math.floor((chartData.length - 1) / 2), chartData.length - 1];
+
+  const fmtDate = (d) => {
+    const dt = d instanceof Date ? d : new Date(d);
+    if (isNaN(dt.getTime())) return '';
+    return dt.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+  };
+
+  const accentColor = '#10b981'; // emerald green for positive
+  const dangerColor = '#ef4444';
+  const lineColor = isPositive ? accentColor : dangerColor;
+
   return (
-    <div style={{
-      backgroundColor: 'var(--bg)',
-      borderRadius: '12px',
-      padding: '16px',
-      border: '1px solid var(--border)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+    <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '12px', padding: '14px 16px', border: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <span style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--text-h)' }}>GMP Premium Curve</span>
         <span style={{
-          fontSize: '10px',
-          fontWeight: '700',
-          padding: '2px 8px',
-          borderRadius: '20px',
-          backgroundColor: chartData[chartData.length - 1]?.value >= 20 ? 'var(--accent-bg)' : 'var(--danger-bg)',
-          color: chartData[chartData.length - 1]?.value >= 20 ? 'var(--accent)' : 'var(--danger)'
+          fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px',
+          backgroundColor: isPositive ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+          color: lineColor
         }}>
-          Latest: {chartData[chartData.length - 1]?.value || 0}%
+          Latest: {latestVal}%
         </span>
       </div>
-      <div style={{ height: '140px' }}>
-        <AreaChart data={chartData}>
-          <Grid horizontal />
-          <Area dataKey="value" fill="var(--accent)" fillOpacity={0.15} stroke="var(--accent)" strokeWidth={2.5} />
-          <XAxis />
-          <ChartTooltip />
-        </AreaChart>
-      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
+        <defs>
+          <linearGradient id="gmp-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={lineColor} stopOpacity="0.2" />
+            <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {/* Horizontal grid lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
+          const y = padT + t * chartH;
+          const v = maxV - t * range;
+          return (
+            <g key={i}>
+              <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="var(--border)" strokeWidth="1" strokeDasharray="3 3" />
+              <text x={padL - 4} y={y + 3} textAnchor="end" fontSize="9" fill="var(--text-muted)">{v.toFixed(0)}%</text>
+            </g>
+          );
+        })}
+        {/* Zero baseline if applicable */}
+        {minV < 0 && maxV > 0 && (
+          <line x1={padL} y1={toY(0)} x2={W - padR} y2={toY(0)} stroke={dangerColor} strokeWidth="1" strokeOpacity="0.4" />
+        )}
+        {/* Area fill */}
+        <path d={areaPath} fill="url(#gmp-grad)" />
+        {/* Line */}
+        <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Data points */}
+        {chartData.map((d, i) => (
+          <circle key={i} cx={toX(i)} cy={toY(d.value)} r="3" fill="var(--card-bg)" stroke={lineColor} strokeWidth="2" />
+        ))}
+        {/* X-axis date labels — inside the SVG, won't overflow */}
+        {labelIdxs.map(i => (
+          <text key={i} x={toX(i)} y={H - 6} textAnchor="middle" fontSize="9" fill="var(--text-muted)">
+            {fmtDate(chartData[i].date)}
+          </text>
+        ))}
+      </svg>
     </div>
   );
 }
@@ -3122,34 +3177,70 @@ function renderDrawerPeersChart(ipo) {
     ...peers.map(p => ({ name: p.peer_name || p.name, pe: parseFloat(p.peer_pe) }))
   ];
 
+  const W = 320, H = 170;
+  const padT = 12, padR = 16, padB = 36, padL = 8;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const maxPe = Math.max(...chartData.map(d => d.pe), 1);
+  const barCount = chartData.length;
+  const gap = 10;
+  const barW = Math.max(20, (chartW - gap * (barCount - 1)) / barCount);
+
+  const peerAvg = chartData.slice(1).reduce((s, d) => s + d.pe, 0) / Math.max(1, chartData.length - 1);
+  const isDiscount = companyPe < peerAvg;
+  const accentGreen = '#10b981';
+  const accentOrange = 'var(--accent)';
+  const peerColor = 'rgba(148,163,184,0.5)'; // slate-400 muted
+
   return (
-    <div style={{
-      backgroundColor: 'var(--bg)',
-      borderRadius: '12px',
-      padding: '16px',
-      border: '1px solid var(--border)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+    <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '12px', padding: '14px 16px', border: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <span style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--text-h)' }}>Valuation P/E vs Peers</span>
         <span style={{
-          fontSize: '10px',
-          fontWeight: '700',
-          padding: '2px 8px',
-          borderRadius: '20px',
-          backgroundColor: companyPe < chartData.slice(1).reduce((s,p)=>s+p.pe,0)/Math.max(1,chartData.length-1) ? 'var(--accent-bg)' : 'var(--danger-bg)',
-          color: companyPe < chartData.slice(1).reduce((s,p)=>s+p.pe,0)/Math.max(1,chartData.length-1) ? 'var(--accent)' : 'var(--danger)'
+          fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px',
+          backgroundColor: isDiscount ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+          color: isDiscount ? accentGreen : '#ef4444'
         }}>
-          P/E: {companyPe.toFixed(1)}x
+          {isDiscount ? '✓ Discounted' : '⚠ Premium'} {companyPe.toFixed(1)}x
         </span>
       </div>
-      <div style={{ height: '140px' }}>
-        <BarChart data={chartData}>
-          <Grid horizontal />
-          <Bar dataKey="pe" fill="var(--accent)" />
-          <BarXAxis />
-          <ChartTooltip />
-        </BarChart>
-      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
+        {/* Horizontal grid lines */}
+        {[0, 0.5, 1].map((t, i) => {
+          const y = padT + (1 - t) * chartH;
+          const v = t * maxPe;
+          return (
+            <g key={i}>
+              <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="var(--border)" strokeWidth="1" strokeDasharray="3 3" />
+              {v > 0 && <text x={padL - 2} y={y + 3} textAnchor="end" fontSize="8" fill="var(--text-muted)">{v.toFixed(0)}x</text>}
+            </g>
+          );
+        })}
+        {/* Bars */}
+        {chartData.map((d, i) => {
+          const barH = Math.max(4, (d.pe / maxPe) * chartH);
+          const x = padL + i * (barW + gap);
+          const y = padT + chartH - barH;
+          const isCompany = i === 0;
+          const color = isCompany ? (isDiscount ? accentGreen : accentOrange) : peerColor;
+          const labelColor = isCompany ? (isDiscount ? accentGreen : 'var(--accent)') : 'var(--text-muted)';
+          const shortName = d.name.length > 10 ? d.name.slice(0, 9) + '…' : d.name;
+          return (
+            <g key={i}>
+              <rect x={x} y={y} width={barW} height={barH} rx="4" fill={color} />
+              {/* P/E value on top of bar */}
+              <text x={x + barW / 2} y={y - 3} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={labelColor}>
+                {d.pe.toFixed(0)}x
+              </text>
+              {/* Label below X axis */}
+              <text x={x + barW / 2} y={H - 4} textAnchor="middle" fontSize="8.5" fill={isCompany ? 'var(--text-h)' : 'var(--text-muted)'} fontWeight={isCompany ? '700' : '400'}>
+                {shortName}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }

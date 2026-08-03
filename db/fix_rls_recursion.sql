@@ -1,11 +1,20 @@
--- Run this migration in your Supabase SQL Editor to resolve RLS policy violations and recursion.
--- It explicitly separates SELECT, INSERT, UPDATE, and DELETE policies for the family_members table.
+-- Run this migration in your Supabase SQL Editor to resolve RLS policy issues and missing profile columns.
+-- 1. Adds the missing 'email' column to user_profiles and backfills it from auth.users.
+-- 2. Refreshes the RLS policies for family_members to prevent recursion and insertion errors.
 
--- 1. Create a bypass view for family_members (runs as owner/postgres, bypassing RLS)
+-- 1. Ensure user_profiles has the email column and backfill existing data
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+
+UPDATE public.user_profiles up
+SET email = u.email
+FROM auth.users u
+WHERE up.id = u.id AND (up.email IS NULL OR up.email = '');
+
+-- 2. Create/Replace the bypass view for family_members (runs as owner/postgres, bypassing RLS)
 CREATE OR REPLACE VIEW public.family_members_bypass AS
 SELECT group_id, user_id, role FROM public.family_members;
 
--- 2. Create helper functions with SECURITY DEFINER that query the bypass view
+-- 3. Create helper functions with SECURITY DEFINER that query the bypass view
 CREATE OR REPLACE FUNCTION public.is_group_member(group_id_param UUID, user_id_param UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -26,28 +35,35 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 3. Explicitly set owners to postgres to ensure bypass privileges are active
+-- 4. Explicitly set owners to postgres to ensure bypass privileges are active
 ALTER FUNCTION public.is_group_member(UUID, UUID) OWNER TO postgres;
 ALTER FUNCTION public.is_group_admin(UUID, UUID) OWNER TO postgres;
 
--- 4. Ensure no table has FORCE ROW LEVEL SECURITY (which would apply RLS checks to postgres owner)
+-- 5. Ensure no table has FORCE ROW LEVEL SECURITY (which would apply RLS checks to postgres owner)
 ALTER TABLE public.family_members NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.family_groups NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.user_accounts NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.user_applications NO FORCE ROW LEVEL SECURITY;
 
--- 5. Drop ALL existing policies on family_members to start fresh
+-- 6. Drop ALL existing policies on family_members to start fresh
 DROP POLICY IF EXISTS "Members can view family members list" ON family_members;
 DROP POLICY IF EXISTS "Admins can manage group members" ON family_members;
 DROP POLICY IF EXISTS "Users can insert their own membership" ON family_members;
 DROP POLICY IF EXISTS "Group creators can manage members" ON family_members;
 DROP POLICY IF EXISTS "Users can join a group" ON family_members;
+DROP POLICY IF EXISTS "Allow insertions" ON family_members;
+DROP POLICY IF EXISTS "Admins can update members" ON family_members;
+DROP POLICY IF EXISTS "Admins can delete members" ON family_members;
 
--- 6. Re-apply family_members policies explicitly for each action
--- SELECT: Members can view family members list
+-- 7. Re-apply family_members policies explicitly for each action
+-- SELECT: Members can view family members list (allow direct self-check to prevent INSERT RETURNING failures)
 CREATE POLICY "Members can view family members list" ON family_members 
     FOR SELECT TO authenticated 
-    USING (public.is_group_member(group_id, auth.uid()));
+    USING (
+        auth.uid() = user_id 
+        OR 
+        public.is_group_member(group_id, auth.uid())
+    );
 
 -- INSERT: Users can insert their own membership OR admins can add members
 CREATE POLICY "Allow insertions" ON family_members 
@@ -69,7 +85,7 @@ CREATE POLICY "Admins can delete members" ON family_members
     FOR DELETE TO authenticated 
     USING (public.is_group_admin(group_id, auth.uid()));
 
--- 7. Add recursion-free policy for family_groups management
+-- 8. Add recursion-free policy for family_groups management
 DROP POLICY IF EXISTS "Creators can manage family group" ON family_groups;
 CREATE POLICY "Creators can manage family group" ON family_groups FOR ALL TO authenticated 
     USING (auth.uid() = creator_id);

@@ -845,24 +845,17 @@ export default function App() {
         padding: '24px',
         color: 'var(--text)'
       }}>
-        <div style={{
-          maxWidth: '850px',
-          width: '100%',
-          display: 'grid',
-          gridTemplateColumns: '1.2fr 1fr',
-          gap: '40px',
-          alignItems: 'center'
-        }}>
+        <div className="login-grid">
 
           {/* Logo & Product Concept */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="login-branding" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ padding: '10px', borderRadius: '50%', backgroundColor: 'var(--accent-bg)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <TrendingUp size={32} style={{ color: 'var(--accent)' }} />
               </div>
               <div>
                 <h1 style={{ fontSize: '30px', fontWeight: '900', margin: 0, letterSpacing: '-1px', color: 'var(--text-h)' }}>
-                  Antigravity IPO
+                  IPO Investment Tool
                 </h1>
                 <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Systematic Listing Gain Engine
@@ -877,15 +870,15 @@ export default function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
                 <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
-                <span>**8 strict quantitative rules** evaluating demand, metrics, and anchors.</span>
+                <span><strong>8 strict quantitative rules</strong> evaluating demand, metrics, and anchors.</span>
               </div>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
                 <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
-                <span>**Multi-PAN Account Management** to optimize retail allotment odds.</span>
+                <span><strong>Multi-PAN Account Management</strong> to optimize retail allotment odds.</span>
               </div>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
                 <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
-                <span>**Telegram Push Notifications** delivering closing alerts to your phone.</span>
+                <span><strong>Telegram Push Notifications</strong> delivering closing alerts to your phone.</span>
               </div>
             </div>
           </div>

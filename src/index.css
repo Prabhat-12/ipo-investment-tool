@@ -520,3 +520,32 @@ body {
   color: white;
   transform: translateY(-1px);
 }
+
+/* =============================================
+   LOGIN SCREEN – RESPONSIVE LAYOUT
+   ============================================= */
+.login-grid {
+  max-width: 920px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr);
+  gap: 48px;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .login-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    max-width: 420px;
+  }
+
+  .login-branding {
+    text-align: center;
+  }
+
+  .login-branding .feature-list {
+    text-align: left;
+  }
+}
+

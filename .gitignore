@@ -28,3 +28,9 @@ dist-ssr
 __pycache__/
 .env
 *.pyc
+
+# Agent customization and tracking
+.agents/
+skills-lock.json
+task.md
+

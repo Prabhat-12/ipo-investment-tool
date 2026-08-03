@@ -44,6 +44,7 @@ CREATE POLICY "Scraper Admin Access" ON anchor_investors FOR ALL TO service_role
 CREATE TABLE IF NOT EXISTS user_profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     display_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -101,10 +102,31 @@ CREATE POLICY "Users can view all profiles" ON user_profiles FOR SELECT TO authe
 DROP POLICY IF EXISTS "Users can update their own profile" ON user_profiles;
 CREATE POLICY "Users can update their own profile" ON user_profiles FOR ALL TO authenticated USING (auth.uid() = id);
 
+-- Security Definer helper functions to prevent RLS recursion
+CREATE OR REPLACE FUNCTION public.is_group_member(group_id_param UUID, user_id_param UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.family_members
+    WHERE group_id = group_id_param AND user_id = user_id_param
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION public.is_group_admin(group_id_param UUID, user_id_param UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.family_members
+    WHERE group_id = group_id_param AND user_id = user_id_param AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Family Groups
 DROP POLICY IF EXISTS "Members can view their family group" ON family_groups;
 CREATE POLICY "Members can view their family group" ON family_groups FOR SELECT TO authenticated 
-    USING (id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid()));
+    USING (public.is_group_member(id, auth.uid()));
 
 DROP POLICY IF EXISTS "Users can create family groups" ON family_groups;
 CREATE POLICY "Users can create family groups" ON family_groups FOR INSERT TO authenticated 
@@ -113,16 +135,11 @@ CREATE POLICY "Users can create family groups" ON family_groups FOR INSERT TO au
 -- Family Members
 DROP POLICY IF EXISTS "Members can view family members list" ON family_members;
 CREATE POLICY "Members can view family members list" ON family_members FOR SELECT TO authenticated 
-    USING (group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid()));
+    USING (public.is_group_member(group_id, auth.uid()));
 
 DROP POLICY IF EXISTS "Admins can manage group members" ON family_members;
 CREATE POLICY "Admins can manage group members" ON family_members FOR ALL TO authenticated 
-    USING (
-        group_id IN (
-            SELECT group_id FROM family_members 
-            WHERE user_id = auth.uid() AND role = 'admin'
-        )
-    );
+    USING (public.is_group_admin(group_id, auth.uid()));
 
 -- User Accounts (PAN slots)
 DROP POLICY IF EXISTS "Users can manage personal accounts" ON user_accounts;
@@ -131,12 +148,7 @@ CREATE POLICY "Users can manage personal accounts" ON user_accounts FOR ALL TO a
 
 DROP POLICY IF EXISTS "Group members can view family accounts" ON user_accounts;
 CREATE POLICY "Group members can view family accounts" ON user_accounts FOR SELECT TO authenticated 
-    USING (
-        group_id IN (
-            SELECT group_id FROM family_members 
-            WHERE user_id = auth.uid()
-        )
-    );
+    USING (public.is_group_member(group_id, auth.uid()));
 
 -- User Applications (Bids)
 DROP POLICY IF EXISTS "Users can manage personal applications" ON user_applications;
@@ -145,23 +157,21 @@ CREATE POLICY "Users can manage personal applications" ON user_applications FOR 
 
 DROP POLICY IF EXISTS "Group members can view family applications" ON user_applications;
 CREATE POLICY "Group members can view family applications" ON user_applications FOR SELECT TO authenticated 
-    USING (
-        account_id IN (
-            SELECT id FROM user_accounts 
-            WHERE group_id IN (
-                SELECT group_id FROM family_members 
-                WHERE user_id = auth.uid()
-            )
-        )
-    );
+    USING (account_id IN (
+        SELECT id FROM user_accounts 
+        WHERE public.is_group_member(group_id, auth.uid())
+    ));
 
--- 5. Automate Profile Creation on Auth Signup
--- Create a trigger that auto-creates a user_profile when a new user registers via Supabase auth
+-- 5. Automate Profile Creation on Auth Signup (includes email field)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.user_profiles (id, display_name)
-  VALUES (new.id, COALESCE(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)));
+  INSERT INTO public.user_profiles (id, display_name, email)
+  VALUES (
+    new.id, 
+    COALESCE(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)),
+    new.email
+  );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

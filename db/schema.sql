@@ -147,6 +147,7 @@ CREATE POLICY "Scraper Admin Access" ON anchor_investors FOR ALL TO service_role
 CREATE TABLE user_profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     display_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -196,36 +197,64 @@ ALTER TABLE family_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_applications ENABLE ROW LEVEL SECURITY;
 
+-- Security Definer helper functions to prevent RLS recursion
+CREATE OR REPLACE FUNCTION public.is_group_member(group_id_param UUID, user_id_param UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.family_members
+    WHERE group_id = group_id_param AND user_id = user_id_param
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION public.is_group_admin(group_id_param UUID, user_id_param UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.family_members
+    WHERE group_id = group_id_param AND user_id = user_id_param AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Set RLS policies for multi-user schemas
 CREATE POLICY "Users can view all profiles" ON user_profiles FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Users can update their own profile" ON user_profiles FOR ALL TO authenticated USING (auth.uid() = id);
 
 CREATE POLICY "Members can view their family group" ON family_groups FOR SELECT TO authenticated 
-    USING (id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid()));
+    USING (public.is_group_member(id, auth.uid()));
 CREATE POLICY "Users can create family groups" ON family_groups FOR INSERT TO authenticated 
     WITH CHECK (auth.uid() = creator_id);
 
 CREATE POLICY "Members can view family members list" ON family_members FOR SELECT TO authenticated 
-    USING (group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid()));
+    USING (public.is_group_member(group_id, auth.uid()));
 CREATE POLICY "Admins can manage group members" ON family_members FOR ALL TO authenticated 
-    USING (group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid() AND role = 'admin'));
+    USING (public.is_group_admin(group_id, auth.uid()));
 
 CREATE POLICY "Users can manage personal accounts" ON user_accounts FOR ALL TO authenticated 
     USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Group members can view family accounts" ON user_accounts FOR SELECT TO authenticated 
-    USING (group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid()));
+    USING (public.is_group_member(group_id, auth.uid()));
 
 CREATE POLICY "Users can manage personal applications" ON user_applications FOR ALL TO authenticated 
     USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Group members can view family applications" ON user_applications FOR SELECT TO authenticated 
-    USING (account_id IN (SELECT id FROM user_accounts WHERE group_id IN (SELECT group_id FROM family_members WHERE user_id = auth.uid())));
+    USING (account_id IN (
+        SELECT id FROM user_accounts 
+        WHERE public.is_group_member(group_id, auth.uid())
+    ));
 
--- Profile auto-creation on trigger
+-- Profile auto-creation on trigger (includes email field)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.user_profiles (id, display_name)
-  VALUES (new.id, COALESCE(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)));
+  INSERT INTO public.user_profiles (id, display_name, email)
+  VALUES (
+    new.id, 
+    COALESCE(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)),
+    new.email
+  );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

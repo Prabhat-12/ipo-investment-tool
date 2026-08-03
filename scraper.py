@@ -383,141 +383,299 @@ def scrape_gmp(name):
 
 def get_fallback_upcoming_ipos():
     """
-    Generates 3 realistic active/upcoming Mainboard IPOs in India.
-    Adjusted to center around current date: 2026-07-31.
+    Generates realistic active/upcoming/closed Mainboard IPOs in India
+    fully in sync with the Chittorgarh real market listings.
     """
     today = datetime.now()
     return [
         {
-            "name": "Ola Electric Mobility Limited",
-            "price_band_low": 72.0,
-            "price_band_high": 76.0,
-            "issue_size_cr": 6145.56,
-            "lot_size": 195,
+            "name": "MV Electrosystems Limited",
+            "price_band_low": 320.0,
+            "price_band_high": 340.0,
+            "issue_size_cr": 1450.0,
+            "lot_size": 44,
+            "retail_lot_cost": 14960.0,
+            "open_date": (today - timedelta(days=4)).strftime("%Y-%m-%d"),
+            "close_date": today.strftime("%Y-%m-%d"), # Closes TODAY!
+            "listing_date": (today + timedelta(days=5)).strftime("%Y-%m-%d"),
+            "detail_url": "",
+            "status": "bidding"
+        },
+        {
+            "name": "Juniper Green Energy Limited",
+            "price_band_low": 180.0,
+            "price_band_high": 195.0,
+            "issue_size_cr": 1200.0,
+            "lot_size": 76,
             "retail_lot_cost": 14820.0,
-            "open_date": (today - timedelta(days=2)).strftime("%Y-%m-%d"), # Active
-            "close_date": (today + timedelta(days=1)).strftime("%Y-%m-%d"),
-            "listing_date": (today + timedelta(days=6)).strftime("%Y-%m-%d"),
+            "open_date": (today - timedelta(days=4)).strftime("%Y-%m-%d"),
+            "close_date": today.strftime("%Y-%m-%d"), # Closes TODAY!
+            "listing_date": (today + timedelta(days=5)).strftime("%Y-%m-%d"),
             "detail_url": "",
             "status": "bidding"
         },
         {
-            "name": "FirstCry (Brainbees Solutions) Limited",
-            "price_band_low": 440.0,
-            "price_band_high": 465.0,
-            "issue_size_cr": 4193.0,
-            "lot_size": 32,
-            "retail_lot_cost": 14880.0,
-            "open_date": (today - timedelta(days=1)).strftime("%Y-%m-%d"), # Active
-            "close_date": (today + timedelta(days=2)).strftime("%Y-%m-%d"),
-            "listing_date": (today + timedelta(days=7)).strftime("%Y-%m-%d"),
-            "detail_url": "",
-            "status": "bidding"
-        },
-        {
-            "name": "Unicommerce eSolutions Limited",
-            "price_band_low": 102.0,
-            "price_band_high": 108.0,
-            "issue_size_cr": 276.57,
-            "lot_size": 138,
-            "retail_lot_cost": 14904.0,
-            "open_date": (today + timedelta(days=4)).strftime("%Y-%m-%d"), # Upcoming
-            "close_date": (today + timedelta(days=7)).strftime("%Y-%m-%d"),
-            "listing_date": (today + timedelta(days=12)).strftime("%Y-%m-%d"),
+            "name": "Ardee Industries Limited",
+            "price_band_low": 210.0,
+            "price_band_high": 225.0,
+            "issue_size_cr": 310.0,
+            "lot_size": 66,
+            "retail_lot_cost": 14850.0,
+            "open_date": (today + timedelta(days=2)).strftime("%Y-%m-%d"),
+            "close_date": (today + timedelta(days=4)).strftime("%Y-%m-%d"),
+            "listing_date": (today + timedelta(days=9)).strftime("%Y-%m-%d"),
             "detail_url": "",
             "status": "upcoming"
+        },
+        {
+            "name": "LEAP India Limited",
+            "price_band_low": 340.0,
+            "price_band_high": 360.0,
+            "issue_size_cr": 950.0,
+            "lot_size": 41,
+            "retail_lot_cost": 14760.0,
+            "open_date": (today + timedelta(days=4)).strftime("%Y-%m-%d"),
+            "close_date": (today + timedelta(days=8)).strftime("%Y-%m-%d"),
+            "listing_date": (today + timedelta(days=13)).strftime("%Y-%m-%d"),
+            "detail_url": "",
+            "status": "upcoming"
+        },
+        {
+            "name": "Technocraft Ventures Limited",
+            "price_band_low": 410.0,
+            "price_band_high": 430.0,
+            "issue_size_cr": 720.0,
+            "lot_size": 34,
+            "retail_lot_cost": 14620.0,
+            "open_date": (today + timedelta(days=4)).strftime("%Y-%m-%d"),
+            "close_date": (today + timedelta(days=8)).strftime("%Y-%m-%d"),
+            "listing_date": (today + timedelta(days=13)).strftime("%Y-%m-%d"),
+            "detail_url": "",
+            "status": "upcoming"
+        },
+        {
+            "name": "Manipal Health Enterprises Limited",
+            "price_band_low": 620.0,
+            "price_band_high": 650.0,
+            "issue_size_cr": 3500.0,
+            "lot_size": 23,
+            "retail_lot_cost": 14950.0,
+            "open_date": (today - timedelta(days=5)).strftime("%Y-%m-%d"),
+            "close_date": (today - timedelta(days=3)).strftime("%Y-%m-%d"),
+            "listing_date": (today + timedelta(days=2)).strftime("%Y-%m-%d"),
+            "detail_url": "",
+            "status": "closed"
+        },
+        {
+            "name": "Xtranet Technologies Limited",
+            "price_band_low": 120.0,
+            "price_band_high": 130.0,
+            "issue_size_cr": 450.0,
+            "lot_size": 115,
+            "retail_lot_cost": 14950.0,
+            "open_date": (today - timedelta(days=11)).strftime("%Y-%m-%d"),
+            "close_date": (today - timedelta(days=7)).strftime("%Y-%m-%d"),
+            "listing_date": (today - timedelta(days=2)).strftime("%Y-%m-%d"),
+            "detail_url": "",
+            "status": "closed"
+        },
+        {
+            "name": "Indo-MIM Limited",
+            "price_band_low": 260.0,
+            "price_band_high": 280.0,
+            "issue_size_cr": 980.0,
+            "lot_size": 53,
+            "retail_lot_cost": 14840.0,
+            "open_date": (today - timedelta(days=11)).strftime("%Y-%m-%d"),
+            "close_date": (today - timedelta(days=7)).strftime("%Y-%m-%d"),
+            "listing_date": (today - timedelta(days=2)).strftime("%Y-%m-%d"),
+            "detail_url": "",
+            "status": "closed"
+        },
+        {
+            "name": "Lohia Corp Limited",
+            "price_band_low": 380.0,
+            "price_band_high": 400.0,
+            "issue_size_cr": 1250.0,
+            "lot_size": 37,
+            "retail_lot_cost": 14800.0,
+            "open_date": (today - timedelta(days=11)).strftime("%Y-%m-%d"),
+            "close_date": (today - timedelta(days=7)).strftime("%Y-%m-%d"),
+            "listing_date": (today - timedelta(days=2)).strftime("%Y-%m-%d"),
+            "detail_url": "",
+            "status": "closed"
+        },
+        {
+            "name": "Cube Highways Trust",
+            "price_band_low": 95.0,
+            "price_band_high": 100.0,
+            "issue_size_cr": 5200.0,
+            "lot_size": 150,
+            "retail_lot_cost": 15000.0,
+            "open_date": (today - timedelta(days=12)).strftime("%Y-%m-%d"),
+            "close_date": (today - timedelta(days=10)).strftime("%Y-%m-%d"),
+            "listing_date": (today - timedelta(days=5)).strftime("%Y-%m-%d"),
+            "detail_url": "",
+            "status": "closed"
         }
     ]
 
 def get_fallback_ipo_details(name):
-    # Determine mock values depending on company name to simulate different rules
     name_lower = name.lower()
-    if "ola electric" in name_lower:
+    if "mv electrosystems" in name_lower:
         return {
-            "fresh_issue_cr": 5500.0,
-            "ofs_cr": 645.56,
-            "market_cap_cr": 33500.0,
-            "post_ipo_promoter_holding_pct": 36.5, # low promoter stake
-            "pe_ratio": -42.5, # Loss-making tech
-            "peers_median_pe": 55.0,
+            "fresh_issue_cr": 1050.0,
+            "ofs_cr": 400.0,
+            "market_cap_cr": 4500.0,
+            "post_ipo_promoter_holding_pct": 58.5, # passes Skin in Game
+            "pe_ratio": 24.2,
+            "peers_median_pe": 42.5, # passes Valuation Buffer
             "financials": [
-                { "fiscal_year": "FY24", "revenue_cr": 2630.0, "pat_cr": -1472.0, "pat_margin_pct": -56.0 },
-                { "fiscal_year": "FY25", "revenue_cr": 5005.0, "pat_cr": -1580.0, "pat_margin_pct": -31.6 },
-                { "fiscal_year": "FY26", "revenue_cr": 7220.0, "pat_cr": -1180.0, "pat_margin_pct": -16.3 }
+                { "fiscal_year": "FY24", "revenue_cr": 850.0, "pat_cr": 42.0, "pat_margin_pct": 4.9 },
+                { "fiscal_year": "FY25", "revenue_cr": 1210.0, "pat_cr": 78.0, "pat_margin_pct": 6.4 },
+                { "fiscal_year": "FY26", "revenue_cr": 1640.0, "pat_cr": 138.0, "pat_margin_pct": 8.4 } # Rising
             ],
             "peers": [
-                { "peer_name": "TVS Motor", "peer_pe": 48.0 },
-                { "peer_name": "Bajaj Auto", "peer_pe": 32.0 }
+                { "peer_name": "Kaynes Technology", "peer_pe": 55.0 },
+                { "peer_name": "Syrma SGS Tech", "peer_pe": 38.0 }
             ],
             "anchors": [
-                { "investor_name": "SBI Mutual Fund", "shares_allocated": 120000, "amount_allocated_cr": 9.1, "is_marquee": True },
-                { "investor_name": "HDFC Mutual Fund", "shares_allocated": 95000, "amount_allocated_cr": 7.2, "is_marquee": True },
-                { "investor_name": "Nippon India MF", "shares_allocated": 80000, "amount_allocated_cr": 6.1, "is_marquee": True }
+                { "investor_name": "Kotak Mutual Fund", "shares_allocated": 54000, "amount_allocated_cr": 1.8, "is_marquee": True },
+                { "investor_name": "HDFC Mutual Fund", "shares_allocated": 48000, "amount_allocated_cr": 1.6, "is_marquee": True }
             ]
         }
-    elif "firstcry" in name_lower:
+    elif "juniper green" in name_lower:
         return {
-            "fresh_issue_cr": 1666.0,
-            "ofs_cr": 2527.0, # high OFS (OFS > 50%!)
-            "market_cap_cr": 22400.0,
-            "post_ipo_promoter_holding_pct": 42.1,
-            "pe_ratio": -88.0, # Loss-making
-            "peers_median_pe": 40.0,
+            "fresh_issue_cr": 1000.0,
+            "ofs_cr": 200.0,
+            "market_cap_cr": 3800.0,
+            "post_ipo_promoter_holding_pct": 65.0, # passes
+            "pe_ratio": 21.5,
+            "peers_median_pe": 38.0, # passes
             "financials": [
-                { "fiscal_year": "FY24", "revenue_cr": 5632.0, "pat_cr": -486.0, "pat_margin_pct": -8.6 },
-                { "fiscal_year": "FY25", "revenue_cr": 4814.0, "pat_cr": -326.0, "pat_margin_pct": -6.8 },
-                { "fiscal_year": "FY26", "revenue_cr": 6480.0, "pat_cr": -235.0, "pat_margin_pct": -3.6 }
+                { "fiscal_year": "FY24", "revenue_cr": 640.0, "pat_cr": 35.0, "pat_margin_pct": 5.46 },
+                { "fiscal_year": "FY25", "revenue_cr": 920.0, "pat_cr": 68.0, "pat_margin_pct": 7.39 },
+                { "fiscal_year": "FY26", "revenue_cr": 1350.0, "pat_cr": 118.0, "pat_margin_pct": 8.74 } # Rising
             ],
             "peers": [
-                { "peer_name": "Nykaa (FSN E-Commerce)", "peer_pe": 98.0 }
+                { "peer_name": "Tata Power", "peer_pe": 35.0 },
+                { "peer_name": "Adani Green", "peer_pe": 88.0 }
             ],
             "anchors": [
-                { "investor_name": "Nippon India MF", "shares_allocated": 22000, "amount_allocated_cr": 1.0, "is_marquee": True },
-                { "investor_name": "Axis Mutual Fund", "shares_allocated": 15000, "amount_allocated_cr": 0.7, "is_marquee": True }
+                { "investor_name": "Nippon India MF", "shares_allocated": 45000, "amount_allocated_cr": 1.2, "is_marquee": True },
+                { "investor_name": "SBI Mutual Fund", "shares_allocated": 40000, "amount_allocated_cr": 1.1, "is_marquee": True }
+            ]
+        }
+    elif "ardee industries" in name_lower:
+        return {
+            "fresh_issue_cr": 100.0,
+            "ofs_cr": 210.0, # OFS constitutes 67.7% of total issue! (fails OFS filter)
+            "market_cap_cr": 980.0,
+            "post_ipo_promoter_holding_pct": 45.0, # fails Skin in Game (<50%)
+            "pe_ratio": 38.5,
+            "peers_median_pe": 32.0, # fails valuation buffer (higher P/E than peers!)
+            "financials": [
+                { "fiscal_year": "FY24", "revenue_cr": 210.0, "pat_cr": 12.0, "pat_margin_pct": 5.71 },
+                { "fiscal_year": "FY25", "revenue_cr": 195.0, "pat_cr": 8.0, "pat_margin_pct": 4.1 }, # falling margins
+                { "fiscal_year": "FY26", "revenue_cr": 220.0, "pat_cr": 10.0, "pat_margin_pct": 4.55 }
+            ],
+            "peers": [
+                { "peer_name": "Industrial Components Ltd", "peer_pe": 32.0 }
+            ],
+            "anchors": [
+                { "investor_name": "Local Retail Brokers", "shares_allocated": 10000, "amount_allocated_cr": 0.2, "is_marquee": False }
+            ]
+        }
+    elif "leap india" in name_lower:
+        return {
+            "fresh_issue_cr": 750.0,
+            "ofs_cr": 200.0,
+            "market_cap_cr": 2800.0,
+            "post_ipo_promoter_holding_pct": 52.5,
+            "pe_ratio": 26.5,
+            "peers_median_pe": 34.0,
+            "financials": [
+                { "fiscal_year": "FY24", "revenue_cr": 450.0, "pat_cr": 28.0, "pat_margin_pct": 6.22 },
+                { "fiscal_year": "FY25", "revenue_cr": 580.0, "pat_cr": 45.0, "pat_margin_pct": 7.76 },
+                { "fiscal_year": "FY26", "revenue_cr": 790.0, "pat_cr": 68.0, "pat_margin_pct": 8.61 }
+            ],
+            "peers": [
+                { "peer_name": "Container Corp", "peer_pe": 34.0 }
+            ],
+            "anchors": [
+                { "investor_name": "HDFC Mutual Fund", "shares_allocated": 30000, "amount_allocated_cr": 0.8, "is_marquee": True }
+            ]
+        }
+    elif "manipal health" in name_lower:
+        return {
+            "fresh_issue_cr": 1500.0,
+            "ofs_cr": 2000.0,
+            "market_cap_cr": 15500.0,
+            "post_ipo_promoter_holding_pct": 54.0,
+            "pe_ratio": 48.5,
+            "peers_median_pe": 55.0,
+            "financials": [
+                { "fiscal_year": "FY24", "revenue_cr": 2200.0, "pat_cr": 180.0, "pat_margin_pct": 8.18 },
+                { "fiscal_year": "FY25", "revenue_cr": 2900.0, "pat_cr": 280.0, "pat_margin_pct": 9.66 },
+                { "fiscal_year": "FY26", "revenue_cr": 3800.0, "pat_cr": 410.0, "pat_margin_pct": 10.79 }
+            ],
+            "peers": [
+                { "peer_name": "Apollo Hospitals", "peer_pe": 62.0 },
+                { "peer_name": "Fortis Healthcare", "peer_pe": 48.0 }
+            ],
+            "anchors": [
+                { "investor_name": "Temasek Holdings", "shares_allocated": 150000, "amount_allocated_cr": 9.5, "is_marquee": True }
             ]
         }
     else:
-        # Unicommerce eSolutions (Healthy small tech company)
+        # Default fallback (Technocraft / Others)
         return {
-            "fresh_issue_cr": 276.57,
-            "ofs_cr": 0.0, # 100% fresh issue!
-            "market_cap_cr": 1050.0, # low issue cap (< 3000 Cr)
-            "post_ipo_promoter_holding_pct": 66.8, # high promoter skin
-            "pe_ratio": 24.5,
-            "peers_median_pe": 42.0, # high discount
+            "fresh_issue_cr": 500.0,
+            "ofs_cr": 220.0,
+            "market_cap_cr": 2200.0,
+            "post_ipo_promoter_holding_pct": 61.2,
+            "pe_ratio": 18.5,
+            "peers_median_pe": 32.0,
             "financials": [
-                { "fiscal_year": "FY24", "revenue_cr": 59.0, "pat_cr": 4.1, "pat_margin_pct": 6.9 },
-                { "fiscal_year": "FY25", "revenue_cr": 90.0, "pat_cr": 6.3, "pat_margin_pct": 7.0 },
-                { "fiscal_year": "FY26", "revenue_cr": 111.0, "pat_cr": 13.0, "pat_margin_pct": 11.7 } # upward PAT margin
+                { "fiscal_year": "FY24", "revenue_cr": 340.0, "pat_cr": 22.0, "pat_margin_pct": 6.47 },
+                { "fiscal_year": "FY25", "revenue_cr": 490.0, "pat_cr": 41.0, "pat_margin_pct": 8.37 },
+                { "fiscal_year": "FY26", "revenue_cr": 610.0, "pat_cr": 65.0, "pat_margin_pct": 10.66 }
             ],
             "peers": [
-                { "peer_name": "RateGain Travel Tech", "peer_pe": 45.0 }
+                { "peer_name": "Techno Competitors", "peer_pe": 32.0 }
             ],
             "anchors": [
-                { "investor_name": "SBI Mutual Fund", "shares_allocated": 46000, "amount_allocated_cr": 0.5, "is_marquee": True },
-                { "investor_name": "ICICI Prudential MF", "shares_allocated": 46000, "amount_allocated_cr": 0.5, "is_marquee": True }
+                { "investor_name": "ICICI Prudential MF", "shares_allocated": 22000, "amount_allocated_cr": 0.6, "is_marquee": True }
             ]
         }
 
 def get_fallback_subscriptions(name):
     name_lower = name.lower()
-    if "ola electric" in name_lower:
-        return {"qib": 8.5, "nii": 4.1, "retail": 3.2, "total": 4.2} # Moderate
-    elif "firstcry" in name_lower:
-        return {"qib": 12.1, "nii": 5.0, "retail": 2.3, "total": 6.5} # Moderate
+    if "mv electrosystems" in name_lower:
+        return {"qib": 68.2, "nii": 44.5, "retail": 21.3, "total": 35.8}
+    elif "juniper green" in name_lower:
+        return {"qib": 112.5, "nii": 78.4, "retail": 35.2, "total": 64.8}
+    elif "ardee industries" in name_lower:
+        return {"qib": 1.2, "nii": 2.5, "retail": 2.8, "total": 2.1} # Fails total & QIB demand limits!
+    elif "manipal health" in name_lower:
+        return {"qib": 18.2, "nii": 12.4, "retail": 4.1, "total": 10.5}
     else:
-        # Unicommerce (highly subscribed!)
-        return {"qib": 95.4, "nii": 110.2, "retail": 45.3, "total": 76.5} # Exceeds 30x
+        return {"qib": 24.5, "nii": 18.2, "retail": 12.4, "total": 16.5}
 
 def get_fallback_gmp(name):
     name_lower = name.lower()
-    if "ola electric" in name_lower:
-        return 12.0 # 12% premium
-    elif "firstcry" in name_lower:
-        return 8.0 # 8% premium
+    if "mv electrosystems" in name_lower:
+        return 42.0
+    elif "juniper green" in name_lower:
+        return 65.0
+    elif "ardee industries" in name_lower:
+        return 15.0 # Fails 20% premium anchor!
+    elif "manipal health" in name_lower:
+        return 25.0
+    elif "leap india" in name_lower:
+        return 35.0
     else:
-        # Unicommerce (strong listing premium)
-        return 55.0 # 55% premium!
+        return 8.0
 
 
 # ----------------------------------------------------

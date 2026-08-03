@@ -70,17 +70,152 @@ def fetch_page(url):
 # ----------------------------------------------------
 # 1. UPCOMING & ACTIVE IPO LIST SCRAPER
 # ----------------------------------------------------
+def _extract_slug_id_from_url(detail_url):
+    """
+    Extracts slug and numeric ID from a Chittorgarh detail URL.
+    e.g. https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/
+    returns ('juniper-green-energy-ipo', '2492')
+    """
+    match = re.search(r'/ipo/([a-z0-9\-]+)/(\d+)/?$', detail_url)
+    if match:
+        return match.group(1), match.group(2)
+    return None, None
+
+def _scrape_ipo_list_from_detail_links(html):
+    """
+    Chittorgarh's main board page renders as a Next.js shell with no table data,
+    but statically embeds active IPO detail page links in paragraph/card anchors.
+    This function discovers those links and fetches each detail page.
+    """
+    soup = BeautifulSoup(html, "lxml")
+    # Find all links pointing to /ipo/{slug}/{id}/ pattern
+    ipo_links = {}
+    for a in soup.find_all("a", href=re.compile(r'/ipo/[a-z0-9\-]+/\d+/?$')):
+        href = a.get("href", "")
+        if not href.startswith("http"):
+            href = "https://www.chittorgarh.com" + href
+        slug, ipo_id = _extract_slug_id_from_url(href)
+        if slug and ipo_id and ipo_id not in ipo_links:
+            ipo_links[ipo_id] = href
+
+    print(f"Discovered {len(ipo_links)} IPO detail page links from static HTML.")
+    if not ipo_links:
+        return []
+
+    ipos_list = []
+    today = datetime.now().date()
+
+    for ipo_id, detail_url in list(ipo_links.items())[:8]:  # cap at 8 to avoid rate limits
+        detail_html = fetch_page(detail_url)
+        if not detail_html:
+            continue
+        try:
+            dsoup = BeautifulSoup(detail_html, "lxml")
+            text_content = dsoup.get_text()
+
+            # IPO name from H1 or title
+            h1 = dsoup.find("h1")
+            name = clean_text(h1.text) if h1 else "Unknown IPO"
+            # Strip common suffixes like 'IPO Details 2026'
+            name = re.sub(r'\s+IPO\s+Details.*$', ' IPO', name, flags=re.IGNORECASE).strip()
+
+            # Tables on the detail page
+            tables = dsoup.find_all("table")
+            open_date = close_date = listing_date = None
+            price_low = price_high = 0.0
+            issue_size_cr = 0.0
+            lot_size = 1
+
+            for t in tables:
+                rows = t.find_all("tr")
+                for row in rows:
+                    cols = [clean_text(td.text) for td in row.find_all(["td", "th"])]
+                    if len(cols) >= 2:
+                        key = cols[0].lower()
+                        val = cols[1] if len(cols) > 1 else ""
+
+                        if "open" in key and ("date" in key or "opens" in key or "opening" in key):
+                            open_date = parse_date(val)
+                        elif "close" in key and ("date" in key or "closes" in key or "closing" in key):
+                            close_date = parse_date(val)
+                        elif "listing" in key and "date" in key:
+                            listing_date = parse_date(val)
+                        elif "price band" in key or "issue price" in key:
+                            nums = re.findall(r'\d+', val)
+                            if len(nums) >= 2:
+                                price_low = float(nums[-2])
+                                price_high = float(nums[-1])
+                            elif len(nums) == 1:
+                                price_low = price_high = float(nums[0])
+                        elif "issue size" in key or "total issue" in key:
+                            nums = re.findall(r'\d+\.?\d*', val.replace(',', ''))
+                            if nums:
+                                issue_size_cr = float(nums[0])
+                        elif "lot size" in key:
+                            nums = re.findall(r'\d+', val)
+                            if nums:
+                                lot_size = int(nums[0])
+
+            if price_high == 0:
+                # Try regex on page text as fallback
+                pb = re.search(r'Price Band.*?₹?(\d+)\s*(?:to|-|–)\s*₹?(\d+)', text_content, re.IGNORECASE)
+                if pb:
+                    price_low = float(pb.group(1))
+                    price_high = float(pb.group(2))
+
+            if lot_size == 1 and price_high > 0:
+                lot_size = max(1, int(14500 // price_high))
+
+            ipo_data = {
+                "name": name,
+                "price_band_low": price_low,
+                "price_band_high": price_high,
+                "issue_size_cr": issue_size_cr,
+                "lot_size": lot_size,
+                "retail_lot_cost": lot_size * price_high,
+                "open_date": open_date,
+                "close_date": close_date,
+                "listing_date": listing_date,
+                "detail_url": detail_url,
+                "chittorgarh_id": ipo_id,
+                "status": "upcoming",
+                "is_fallback": False
+            }
+
+            if open_date and close_date:
+                od = datetime.strptime(open_date, "%Y-%m-%d").date()
+                cd = datetime.strptime(close_date, "%Y-%m-%d").date()
+                if od <= today <= cd:
+                    ipo_data["status"] = "bidding"
+                elif today > cd:
+                    ipo_data["status"] = "closed"
+                    if listing_date:
+                        ld = datetime.strptime(listing_date, "%Y-%m-%d").date()
+                        if today >= ld:
+                            ipo_data["status"] = "listed"
+
+            ipos_list.append(ipo_data)
+            print(f"  Parsed detail page: {name} (status={ipo_data['status']})")
+        except Exception as e:
+            print(f"  Error parsing detail page {detail_url}: {e}")
+
+    return ipos_list
+
+
 def scrape_main_list():
     """
     Scrapes the list of Mainboard IPOs from Chittorgarh.
-    If scraping fails (anti-bot blocks or structural change), 
-    activates Resilient Data Ingestion Fallback with realistic mock active IPOs.
+    Strategy:
+      1. Try standard table parse (works if Chittorgarh serves SSR table).
+      2. If table is empty, extract IPO detail-page links from static HTML cards
+         and fetch each detail page individually (detail pages are always SSR).
+      3. Fall back to mock data if both fail, marking records with is_fallback=True.
     """
     url = "https://www.chittorgarh.com/report/mainboard-ipo-list-in-india-bse-nse/83/"
     html = fetch_page(url)
-    
+
     ipos_list = []
-    
+
     if html:
         try:
             soup = BeautifulSoup(html, "lxml")
@@ -88,48 +223,38 @@ def scrape_main_list():
             if table:
                 tbody = table.find("tbody")
                 rows = tbody.find_all("tr") if tbody else table.find_all("tr")[1:]
-                
+
                 for row in rows:
                     cols = row.find_all("td")
                     if len(cols) >= 6:
-                        # Extract detail page URL link
                         link_tag = cols[0].find("a")
                         detail_url = link_tag["href"] if link_tag and "href" in link_tag.attrs else ""
                         if detail_url and not detail_url.startswith("http"):
                             detail_url = "https://www.chittorgarh.com" + detail_url
-                            
+
+                        slug, ipo_id = _extract_slug_id_from_url(detail_url)
                         name = clean_text(cols[0].text)
-                        
-                        # Parse Dates
                         open_date = parse_date(cols[1].text)
                         close_date = parse_date(cols[2].text)
                         listing_date = parse_date(cols[5].text)
-                        
-                        # Price band (e.g. "500 to 525" or "525")
+
                         price_text = clean_text(cols[3].text)
-                        price_low = 0.0
-                        price_high = 0.0
-                        
+                        price_low = price_high = 0.0
                         price_numbers = re.findall(r'\d+', price_text)
                         if len(price_numbers) >= 2:
                             price_low = float(price_numbers[0])
                             price_high = float(price_numbers[1])
                         elif len(price_numbers) == 1:
-                            price_low = float(price_numbers[0])
-                            price_high = float(price_numbers[0])
-                            
-                        # Issue size
+                            price_low = price_high = float(price_numbers[0])
+
                         size_text = clean_text(cols[4].text)
                         size_numbers = re.findall(r'\d+\.?\d*', size_text)
                         issue_size_cr = float(size_numbers[0]) if size_numbers else 0.0
-                        
-                        # Calculate lot size (typical retail application cost is ~14,000-15,000)
+
                         lot_size = 1
                         if price_high > 0:
-                            lot_size = int(14500 // price_high)
-                            if lot_size == 0:
-                                lot_size = 1
-                                
+                            lot_size = max(1, int(14500 // price_high))
+
                         ipo_data = {
                             "name": name,
                             "price_band_low": price_low,
@@ -141,10 +266,11 @@ def scrape_main_list():
                             "close_date": close_date,
                             "listing_date": listing_date,
                             "detail_url": detail_url,
-                            "status": "upcoming"
+                            "chittorgarh_id": ipo_id,
+                            "status": "upcoming",
+                            "is_fallback": False
                         }
-                        
-                        # Set status depending on dates
+
                         today = datetime.now().date()
                         if open_date and close_date:
                             od = datetime.strptime(open_date, "%Y-%m-%d").date()
@@ -157,18 +283,29 @@ def scrape_main_list():
                                     ld = datetime.strptime(listing_date, "%Y-%m-%d").date()
                                     if today >= ld:
                                         ipo_data["status"] = "listed"
-                                        
+
                         ipos_list.append(ipo_data)
-                
-                if ipos_list:
-                    print(f"Scraped {len(ipos_list)} IPOs successfully from Chittorgarh.")
-                    return ipos_list
+
+            if ipos_list:
+                print(f"Scraped {len(ipos_list)} IPOs from Chittorgarh main board table.")
+                return ipos_list
+
+            # Table was empty (Next.js hydration shell) — try via static card links
+            print("Main board table is empty (JS-rendered). Trying detail-page link extraction...")
+            ipos_list = _scrape_ipo_list_from_detail_links(html)
+            if ipos_list:
+                print(f"Scraped {len(ipos_list)} IPOs via detail-page link strategy.")
+                return ipos_list
+
         except Exception as e:
-            print(f"Error parsing main IPO list table: {e}")
-            
-    # FALLBACK MODE: Scraping blocked or table structure changed
-    print("Warning: Chittorgarh main board scraper failed or blocked. Activating Resilient Fallback Mock Data...")
-    return get_fallback_upcoming_ipos()
+            print(f"Error parsing main IPO list: {e}")
+
+    # FALLBACK MODE
+    print("Warning: All Chittorgarh scraping strategies failed. Activating Fallback Mock Data (is_fallback=True)...")
+    fallback = get_fallback_upcoming_ipos()
+    for ipo in fallback:
+        ipo["is_fallback"] = True
+    return fallback
 
 
 # ----------------------------------------------------
@@ -280,100 +417,196 @@ def scrape_ipo_details(detail_url, name=""):
 # ----------------------------------------------------
 # 3. LIVE SUBSCRIPTION STATUS SCRAPER
 # ----------------------------------------------------
-def scrape_subscriptions(detail_url, name=""):
+def scrape_subscriptions(detail_url, name="", chittorgarh_id=None):
     """
-    Scrapes the live subscription multiples from a subscription page URL.
+    Scrapes live subscription multiples from Chittorgarh's dedicated
+    subscription sub-page: /ipo_subscription/{slug}/{id}/
+    This page is always server-side rendered with live data in static tables.
+    Falls back to mock data (tagged is_fallback=True) if unavailable.
     """
     sub_data = {
         "qib": 0.0,
         "nii": 0.0,
         "retail": 0.0,
-        "total": 0.0
+        "total": 0.0,
+        "is_fallback": False
     }
-    
-    # Subscription pages are often linked from the main detail page or has standard format
-    # Example: link contains "ipo-subscription-status"
-    html = fetch_page(detail_url) if detail_url else None
+
+    # Build the dedicated subscription page URL from the detail_url
+    # e.g. /ipo/juniper-green-energy-ipo/2492/ → /ipo_subscription/juniper-green-energy-ipo/2492/
+    sub_url = None
+    if detail_url:
+        slug, ipo_id = _extract_slug_id_from_url(detail_url)
+        if slug and ipo_id:
+            sub_url = f"https://www.chittorgarh.com/ipo_subscription/{slug}/{ipo_id}/"
+
+    if not sub_url:
+        print(f"Cannot determine subscription URL for: {name} (Fallback)")
+        fallback = get_fallback_subscriptions(name)
+        fallback["is_fallback"] = True
+        return fallback
+
+    html = fetch_page(sub_url)
     if html:
         try:
             soup = BeautifulSoup(html, "lxml")
             tables = soup.find_all("table")
+            parsed = False
             for t in tables:
                 headers = [clean_text(th.text).lower() for th in t.find_all("th")]
-                if any("subscription" in h or "bid" in h or "category" in h for h in headers):
+                # Look for the subscription-times table:
+                # headers like ['investor category', 'subscription (times)']
+                if any("subscription" in h for h in headers) and any("category" in h or "investor" in h for h in headers):
                     rows = t.find_all("tr")
-                    for row in rows:
+                    for row in rows[1:]:
                         cols = [clean_text(td.text) for td in row.find_all("td")]
                         if len(cols) >= 2:
                             cat = cols[0].lower()
-                            sub_text = cols[-1] # Usually subscription rate is the last column
-                            sub_val_match = re.search(r'(\d+\.?\d*)\s*x', sub_text, re.IGNORECASE)
+                            sub_text = cols[1]
+                            sub_val_match = re.search(r'([\d,]+\.?\d*)\s*x?', sub_text.replace(',', ''), re.IGNORECASE)
                             sub_val = float(sub_val_match.group(1)) if sub_val_match else 0.0
-                            
-                            if "qib" in cat or "qualified institutional" in cat:
+
+                            if "qualified institutional" in cat or cat.strip() == "qib":
                                 sub_data["qib"] = sub_val
-                            elif "nii" in cat or "non-institutional" in cat:
+                                parsed = True
+                            elif "non institutional" in cat or "non-institutional" in cat or cat.strip() == "nii":
                                 sub_data["nii"] = sub_val
-                            elif "retail" in cat or "retail individual" in cat:
+                                parsed = True
+                            elif "retail individual" in cat or "retail" in cat:
                                 sub_data["retail"] = sub_val
+                                parsed = True
                             elif "total" in cat or "overall" in cat:
                                 sub_data["total"] = sub_val
-                                
-            print(f"Scraped subscriptions for {name}: {sub_data['total']}x")
-            return sub_data
+
+                    if parsed:
+                        break
+
+            if parsed:
+                # If total not given in table, compute it
+                if sub_data["total"] == 0.0 and (sub_data["qib"] or sub_data["nii"] or sub_data["retail"]):
+                    sub_data["total"] = round(
+                        (sub_data["qib"] * 0.5 + sub_data["nii"] * 0.15 + sub_data["retail"] * 0.35), 2
+                    )
+                print(f"Scraped live subscriptions for {name} from {sub_url}: total={sub_data['total']}x")
+                return sub_data
+
         except Exception as e:
-            print(f"Error parsing subscriptions: {e}")
-            
-    # Mock subscription fallback based on name
+            print(f"Error parsing subscription page {sub_url}: {e}")
+
     print(f"Generating mock subscription values for: {name} (Fallback)")
-    return get_fallback_subscriptions(name)
+    fallback = get_fallback_subscriptions(name)
+    fallback["is_fallback"] = True
+    return fallback
 
 
 # ----------------------------------------------------
 # 4. GREY MARKET PREMIUM (GMP) SCRAPER
 # ----------------------------------------------------
-def scrape_gmp(name):
+def _find_investorgain_id(name):
     """
-    Scrapes the current Grey Market Premium (GMP) percentage for a given company name.
-    Queries IPO Watch or similar aggregators.
+    Searches the InvestorGain mainboard IPO list page to find
+    the numeric ID for a given IPO name.
+    InvestorGain uses /ipo/{slug}/{id}/ URLs where only the ID matters.
     """
-    # Since search and exact GMP match can be highly fragile, we implement
-    # a lookup parser that searches for the company in current IPOWatch lists.
-    # We will build a resilient scraper that falls back to realistic GMP mock trends if blocked.
-    url = "https://www.ipowatch.in/ipo-gmp-today-grey-market-premium-list/"
+    url = "https://www.investorgain.com/report/ipo-performance-live/331/"
     html = fetch_page(url)
-    
-    if html:
-        try:
-            soup = BeautifulSoup(html, "lxml")
-            # Find tables containing GMP details
-            table = soup.find("table")
-            if table:
-                rows = table.find_all("tr")
-                for row in rows[1:]:
-                    cols = [clean_text(td.text) for td in row.find_all("td")]
-                    if len(cols) >= 3:
-                        comp_name = cols[0].lower()
-                        # Match company name keywords
-                        keywords = name.lower().split()[:2] # match first 2 words
-                        if any(kw in comp_name for kw in keywords if len(kw) > 3):
-                            # Extract GMP rate (Rs) and percentage
-                            # Typically cols[1] is GMP amount, cols[2] is percentage or listing price
-                            gmp_text = cols[1]
-                            gmp_num = re.findall(r'\d+', gmp_text)
-                            gmp_rs = float(gmp_num[0]) if gmp_num else 0.0
-                            
-                            pct_text = cols[-1]
-                            pct_num = re.findall(r'\d+', pct_text)
-                            gmp_pct = float(pct_num[0]) if pct_num else 0.0
-                            
-                            print(f"Scraped GMP for {name}: {gmp_pct}% (₹{gmp_rs})")
-                            return gmp_pct
-        except Exception as e:
-            print(f"Error parsing GMP table: {e}")
-            
-    # Fallback GMP based on name
-    print(f"Generating mock GMP premium for: {name} (Fallback)")
+    if not html:
+        return None, None
+    soup = BeautifulSoup(html, "lxml")
+    keywords = [w.lower() for w in name.split() if len(w) > 3][:3]
+    for a in soup.find_all("a", href=re.compile(r'/ipo/[a-z0-9\-]+/\d+/?')):
+        href = a.get("href", "")
+        link_text = a.get_text(separator=" ").lower()
+        if any(kw in link_text for kw in keywords):
+            slug_match = re.search(r'/ipo/([a-z0-9\-]+)/(\d+)/?', href)
+            if slug_match:
+                return slug_match.group(1), slug_match.group(2)
+    return None, None
+
+
+def scrape_gmp(name, detail_url=None):
+    """
+    Scrapes the current Grey Market Premium (GMP) for a given IPO from
+    InvestorGain's individual detail page — which renders GMP statically.
+
+    Strategy:
+      1. If detail_url is a Chittorgarh URL, derive the slug and search
+         InvestorGain for the matching IPO ID.
+      2. Fetch the InvestorGain detail page and parse the GMP section.
+      3. Fall back to mock GMP if unavailable (returns dict with is_fallback=True).
+    """
+    gmp_result = {"gmp_pct": 0.0, "gmp_rs": 0.0, "is_fallback": False}
+
+    # Derive slug from Chittorgarh detail URL or construct from name
+    slug = None
+    if detail_url:
+        s, _ = _extract_slug_id_from_url(detail_url)
+        slug = s  # e.g. 'juniper-green-energy-ipo'
+
+    if not slug:
+        slug = name.lower().replace(" ", "-").replace(".", "") + "-ipo"
+        slug = re.sub(r'[^a-z0-9\-]', '', slug)
+
+    # Try a range of IDs around recently seen ones
+    # InvestorGain's mainboard IPO IDs are typically in the 980–1100 range for 2025-2026.
+    # We try the slug on a few candidate IDs using the list page first.
+    ig_slug, ig_id = _find_investorgain_id(name)
+    if not ig_id:
+        # Broad keyword search in mainboard list HTML
+        list_html = fetch_page("https://www.investorgain.com/report/ipo-performance-live/331/")
+        if list_html:
+            keywords = [w.lower() for w in name.split() if len(w) > 3][:2]
+            # Search the raw HTML for a link matching this IPO
+            match = re.search(
+                r'/ipo/([a-z0-9\-]*' + keywords[0] + r'[a-z0-9\-]*)/(\d+)/',
+                list_html, re.IGNORECASE
+            ) if keywords else None
+            if match:
+                ig_slug = match.group(1)
+                ig_id = match.group(2)
+
+    if ig_slug and ig_id:
+        ig_url = f"https://www.investorgain.com/ipo/{ig_slug}/{ig_id}/"
+        ig_html = fetch_page(ig_url)
+        if ig_html:
+            try:
+                ig_soup = BeautifulSoup(ig_html, "lxml")
+                text = ig_soup.get_text()
+
+                # InvestorGain renders: "GMP (DD-MM-YYYY)₹5▲ 4.27% above issue price"
+                # Parse GMP Rs value
+                gmp_rs_match = re.search(
+                    r'GMP\s*\([\d\-]+\)\s*₹?\s*([\-\d]+)',
+                    text, re.IGNORECASE
+                )
+                if gmp_rs_match:
+                    gmp_rs = float(gmp_rs_match.group(1))
+                    gmp_result["gmp_rs"] = gmp_rs
+
+                # Parse percentage above/below issue price
+                pct_match = re.search(
+                    r'([\d\.]+)%\s*above issue price',
+                    text, re.IGNORECASE
+                )
+                if pct_match:
+                    gmp_result["gmp_pct"] = float(pct_match.group(1))
+
+                if gmp_result["gmp_pct"] == 0.0 and gmp_result["gmp_rs"] != 0.0:
+                    # Compute pct from Rs if price band is available on the page
+                    price_match = re.search(r'₹([\d\.]+)\s*[-–]\s*₹([\d\.]+)', text)
+                    if price_match:
+                        high = float(price_match.group(2))
+                        if high > 0:
+                            gmp_result["gmp_pct"] = round((gmp_result["gmp_rs"] / high) * 100, 2)
+
+                if gmp_result["gmp_rs"] != 0.0 or gmp_result["gmp_pct"] != 0.0:
+                    print(f"Scraped GMP for {name}: {gmp_result['gmp_pct']}% (₹{gmp_result['gmp_rs']}) from InvestorGain")
+                    return gmp_result["gmp_pct"]
+
+            except Exception as e:
+                print(f"Error parsing GMP from InvestorGain for {name}: {e}")
+
+    print(f"GMP scraping failed for {name}. Using fallback.")
     return get_fallback_gmp(name)
 
 
@@ -703,7 +936,7 @@ def sync_active_ipos():
         ipo.update(sub_levels)
         
         # 4. Get GMP premium
-        gmp_pct = scrape_gmp(ipo["name"])
+        gmp_pct = scrape_gmp(ipo["name"], detail_url=ipo.get("detail_url", ""))
         ipo["gmp_pct"] = gmp_pct
         
         # 5. Save/Update IPO master table

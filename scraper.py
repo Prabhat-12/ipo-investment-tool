@@ -31,9 +31,15 @@ def parse_date(date_str):
     # Try different formats
     formats = [
         "%b %d, %Y",       # Jul 24, 2026
+        "%B %d, %Y",       # August 24, 2026
+        "%b %d %Y",        # Jul 24 2026
+        "%B %d %Y",        # August 24 2026
+        "%d %b, %Y",       # 24 Jul, 2026
+        "%d %B, %Y",       # 24 August, 2026
         "%Y-%m-%d",        # 2026-07-24
         "%d-%m-%Y",        # 24-07-2026
-        "%d %b %Y"         # 24 Jul 2026
+        "%d %b %Y",        # 24 Jul 2026
+        "%d %B %Y"         # 24 August 2026
     ]
     
     clean_str = clean_text(date_str)
@@ -44,15 +50,119 @@ def parse_date(date_str):
             continue
             
     # Try regex search for date patterns if direct parsing fails
-    match = re.search(r'([A-Za-z]{3})\s+(\d{1,2}),\s+(\d{4})', clean_str)
+    match = re.search(r'([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})', clean_str)
     if match:
         try:
-            date_obj = datetime.strptime(match.group(0), "%b %d, %Y")
-            return date_obj.strftime("%Y-%m-%d")
+            date_found = match.group(0)
+            for fmt in ["%b %d, %Y", "%B %d, %Y"]:
+                try:
+                    date_obj = datetime.strptime(date_found, fmt)
+                    return date_obj.strftime("%Y-%m-%d")
+                except ValueError:
+                    continue
         except ValueError:
             pass
             
     return None
+
+def parse_ipo_date_range(val):
+    """
+    Parses date ranges like "5 to 7 Aug, 2026" or "July 30 to August 3, 2026"
+    into (open_date, close_date) as "YYYY-MM-DD"
+    """
+    if not val:
+        return None, None
+        
+    val = re.sub(r'\s+', ' ', val).strip()
+    
+    # Try pattern: "5 to 7 Aug, 2026"
+    match1 = re.match(r'^(\d+)\s+to\s+(\d+)\s+([A-Za-z]+),\s+(\d{4})$', val)
+    if match1:
+        start_day = match1.group(1)
+        end_day = match1.group(2)
+        month_str = match1.group(3)
+        year_str = match1.group(4)
+        return parse_date(f"{month_str} {start_day}, {year_str}"), parse_date(f"{month_str} {end_day}, {year_str}")
+        
+    # Try pattern: "July 30 to August 3, 2026"
+    match2 = re.match(r'^([A-Za-z]+)\s+(\d+)\s+to\s+([A-Za-z]+)\s+(\d+),\s+(\d{4})$', val)
+    if match2:
+        start_month = match2.group(1)
+        start_day = match2.group(2)
+        end_month = match2.group(3)
+        end_day = match2.group(4)
+        year_str = match2.group(5)
+        return parse_date(f"{start_month} {start_day}, {year_str}"), parse_date(f"{end_month} {end_day}, {year_str}")
+        
+    # Try pattern: "30 Jul to 3 Aug, 2026"
+    match3 = re.match(r'^(\d+)\s+([A-Za-z]+)\s+to\s+(\d+)\s+([A-Za-z]+),\s+(\d{4})$', val)
+    if match3:
+        start_day = match3.group(1)
+        start_month = match3.group(2)
+        end_day = match3.group(3)
+        end_month = match3.group(4)
+        year_str = match3.group(5)
+        return parse_date(f"{start_day} {start_month} {year_str}"), parse_date(f"{end_day} {end_month} {year_str}")
+        
+    parts = val.split(" to ")
+    if len(parts) == 2:
+        year_match = re.search(r'\d{4}', parts[1])
+        if year_match:
+            year_str = year_match.group(0)
+            if not re.search(r'\d{4}', parts[0]):
+                parts[0] = parts[0] + ", " + year_str
+        return parse_date(parts[0]), parse_date(parts[1])
+        
+    return parse_date(val), parse_date(val)
+
+def parse_issue_size(val):
+    """
+    Parses issue size strings like "8,03,52,358 shares (agg. up to ₹426 Cr)"
+    or "approx ₹425.87 Crores" and returns the value in Crores as float.
+    """
+    if not val:
+        return 0.0
+        
+    val_clean = re.sub(r'\s+', ' ', val).strip()
+    
+    # 1. Search for a number before "Cr", "Crore", "Crores"
+    cr_match = re.search(r'([\d\.,]+)\s*(?:Cr|Crore|Crores)', val_clean, re.IGNORECASE)
+    if cr_match:
+        num_str = cr_match.group(1).replace(',', '')
+        try:
+            return float(num_str)
+        except ValueError:
+            pass
+            
+    # 2. Search for any currency number
+    currency_match = re.search(r'(?:₹|Rs\.?)\s*([\d\.,]+)', val_clean, re.IGNORECASE)
+    if currency_match:
+        num_str = currency_match.group(1).replace(',', '')
+        try:
+            return float(num_str)
+        except ValueError:
+            pass
+            
+    # 3. Fallback: find all numbers, ignore the first one if it's followed by "shares"
+    nums = re.findall(r'[\d\.,]+', val_clean)
+    if not nums:
+        return 0.0
+        
+    if "shares" in val_clean.lower() and len(nums) >= 2:
+        first_num_pos = val_clean.find(nums[0])
+        shares_pos = val_clean.lower().find("shares")
+        if first_num_pos < shares_pos:
+            num_str = nums[1].replace(',', '')
+            try:
+                return float(num_str)
+            except ValueError:
+                pass
+                
+    num_str = nums[0].replace(',', '')
+    try:
+        return float(num_str)
+    except ValueError:
+        return 0.0
 
 def fetch_page(url):
     try:
@@ -134,23 +244,27 @@ def _scrape_ipo_list_from_detail_links(html):
                         key = cols[0].lower()
                         val = cols[1] if len(cols) > 1 else ""
 
-                        if "open" in key and ("date" in key or "opens" in key or "opening" in key):
+                        if "ipo date" in key:
+                            open_date, close_date = parse_ipo_date_range(val)
+                        elif "open" in key and ("date" in key or "opens" in key or "opening" in key):
                             open_date = parse_date(val)
                         elif "close" in key and ("date" in key or "closes" in key or "closing" in key):
                             close_date = parse_date(val)
                         elif "listing" in key and "date" in key:
                             listing_date = parse_date(val)
-                        elif "price band" in key or "issue price" in key:
+                        elif "price band" in key:
                             nums = re.findall(r'\d+', val)
                             if len(nums) >= 2:
                                 price_low = float(nums[-2])
                                 price_high = float(nums[-1])
                             elif len(nums) == 1:
                                 price_low = price_high = float(nums[0])
+                        elif "issue price" in key and price_low == 0.0:
+                            nums = re.findall(r'\d+', val)
+                            if len(nums) >= 1:
+                                price_low = price_high = float(nums[0])
                         elif "issue size" in key or "total issue" in key:
-                            nums = re.findall(r'\d+\.?\d*', val.replace(',', ''))
-                            if nums:
-                                issue_size_cr = float(nums[0])
+                            issue_size_cr = parse_issue_size(val)
                         elif "lot size" in key:
                             nums = re.findall(r'\d+', val)
                             if nums:
@@ -493,6 +607,11 @@ def scrape_subscriptions(detail_url, name="", chittorgarh_id=None):
         except Exception as e:
             print(f"Error parsing subscription page {sub_url}: {e}")
 
+    # Fall back to IPOWatch subscriptions if Chittorgarh is unavailable/empty
+    sub_data_watch = scrape_subscriptions_from_ipowatch(name)
+    if sub_data_watch and (sub_data_watch["total"] > 0.0 or sub_data_watch["retail"] > 0.0):
+        return sub_data_watch
+
     print(f"Generating mock subscription values for: {name} (Fallback)")
     fallback = get_fallback_subscriptions(name)
     fallback["is_fallback"] = True
@@ -524,17 +643,167 @@ def _find_investorgain_id(name):
     return None, None
 
 
+def get_ipowatch_slug(name):
+    """
+    Cleans name and generates the URL slug pattern for ipowatch.in
+    e.g. "Ardee Industries Limited" -> "ardee-industries"
+    """
+    n = name.lower()
+    n = re.sub(r'\s+(limited|ltd|ipo|details)\b', '', n, flags=re.IGNORECASE)
+    n = re.sub(r'\s+(limited|ltd|ipo|details)\b', '', n, flags=re.IGNORECASE)
+    slug = n.replace(" ", "-").replace(".", "").replace("&", "and")
+    slug = re.sub(r'[^a-z0-9\-]', '', slug)
+    slug = re.sub(r'\-+', '-', slug).strip('-')
+    return slug
+
+def scrape_gmp_from_ipowatch(name):
+    """
+    Scrapes the GMP premium percentage and Rs value from IPO Watch.
+    """
+    slug = get_ipowatch_slug(name)
+    url = f"https://ipowatch.in/{slug}-ipo-gmp-grey-market-premium/"
+    print(f"Trying to scrape GMP from IPOWatch: {url}")
+    
+    html = fetch_page(url)
+    if not html:
+        return None
+        
+    try:
+        soup = BeautifulSoup(html, "lxml")
+        tables = soup.find_all("table")
+        gmp_table = None
+        
+        for t in tables:
+            rows = t.find_all("tr")
+            if rows:
+                headers = [td.get_text(strip=True).lower() for td in rows[0].find_all(["td", "th"])]
+                if any("gmp" in h or "premium" in h for h in headers) and any("date" in h for h in headers):
+                    gmp_table = t
+                    break
+                    
+        if gmp_table:
+            rows = gmp_table.find_all("tr")
+            if len(rows) > 1:
+                cols = [td.get_text(strip=True) for td in rows[1].find_all(["td", "th"])]
+                if len(cols) >= 4:
+                    gmp_rs_str = cols[1]
+                    gain_pct_str = cols[3]
+                    
+                    gmp_rs_match = re.search(r'([\d,]+)', gmp_rs_str)
+                    gmp_rs = float(gmp_rs_match.group(1).replace(',', '')) if gmp_rs_match else 0.0
+                    
+                    gain_pct_match = re.search(r'([\d\.]+)', gain_pct_str)
+                    gain_pct = float(gain_pct_match.group(1)) if gain_pct_match else 0.0
+                    
+                    print(f"Scraped GMP for {name} from IPOWatch: {gain_pct}% (₹{gmp_rs})")
+                    return {"gmp_pct": gain_pct, "gmp_rs": gmp_rs}
+    except Exception as e:
+        print(f"Error parsing GMP from IPOWatch for {name}: {e}")
+        
+    return None
+
+def scrape_subscriptions_from_ipowatch(name):
+    """
+    Scrapes category-wise subscriptions from IPO Watch subscription page.
+    """
+    slug = get_ipowatch_slug(name)
+    url = f"https://ipowatch.in/{slug}-ipo-subscription-status/"
+    print(f"Trying to scrape subscriptions from IPOWatch: {url}")
+    
+    html = fetch_page(url)
+    if not html:
+        return None
+        
+    try:
+        soup = BeautifulSoup(html, "lxml")
+        tables = soup.find_all("table")
+        sub_table = None
+        
+        for t in tables:
+            rows = t.find_all("tr")
+            if rows:
+                headers = [td.get_text(strip=True).lower() for td in rows[0].find_all(["td", "th"])]
+                if any("category" in h for h in headers) and any("day" in h for h in headers):
+                    sub_table = t
+                    break
+                    
+        if sub_table:
+            rows = sub_table.find_all("tr")
+            headers = [td.get_text(strip=True).lower() for td in rows[0].find_all(["td", "th"])]
+            
+            day_indices = []
+            for idx, h in enumerate(headers):
+                if "day" in h:
+                    day_indices.append(idx)
+            
+            if not day_indices:
+                return None
+                
+            sub_data = {"qib": 0.0, "nii": 0.0, "retail": 0.0, "total": 0.0}
+            day_totals = {}
+            for day_idx in day_indices:
+                day_totals[day_idx] = {"qib": 0.0, "nii": 0.0, "retail": 0.0, "total": 0.0, "has_data": False}
+                
+            for row in rows[1:]:
+                cols = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                if len(cols) > max(day_indices):
+                    cat = cols[0].lower()
+                    for day_idx in day_indices:
+                        sub_text = cols[day_idx]
+                        sub_val_match = re.search(r'([\d\.]+)', sub_text)
+                        sub_val = float(sub_val_match.group(1)) if sub_val_match else 0.0
+                        
+                        if sub_val > 0.0:
+                            day_totals[day_idx]["has_data"] = True
+                            
+                        if "qualified institutional" in cat or cat.strip() == "qib":
+                            day_totals[day_idx]["qib"] = sub_val
+                        elif "non institutional" in cat or "non-institutional" in cat or cat.strip() == "nii":
+                            day_totals[day_idx]["nii"] = sub_val
+                        elif "retail" in cat or cat.strip() == "rii":
+                            day_totals[day_idx]["retail"] = sub_val
+                        elif "total" in cat or "overall" in cat:
+                            day_totals[day_idx]["total"] = sub_val
+            
+            latest_day_idx = None
+            for day_idx in reversed(day_indices):
+                if day_totals[day_idx]["has_data"]:
+                    if day_totals[day_idx]["total"] > 0.0 or day_totals[day_idx]["retail"] > 0.0:
+                        latest_day_idx = day_idx
+                        break
+                        
+            if latest_day_idx is not None:
+                res_data = day_totals[latest_day_idx]
+                if res_data["total"] == 0.0 and (res_data["qib"] or res_data["nii"] or res_data["retail"]):
+                    res_data["total"] = round(
+                        (res_data["qib"] * 0.5 + res_data["nii"] * 0.15 + res_data["retail"] * 0.35), 2
+                    )
+                sub_data = {
+                    "qib": res_data["qib"],
+                    "nii": res_data["nii"],
+                    "retail": res_data["retail"],
+                    "total": res_data["total"],
+                    "is_fallback": False
+                }
+                print(f"Scraped subscriptions from IPOWatch for {name}: total={sub_data['total']}x (QIB={sub_data['qib']}x, Retail={sub_data['retail']}x)")
+                return sub_data
+                
+    except Exception as e:
+        print(f"Error parsing subscriptions from IPOWatch for {name}: {e}")
+        
+    return None
+
 def scrape_gmp(name, detail_url=None):
     """
-    Scrapes the current Grey Market Premium (GMP) for a given IPO from
-    InvestorGain's individual detail page — which renders GMP statically.
-
-    Strategy:
-      1. If detail_url is a Chittorgarh URL, derive the slug and search
-         InvestorGain for the matching IPO ID.
-      2. Fetch the InvestorGain detail page and parse the GMP section.
-      3. Fall back to mock GMP if unavailable (returns dict with is_fallback=True).
+    Scrapes the current Grey Market Premium (GMP) for a given IPO.
+    We try IPOWatch first, then fall back to InvestorGain, and then get the mock fallback.
     """
+    # 1. Try IPOWatch
+    gmp_data = scrape_gmp_from_ipowatch(name)
+    if gmp_data and (gmp_data["gmp_pct"] > 0.0 or gmp_data["gmp_rs"] > 0.0):
+        return gmp_data["gmp_pct"]
+
+    # 2. Fall back to InvestorGain
     gmp_result = {"gmp_pct": 0.0, "gmp_rs": 0.0, "is_fallback": False}
 
     # Derive slug from Chittorgarh detail URL or construct from name
@@ -911,6 +1180,58 @@ def get_fallback_gmp(name):
         return 8.0
 
 
+def update_existing_ipo_statuses():
+    """
+    Checks all upcoming/bidding IPOs in the database and updates their status
+    based on the current system date.
+    """
+    print("Checking and updating existing IPO statuses based on date...")
+    today = datetime.now().date()
+    
+    if db_client.IS_CLOUD_MODE:
+        try:
+            res = db_client.supabase_client.table("ipos").select("*").in_("status", ["upcoming", "bidding"]).execute()
+            ipos = res.data
+        except Exception as e:
+            print(f"Failed to fetch IPOS for status updates: {e}")
+            ipos = []
+    else:
+        db = db_client._load_local_db()
+        ipos = [x for x in db["ipos"] if x["status"] in ["upcoming", "bidding"]]
+        
+    for ipo in ipos:
+        open_date_str = ipo.get("open_date")
+        close_date_str = ipo.get("close_date")
+        listing_date_str = ipo.get("listing_date")
+        
+        if not open_date_str or not close_date_str:
+            continue
+            
+        try:
+            od = datetime.strptime(open_date_str, "%Y-%m-%d").date()
+            cd = datetime.strptime(close_date_str, "%Y-%m-%d").date()
+            
+            new_status = ipo["status"]
+            if od <= today <= cd:
+                new_status = "bidding"
+            elif today > cd:
+                new_status = "closed"
+                if listing_date_str:
+                    ld = datetime.strptime(listing_date_str, "%Y-%m-%d").date()
+                    if today >= ld:
+                        new_status = "listed"
+            elif today < od:
+                new_status = "upcoming"
+                
+            if new_status != ipo["status"]:
+                print(f"Transitioning IPO '{ipo['name']}' status from '{ipo['status']}' to '{new_status}'")
+                db_client.upsert_ipo({
+                    "name": ipo["name"],
+                    "status": new_status
+                })
+        except Exception as e:
+            print(f"Error updating status for {ipo['name']}: {e}")
+
 # ----------------------------------------------------
 # 5. SYNC ENGINE: Scrape & Insert/Update database
 # ----------------------------------------------------
@@ -924,7 +1245,13 @@ def sync_active_ipos():
     # 1. Fetch main IPO list
     upcoming_list = scrape_main_list()
     
-    for ipo in upcoming_list[:5]: # restrict to top 5 current mainboard IPOs to avoid hitting rate limits
+    # Prioritize active bidding IPOs, then upcoming, then listed/closed
+    upcoming_list = sorted(
+        upcoming_list,
+        key=lambda x: 0 if x.get("status") == "bidding" else (1 if x.get("status") == "upcoming" else 2)
+    )
+    
+    for ipo in upcoming_list[:10]: # prioritize and raise limit to top 10 current mainboard IPOs
         print(f"Processing IPO: {ipo['name']}")
         
         # 2. Get specific details (financials, peers, promoter stake, mcap)
@@ -992,6 +1319,9 @@ def sync_active_ipos():
             if ipo["anchors"]:
                 db_client.save_anchors(ipo_id, ipo["anchors"])
                 
+    # Update existing database records that have expired/closed/opened
+    update_existing_ipo_statuses()
+    
     print("--- Sync Job Completed ---")
 
 if __name__ == "__main__":

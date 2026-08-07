@@ -69,6 +69,17 @@ def _save_local_db(db):
         json.dump(db, f, indent=4)
 
 
+import re
+
+def normalize_company_name(name):
+    if not name:
+        return ""
+    n = name.lower()
+    # Remove common suffixes from the end of the name
+    n = re.sub(r'\s+(limited|ltd|ipo|details)\b', '', n, flags=re.IGNORECASE)
+    n = re.sub(r'\s+(limited|ltd|ipo|details)\b', '', n, flags=re.IGNORECASE)
+    return re.sub(r'\s+', ' ', n).strip()
+
 # Unified Database Methods
 def upsert_ipo(ipo_data):
     """
@@ -77,13 +88,27 @@ def upsert_ipo(ipo_data):
     """
     if IS_CLOUD_MODE:
         try:
-            # Query by name to see if it exists
-            res = supabase_client.table("ipos").select("id").eq("name", ipo_data["name"]).execute()
-            if res.data:
-                # Update existing
-                ipo_id = res.data[0]["id"]
-                supabase_client.table("ipos").update(ipo_data).eq("id", ipo_id).execute()
-                return ipo_id
+            # Fetch existing IPOs to do a normalized name comparison
+            res = supabase_client.table("ipos").select("id, name").execute()
+            existing_id = None
+            existing_name = None
+            norm_target = normalize_company_name(ipo_data.get("name", ""))
+            
+            for existing in res.data:
+                if normalize_company_name(existing["name"]) == norm_target:
+                    existing_id = existing["id"]
+                    existing_name = existing["name"]
+                    break
+            
+            if existing_id:
+                # Update existing (but keep cleaner/longer name if target has "IPO" suffix and existing doesn't)
+                ipo_data_copy = ipo_data.copy()
+                if "name" in ipo_data_copy:
+                    if "ipo" in ipo_data["name"].lower() and "ipo" not in existing_name.lower():
+                        ipo_data_copy["name"] = existing_name
+                
+                supabase_client.table("ipos").update(ipo_data_copy).eq("id", existing_id).execute()
+                return existing_id
             else:
                 # Insert new
                 res = supabase_client.table("ipos").insert(ipo_data).execute()
@@ -94,10 +119,16 @@ def upsert_ipo(ipo_data):
     else:
         # Offline mode
         db = _load_local_db()
-        existing = next((x for x in db["ipos"] if x["name"].lower() == ipo_data["name"].lower()), None)
+        norm_target = normalize_company_name(ipo_data.get("name", ""))
+        existing = next((x for x in db["ipos"] if normalize_company_name(x["name"]) == norm_target), None)
         if existing:
-            # Update values
-            existing.update(ipo_data)
+            # Update values (but keep cleaner/longer name if target has "IPO" suffix and existing doesn't)
+            existing_name = existing["name"]
+            ipo_data_copy = ipo_data.copy()
+            if "name" in ipo_data_copy:
+                if "ipo" in ipo_data["name"].lower() and "ipo" not in existing_name.lower():
+                    ipo_data_copy["name"] = existing_name
+            existing.update(ipo_data_copy)
             _save_local_db(db)
             return existing["id"]
         else:

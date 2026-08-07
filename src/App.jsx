@@ -164,8 +164,25 @@ export default function App() {
             const pe_ratio = ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0;
             const peers_median_pe = peers.length > 0 ? peers[0].peer_pe : 35.0;
 
+            // Dynamically adjust status based on date (defense-in-depth UI logic)
+            let currentStatus = ipo.status;
+            const todayStr = new Date().toLocaleDateString('sv-SE');
+            if (ipo.open_date && ipo.close_date) {
+              if (todayStr >= ipo.open_date && todayStr <= ipo.close_date) {
+                currentStatus = 'bidding';
+              } else if (todayStr > ipo.close_date) {
+                currentStatus = 'closed';
+                if (ipo.listing_date && todayStr >= ipo.listing_date) {
+                  currentStatus = 'listed';
+                }
+              } else if (todayStr < ipo.open_date) {
+                currentStatus = 'upcoming';
+              }
+            }
+
             const details = {
               ...ipo,
+              status: currentStatus,
               total_sub,
               qib_sub,
               retail_sub,
@@ -211,8 +228,25 @@ export default function App() {
         const pe_ratio = ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0;
         const peers_median_pe = peers.length > 0 ? peers[0].peer_pe : 35.0;
 
+        // Dynamically adjust status based on date (defense-in-depth UI logic)
+        let currentStatus = ipo.status;
+        const todayStr = new Date().toLocaleDateString('sv-SE');
+        if (ipo.open_date && ipo.close_date) {
+          if (todayStr >= ipo.open_date && todayStr <= ipo.close_date) {
+            currentStatus = 'bidding';
+          } else if (todayStr > ipo.close_date) {
+            currentStatus = 'closed';
+            if (ipo.listing_date && todayStr >= ipo.listing_date) {
+              currentStatus = 'listed';
+            }
+          } else if (todayStr < ipo.open_date) {
+            currentStatus = 'upcoming';
+          }
+        }
+
         const details = {
           ...ipo,
+          status: currentStatus,
           total_sub,
           qib_sub,
           retail_sub,

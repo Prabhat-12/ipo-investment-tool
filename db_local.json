@@ -35,24 +35,6 @@
             "market_cap_cr": 22400.0,
             "post_ipo_promoter_holding_pct": 42.1,
             "id": 2
-        },
-        {
-            "name": "Unicommerce eSolutions Limited",
-            "symbol": "UNICOMMERC",
-            "price_band_low": 102.0,
-            "price_band_high": 108.0,
-            "issue_size_cr": 276.57,
-            "fresh_issue_cr": 276.57,
-            "ofs_cr": 0.0,
-            "lot_size": 138,
-            "retail_lot_cost": 14904.0,
-            "open_date": "2026-08-04",
-            "close_date": "2026-08-07",
-            "listing_date": "2026-08-12",
-            "status": "upcoming",
-            "market_cap_cr": 1050.0,
-            "post_ipo_promoter_holding_pct": 66.8,
-            "id": 3
         }
     ],
     "subscriptions": [
@@ -73,15 +55,6 @@
             "retail": 2.3,
             "total": 6.5,
             "id": 2
-        },
-        {
-            "ipo_id": 3,
-            "date": "2026-07-31",
-            "qib": 95.4,
-            "nii": 110.2,
-            "retail": 45.3,
-            "total": 76.5,
-            "id": 3
         }
     ],
     "gmp_history": [
@@ -100,14 +73,6 @@
             "estimated_listing": 502.20000000000005,
             "implied_gain_pct": 8.0,
             "id": 2
-        },
-        {
-            "ipo_id": 3,
-            "date": "2026-07-31",
-            "gmp_rs": 59.400000000000006,
-            "estimated_listing": 167.4,
-            "implied_gain_pct": 55.0,
-            "id": 3
         }
     ],
     "peers": [
@@ -128,12 +93,6 @@
             "peer_pe": 98.0,
             "id": 3,
             "ipo_id": 2
-        },
-        {
-            "peer_name": "RateGain Travel Tech",
-            "peer_pe": 45.0,
-            "id": 4,
-            "ipo_id": 3
         }
     ],
     "financials": [
@@ -184,30 +143,6 @@
             "pat_margin_pct": -3.6,
             "id": 8,
             "ipo_id": 2
-        },
-        {
-            "fiscal_year": "FY24",
-            "revenue_cr": 59.0,
-            "pat_cr": 4.1,
-            "pat_margin_pct": 6.9,
-            "id": 7,
-            "ipo_id": 3
-        },
-        {
-            "fiscal_year": "FY25",
-            "revenue_cr": 90.0,
-            "pat_cr": 6.3,
-            "pat_margin_pct": 7.0,
-            "id": 9,
-            "ipo_id": 3
-        },
-        {
-            "fiscal_year": "FY26",
-            "revenue_cr": 111.0,
-            "pat_cr": 13.0,
-            "pat_margin_pct": 11.7,
-            "id": 11,
-            "ipo_id": 3
         }
     ],
     "anchor_investors": [
@@ -250,22 +185,7 @@
             "is_marquee": true,
             "id": 6,
             "ipo_id": 2
-        },
-        {
-            "investor_name": "SBI Mutual Fund",
-            "shares_allocated": 46000,
-            "amount_allocated_cr": 0.5,
-            "is_marquee": true,
-            "id": 6,
-            "ipo_id": 3
-        },
-        {
-            "investor_name": "ICICI Prudential MF",
-            "shares_allocated": 46000,
-            "amount_allocated_cr": 0.5,
-            "is_marquee": true,
-            "id": 8,
-            "ipo_id": 3
         }
-    ]
+    ],
+    "user_applications": []
 }

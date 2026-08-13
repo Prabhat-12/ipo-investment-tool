@@ -178,14 +178,27 @@ By using expected value, the backtester yields a stable, mathematically sound co
 
 ---
 
+### 4.4 Challenge D: Zero-Cost Background Orchestration (macOS `launchd` plist integration)
+For a personal tool, hosting a server 24/7 on AWS EC2 or Google Cloud Run just to execute a scraping script every few hours is financially inefficient. 
+
+#### The Solution: Native OS Background Agents
+We designed a native scheduling script ([setup_automation.sh](file:///Users/prabhat/IPO%20Investment%20Tool/setup_automation.sh)) that installs a custom XML Property List (plist) profile inside the macOS system LaunchAgents (`~/Library/LaunchAgents/com.antigravity.ipotracker.plist`). 
+
+This daemon dynamically binds the local repository path, references the python executable inside our virtual environment (`.venv/bin/python`), and schedules the orchestrator ([sync_and_alert.py](file:///Users/prabhat/IPO%20Investment%20Tool/sync_and_alert.py)) to run every 6 hours automatically. 
+*   **Result:** Zero hosting cost, complete automation running locally in the background on the user's laptop, and logs redirected into clean project files (`logs/automation.log`).
+
+---
+
 ## 5. Technology Stack & Core Modules
 
 The system is split into two cleanly separated layers: a lightweight automation backend and a high-fidelity visual frontend.
 
-### 5.1 Python Backend
+### 5.1 Python Backend & Automation
 *   **Data Scraper:** [scraper.py](file:///Users/prabhat/IPO%20Investment%20Tool/scraper.py) parses Chittorgarh with Beautiful Soup, using requests and regex fallbacks.
 *   **Evaluation Engine:** [decision_engine.py](file:///Users/prabhat/IPO%20Investment%20Tool/decision_engine.py) encodes the 8-metric scoring system.
 *   **Simulation Engine:** [backtest_simulator.py](file:///Users/prabhat/IPO%20Investment%20Tool/backtest_simulator.py) runs the historical EV strategy.
+*   **Orchestration Daemon:** [sync_and_alert.py](file:///Users/prabhat/IPO%20Investment%20Tool/sync_and_alert.py) manages the sync workflow, checks status dates, runs the decision engine on closing day, and writes the decision back to the database.
+*   **Daemon Installer:** [setup_automation.sh](file:///Users/prabhat/IPO%20Investment%20Tool/setup_automation.sh) configures the background LaunchAgent for zero-cost local execution.
 *   **Database Adapter:** [db_client.py](file:///Users/prabhat/IPO%20Investment%20Tool/db_client.py) connects Python directly to Supabase Postgrest client with fallback options.
 *   **Alert Dispatcher:** [notifier.py](file:///Users/prabhat/IPO%20Investment%20Tool/notifier.py) triggers local macOS desktop alerts via AppleScript and sends loud alerts to a Telegram Channel.
 
@@ -201,3 +214,4 @@ The system is split into two cleanly separated layers: a lightweight automation 
 1.  **Transition to Structured API Feeds:** Replace Web Scraping entirely with reliable REST endpoints (such as IPO Guru) to avoid Cloudflare blockers.
 2.  **Broker API Integration:** Integrate with broker terminals (e.g., Zerodha Kite Connect, Angel One) to automatically trigger ASBA applications when the decision engine marks an IPO as "YES" on closing day.
 3.  **Social Sentiment NLP Scrapers:** Factor in sentiment trends from Reddit (`r/IndiaInvestments`) and Twitter tags alongside informal GMP premiums.
+

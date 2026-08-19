@@ -272,6 +272,190 @@ def save_anchors(ipo_id, anchors_list):
         _save_local_db(db)
 
 
+# ====================================================
+# MULTI-USER & FAMILY GROUP HELPER METHODS
+# ====================================================
+
+def get_family_members(group_id):
+    """
+    Fetches all members in a family group.
+    """
+    if IS_CLOUD_MODE:
+        try:
+            res = supabase_client.table("family_members").select("*, user_profiles(display_name, email)").eq("group_id", group_id).execute()
+            return res.data
+        except Exception as e:
+            print(f"Cloud DB Error in get_family_members: {e}")
+            return []
+    else:
+        db = _load_local_db()
+        members = [x for x in db["family_members"] if str(x.get("group_id")) == str(group_id)]
+        for m in members:
+            profile = next((p for p in db["user_profiles"] if str(p.get("id")) == str(m.get("user_id"))), None)
+            m["user_profiles"] = profile if profile else {"display_name": "Unknown Member", "email": ""}
+        return members
+
+
+def upsert_family_member(member_data):
+    """
+    Inserts or updates a family member record.
+    """
+    if IS_CLOUD_MODE:
+        try:
+            res = supabase_client.table("family_members").select("id").eq("group_id", member_data["group_id"]).eq("user_id", member_data["user_id"]).execute()
+            if res.data:
+                supabase_client.table("family_members").update(member_data).eq("id", res.data[0]["id"]).execute()
+                return res.data[0]["id"]
+            else:
+                res = supabase_client.table("family_members").insert(member_data).execute()
+                return res.data[0]["id"]
+        except Exception as e:
+            print(f"Cloud DB Error in upsert_family_member: {e}")
+            return None
+    else:
+        db = _load_local_db()
+        existing = next((x for x in db["family_members"] if str(x.get("group_id")) == str(member_data["group_id"]) and str(x.get("user_id")) == str(member_data["user_id"])), None)
+        if existing:
+            existing.update(member_data)
+            _save_local_db(db)
+            return existing["id"]
+        else:
+            new_id = len(db["family_members"]) + 1
+            copy_data = member_data.copy()
+            copy_data["id"] = new_id
+            db["family_members"].append(copy_data)
+            _save_local_db(db)
+            return new_id
+
+
+def get_user_accounts(group_id=None, user_id=None):
+    """
+    Fetches user accounts (PAN slots) for a group or user.
+    """
+    if IS_CLOUD_MODE:
+        try:
+            query = supabase_client.table("user_accounts").select("*")
+            if group_id:
+                query = query.eq("group_id", group_id)
+            elif user_id:
+                query = query.eq("user_id", user_id)
+            res = query.execute()
+            return res.data
+        except Exception as e:
+            print(f"Cloud DB Error in get_user_accounts: {e}")
+            return []
+    else:
+        db = _load_local_db()
+        accounts = db["user_accounts"]
+        if group_id:
+            return [x for x in accounts if str(x.get("group_id")) == str(group_id)]
+        elif user_id:
+            return [x for x in accounts if str(x.get("user_id")) == str(user_id)]
+        return accounts
+
+
+def upsert_user_account(account_data):
+    """
+    Inserts or updates a user account.
+    """
+    if IS_CLOUD_MODE:
+        try:
+            if account_data.get("id"):
+                res = supabase_client.table("user_accounts").update(account_data).eq("id", account_data["id"]).execute()
+                return res.data[0]["id"]
+            else:
+                res = supabase_client.table("user_accounts").insert(account_data).execute()
+                return res.data[0]["id"]
+        except Exception as e:
+            print(f"Cloud DB Error in upsert_user_account: {e}")
+            return None
+    else:
+        import uuid
+        db = _load_local_db()
+        acc_id = account_data.get("id")
+        existing = next((x for x in db["user_accounts"] if str(x.get("id")) == str(acc_id)), None) if acc_id else None
+        if existing:
+            existing.update(account_data)
+            _save_local_db(db)
+            return existing["id"]
+        else:
+            copy_data = account_data.copy()
+            new_id = str(uuid.uuid4())
+            copy_data["id"] = new_id
+            db["user_accounts"].append(copy_data)
+            _save_local_db(db)
+            return new_id
+
+
+def get_user_applications(group_id=None, user_id=None):
+    """
+    Fetches applications (bids) for a group or user.
+    """
+    if IS_CLOUD_MODE:
+        try:
+            if group_id:
+                res = supabase_client.table("user_applications").select("*, user_accounts!inner(group_id, account_holder_name), ipos(name, symbol)").eq("user_accounts.group_id", group_id).execute()
+            elif user_id:
+                res = supabase_client.table("user_applications").select("*, user_accounts(account_holder_name), ipos(name, symbol)").eq("user_id", user_id).execute()
+            else:
+                res = supabase_client.table("user_applications").select("*, user_accounts(account_holder_name), ipos(name, symbol)").execute()
+            return res.data
+        except Exception as e:
+            print(f"Cloud DB Error in get_user_applications: {e}")
+            return []
+    else:
+        db = _load_local_db()
+        apps = db["user_applications"]
+        hydrated_apps = []
+        for a in apps:
+            acc = next((x for x in db["user_accounts"] if str(x.get("id")) == str(a.get("account_id"))), {})
+            ipo = next((x for x in db["ipos"] if str(x.get("id")) == str(a.get("ipo_id"))), {})
+            
+            if group_id and str(acc.get("group_id")) != str(group_id):
+                continue
+            if user_id and str(a.get("user_id")) != str(user_id):
+                continue
+                
+            a_copy = a.copy()
+            a_copy["user_accounts"] = acc
+            a_copy["ipos"] = {"name": ipo.get("name", "Unknown IPO"), "symbol": ipo.get("symbol", "UNK")}
+            hydrated_apps.append(a_copy)
+        return hydrated_apps
+
+
+def upsert_user_application(app_data):
+    """
+    Inserts or updates a user application (bid).
+    """
+    if IS_CLOUD_MODE:
+        try:
+            if app_data.get("id"):
+                res = supabase_client.table("user_applications").update(app_data).eq("id", app_data["id"]).execute()
+                return res.data[0]["id"]
+            else:
+                res = supabase_client.table("user_applications").insert(app_data).execute()
+                return res.data[0]["id"]
+        except Exception as e:
+            print(f"Cloud DB Error in upsert_user_application: {e}")
+            return None
+    else:
+        import uuid
+        db = _load_local_db()
+        app_id = app_data.get("id")
+        existing = next((x for x in db["user_applications"] if str(x.get("id")) == str(app_id)), None) if app_id else None
+        if existing:
+            existing.update(app_data)
+            _save_local_db(db)
+            return existing["id"]
+        else:
+            copy_data = app_data.copy()
+            new_id = str(uuid.uuid4())
+            copy_data["id"] = new_id
+            db["user_applications"].append(copy_data)
+            _save_local_db(db)
+            return new_id
+
+
 # Debug print
 if __name__ == "__main__":
     print(f"db_client initialization test: IS_CLOUD_MODE = {IS_CLOUD_MODE}")

@@ -1,5 +1,6 @@
 import os
 import requests
+# pyrefly: ignore [missing-import]
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime, timedelta
@@ -1286,8 +1287,8 @@ def sync_active_ipos():
         })
         
         if ipo_id:
-            # 6. Save subscriptions (using current date)
-            today_str = datetime.now().strftime("%Y-%m-%d")
+            # 6. Save subscriptions (using current timestamp for twice-daily logging)
+            today_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             db_client.upsert_subscription({
                 "ipo_id": ipo_id,
                 "date": today_str,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   TrendingUp,
   Award,
@@ -25,7 +25,12 @@ import {
   Trash2,
   Lock,
   Eye,
-  Settings
+  Settings,
+  Menu,
+  X,
+  BookOpen,
+  MoreHorizontal,
+  ChevronLeft
 } from 'lucide-react';
 
 // Import JSON data compiled by Python engine
@@ -60,6 +65,12 @@ export default function App() {
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard'); // Default to dashboard
   const [selectedIpo, setSelectedIpo] = useState(null);
+  const [selectedBidAccounts, setSelectedBidAccounts] = useState([]); // Selected family account IDs for bidding
+  
+  useEffect(() => {
+    setSelectedBidAccounts([]);
+  }, [selectedIpo]);
+
   const [userProfile, setUserProfile] = useState(null);
 
   // Investment Group Sharing states
@@ -103,12 +114,39 @@ export default function App() {
   const [gmpThreshold, setGmpThreshold] = useState(20);
   const [subThreshold, setSubThreshold] = useState(30);
 
+  // Mobile App State
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false);
+  const [showMoreSheet, setShowMoreSheet] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    setIsMobile(mediaQuery.matches);
+    const handler = (e) => setIsMobile(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
   // Active IPOs State
   const [ipos, setIpos] = useState([]);
+  const [dashboardPipelineTab, setDashboardPipelineTab] = useState('recommended');
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('ipo_view_mode') || 'grid');
+  const pipelineScrollRef = useRef(null);
+  const [pipelineScrollPage, setPipelineScrollPage] = useState(0);
   const [lastRefreshedDate, setLastRefreshedDate] = useState(() => {
     return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: 'numeric', month: 'short' });
   });
+
+  const handleForceRefresh = async () => {
+    setDbLoading(true);
+    try {
+      await loadData();
+      setLastRefreshedDate(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: 'numeric', month: 'short' }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDbLoading(false);
+    }
+  };
 
   // Check for active Supabase session
   useEffect(() => {
@@ -150,8 +188,8 @@ export default function App() {
           const { data: cloudAnchors } = await supabase.from('anchor_investors').select('*');
 
           activeIposList = cloudIpos.map(ipo => {
-            const subs = cloudSubs?.filter(s => s.ipo_id === ipo.id) || [];
-            const gmpRecs = cloudGmps?.filter(g => g.ipo_id === ipo.id) || [];
+            const subs = (cloudSubs?.filter(s => s.ipo_id === ipo.id) || []).sort((a, b) => new Date(a.date) - new Date(b.date));
+            const gmpRecs = (cloudGmps?.filter(g => g.ipo_id === ipo.id) || []).sort((a, b) => new Date(a.date) - new Date(b.date));
             const peers = cloudPeers?.filter(p => p.ipo_id === ipo.id) || [];
             const financials = cloudFins?.filter(f => f.ipo_id === ipo.id) || [];
             const anchors = cloudAnchors?.filter(a => a.ipo_id === ipo.id) || [];
@@ -201,6 +239,9 @@ export default function App() {
               ...details,
               score: evalRes.score,
               decision: evalRes.decision,
+              reason: evalRes.reason,
+              mandatoryFailed: evalRes.mandatoryFailed,
+              mandatoryPending: evalRes.mandatoryPending,
               rules: evalRes.rules,
               notes: evalRes.notes
             };
@@ -214,8 +255,8 @@ export default function App() {
     // Local Fallback for Global Market Data
     if (activeIposList.length === 0 && dbLocal && dbLocal.ipos) {
       activeIposList = dbLocal.ipos.map(ipo => {
-        const subs = dbLocal.subscriptions.filter(s => s.ipo_id === ipo.id) || [];
-        const gmpRecs = dbLocal.gmp_history.filter(g => g.ipo_id === ipo.id) || [];
+        const subs = (dbLocal.subscriptions.filter(s => s.ipo_id === ipo.id) || []).sort((a, b) => new Date(a.date) - new Date(b.date));
+        const gmpRecs = (dbLocal.gmp_history.filter(g => g.ipo_id === ipo.id) || []).sort((a, b) => new Date(a.date) - new Date(b.date));
         const peers = dbLocal.peers.filter(p => p.ipo_id === ipo.id) || [];
         const financials = dbLocal.financials.filter(f => f.ipo_id === ipo.id) || [];
         const anchors = dbLocal.anchor_investors.filter(a => a.ipo_id === ipo.id) || [];
@@ -265,6 +306,9 @@ export default function App() {
           ...details,
           score: evalRes.score,
           decision: evalRes.decision,
+          reason: evalRes.reason,
+          mandatoryFailed: evalRes.mandatoryFailed,
+          mandatoryPending: evalRes.mandatoryPending,
           rules: evalRes.rules,
           notes: evalRes.notes
         };
@@ -393,14 +437,18 @@ export default function App() {
     const rules = {};
     let score = 0;
 
-    // 1. Demand (Gate 1)
+    // 1. Demand (Gate 1 - MANDATORY)
+    const isDemandPending = ipo.status === 'upcoming' && (!ipo.qib_sub || ipo.qib_sub === 0) && (!ipo.total_sub || ipo.total_sub === 0);
+    const demandPassed = !isDemandPending && (ipo.total_sub >= subThreshold || ipo.qib_sub >= 50);
     rules.demand = {
       title: 'Real-Time Demand',
       description: 'Total subscription > 30x OR QIB > 50x',
-      value: `Total: ${ipo.total_sub}x, QIB: ${ipo.qib_sub}x`,
-      passed: ipo.total_sub >= subThreshold || ipo.qib_sub >= 50
+      value: isDemandPending ? 'Not available' : `Total: ${ipo.total_sub || 0}x, QIB: ${ipo.qib_sub || 0}x`,
+      passed: demandPassed,
+      isMandatory: true,
+      isPending: isDemandPending
     };
-    if (rules.demand.passed) score += 1;
+    if (demandPassed) score += 1;
 
     // 2. Capital structure
     const ofs_pct = ipo.issue_size_cr > 0 ? (ipo.ofs_cr / ipo.issue_size_cr) * 100 : 0;
@@ -408,7 +456,8 @@ export default function App() {
       title: 'Capital Structure',
       description: 'OFS component constitutes < 50% of issue size',
       value: `OFS: ${ofs_pct.toFixed(1)}%`,
-      passed: ofs_pct < 50.0
+      passed: ofs_pct < 50.0,
+      isMandatory: false
     };
     if (rules.capital.passed) score += 1;
 
@@ -418,18 +467,23 @@ export default function App() {
       title: 'Valuation Buffer',
       description: 'IPO P/E has a 15%+ discount to listed peers',
       value: ipo.pe_ratio > 0 ? `P/E: ${ipo.pe_ratio.toFixed(1)}x vs Peers Median: ${ipo.peers_median_pe.toFixed(1)}x (${discount_pct.toFixed(1)}% discount)` : 'N/A',
-      passed: discount_pct >= 15.0 && ipo.pe_ratio > 0
+      passed: discount_pct >= 15.0 && ipo.pe_ratio > 0,
+      isMandatory: false
     };
     if (rules.valuation.passed) score += 1;
 
-    // 4. Sentiment (Gate 2)
+    // 4. Sentiment (Gate 2 - MANDATORY)
+    const isGmpPending = ipo.status === 'upcoming' && (ipo.gmp_pct == null || ipo.gmp_pct === 0);
+    const sentimentPassed = !isGmpPending && ipo.gmp_pct >= gmpThreshold;
     rules.sentiment = {
       title: 'Sentiment Anchor (GMP)',
       description: 'Implied premium >= 20%',
-      value: `GMP Implied Premium: ${ipo.gmp_pct}%`,
-      passed: ipo.gmp_pct >= gmpThreshold
+      value: `GMP Implied Premium: ${ipo.gmp_pct || 0}%`,
+      passed: sentimentPassed,
+      isMandatory: true,
+      isPending: isGmpPending
     };
-    if (rules.sentiment.passed) score += 1;
+    if (sentimentPassed) score += 1;
 
     // 5. Anchors
     const anchorScore = ipo.anchors && ipo.anchors.length > 0 ? 85 : 50;
@@ -437,7 +491,8 @@ export default function App() {
       title: 'Institutional Backing',
       description: 'Marquee anchor allocation present (Score >= 70/100)',
       value: `Score: ${anchorScore}/100`,
-      passed: anchorScore >= 70
+      passed: anchorScore >= 70,
+      isMandatory: false
     };
     if (rules.anchors.passed) score += 1;
 
@@ -455,7 +510,8 @@ export default function App() {
       title: 'Fundamental Reality',
       description: 'PAT margins are positive and increasing',
       value: patValue,
-      passed: patPassed
+      passed: patPassed,
+      isMandatory: false
     };
     if (rules.fundamentals.passed) score += 1;
 
@@ -464,7 +520,8 @@ export default function App() {
       title: 'Issue Size Filter',
       description: 'Total issue size < ₹3,000 Crore to prevent listing stagnation',
       value: `Size: ₹${ipo.issue_size_cr} Cr`,
-      passed: ipo.issue_size_cr < 3000.0
+      passed: ipo.issue_size_cr < 3000.0,
+      isMandatory: false
     };
     if (rules.issue_size.passed) score += 1;
 
@@ -473,25 +530,58 @@ export default function App() {
       title: 'Skin In The Game',
       description: 'Promoter post-IPO stake >= 50%',
       value: `Promoter Stake: ${ipo.post_ipo_promoter_holding_pct}%`,
-      passed: ipo.post_ipo_promoter_holding_pct >= 50.0
+      passed: ipo.post_ipo_promoter_holding_pct >= 50.0,
+      isMandatory: false
     };
     if (rules.promoter_stake.passed) score += 1;
 
-    // Final Decision: Gates 1 & 2 are MANDATORY + Score >= 5
-    const isYes = rules.demand.passed && rules.sentiment.passed && score >= 5;
-    const decision = isYes ? 'YES' : 'NO';
+    // Track Mandatory Failures & Pending Counts
+    let mandatoryFailed = 0;
+    let mandatoryPending = 0;
+    if (rules.demand.isPending) mandatoryPending++;
+    else if (!rules.demand.passed) mandatoryFailed++;
 
-    // Reasoning Notes
-    const notes = [];
-    if (isYes) {
-      notes.push("Strong Listing Setup. High GMP premium backed by strong subscription velocities.");
+    if (rules.sentiment.isPending) mandatoryPending++;
+    else if (!rules.sentiment.passed) mandatoryFailed++;
+
+    // Primary Recommendation & Reasoning Engine
+    let decision = 'NO';
+    let reason = '';
+
+    if (mandatoryPending > 0 && ipo.status === 'upcoming') {
+      decision = 'WATCH';
+      reason = 'Awaiting real-time subscription data';
+    } else if (mandatoryFailed === 0 && score >= 5) {
+      decision = 'YES';
+      reason = 'All mandatory checks passed';
     } else {
-      if (!rules.demand.passed) notes.push("Failed Demand Gate: Subscriptions did not meet threshold.");
-      if (!rules.sentiment.passed) notes.push("Failed Sentiment Gate: GMP premium is below 20%.");
-      if (score < 5) notes.push(`Failed Discretionary Score: Only passed ${score}/8 checklist parameters.`);
+      decision = 'NO';
+      if (!rules.demand.passed) {
+        reason = 'Real-time demand below threshold';
+      } else if (!rules.sentiment.passed) {
+        reason = 'GMP premium below threshold';
+      } else if (!rules.valuation.passed) {
+        reason = 'Valuation above peer median';
+      } else if (!rules.anchors.passed) {
+        reason = 'Weak institutional backing';
+      } else {
+        reason = `${score}/8 checks passed · criteria not met`;
+      }
     }
 
-    return { score, decision, rules, notes: notes.join(' ') };
+    const notes = decision === 'YES' 
+      ? "Strong Listing Setup. High GMP premium backed by strong subscription velocities."
+      : reason;
+
+    return { 
+      score, 
+      decision, 
+      reason, 
+      rules, 
+      mandatoryFailed, 
+      mandatoryPending, 
+      notes 
+    };
   }
 
   // Auth Operations
@@ -826,40 +916,40 @@ export default function App() {
     }
   };
 
-  const handlePlaceBid = async (ipoId, accountId, lots) => {
+  const handlePlaceBids = async (ipoId, accountIds, lots) => {
     const ipo = ipos.find(i => i.id === ipoId);
-    const account = userAccounts.find(a => a.id === accountId);
-    if (!ipo || !account) return;
+    if (!ipo || accountIds.length === 0) return;
 
-    const lotCost = ipo.retail_lot_cost * lots;
-    if (lotCost > liquidCapital) {
-      alert("Insufficient liquid cash in family pool to place this application!");
+    const totalCost = ipo.retail_lot_cost * lots * accountIds.length;
+    if (totalCost > liquidCapital) {
+      alert("Insufficient liquid cash in family pool to place these applications!");
       return;
     }
 
     const userId = session.user?.id || session.id;
-    const newApp = {
+    const newApps = accountIds.map(accountId => ({
       user_id: userId,
       account_id: accountId,
       ipo_id: ipoId,
       lots_applied: lots,
-      bid_amount: lotCost,
+      bid_amount: ipo.retail_lot_cost * lots,
       status: 'PENDING',
       listing_profit_rs: 0.00
-    };
+    }));
 
     if (supabase && !isGuestMode) {
       const { data, error } = await supabase
         .from('user_applications')
-        .insert(newApp)
+        .insert(newApps)
         .select();
       if (error) {
-        alert("Failed to place application: " + error.message);
+        alert("Failed to place applications: " + error.message);
       } else {
-        setUserApplications(prev => [...prev, data[0]]);
+        setUserApplications(prev => [...prev, ...data]);
       }
     } else {
-      const updated = [...userApplications, { ...newApp, id: `app-${Date.now()}` }];
+      const localApps = newApps.map((app, idx) => ({ ...app, id: `app-${Date.now()}-${idx}` }));
+      const updated = [...userApplications, ...localApps];
       setUserApplications(updated);
       localStorage.setItem(`ipo_applications_${userId}`, JSON.stringify(updated));
     }
@@ -1021,7 +1111,7 @@ export default function App() {
               </div>
             </div>
 
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
               An algorithmic analyzer that strips emotion from IPO bidding in India. By tracking real-time QIB/retail subscriptions, GMP premium curves, and promoters' post-IPO stakes, the engine provides clear YES/NO investment signals.
             </p>
 
@@ -1059,13 +1149,13 @@ export default function App() {
               <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '20px', paddingBottom: '2px' }}>
                 <button
                   onClick={() => setAuthMode('login')}
-                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'login' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'login' ? '2px solid var(--accent)' : 'none', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'login' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'login' ? '2px solid var(--accent)' : 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
                 >
                   Sign In
                 </button>
                 <button
                   onClick={() => setAuthMode('signup')}
-                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'signup' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'signup' ? '2px solid var(--accent)' : 'none', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'signup' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'signup' ? '2px solid var(--accent)' : 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
                 >
                   Create Account
                 </button>
@@ -1079,7 +1169,7 @@ export default function App() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="input-field"
-                    style={{ padding: '12px 16px', borderRadius: '14px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
+                    style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
                     required
                   />
                 )}
@@ -1089,7 +1179,7 @@ export default function App() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field"
-                  style={{ padding: '12px 16px', borderRadius: '14px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
+                  style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
                   required
                 />
                 <input
@@ -1098,11 +1188,11 @@ export default function App() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-field"
-                  style={{ padding: '12px 16px', borderRadius: '14px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
+                  style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
                   required
                 />
 
-                {authError && <div style={{ fontSize: '12px', color: 'var(--error)' }}>{authError}</div>}
+                {authError && <div style={{ fontSize: '11px', color: 'var(--danger)' }}>{authError}</div>}
 
                 <button
                   type="submit"
@@ -1111,7 +1201,7 @@ export default function App() {
                   style={{
                     padding: '12px',
                     borderRadius: '999px',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     fontWeight: '700',
                     width: '100%',
                     opacity: authLoading ? 0.6 : 1
@@ -1130,7 +1220,7 @@ export default function App() {
                   Guest Access
                 </span>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 14px 0', lineHeight: '1.5' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 14px 0', lineHeight: '1.5' }}>
                 Want to explore the portfolio? Enter your name — no email or password needed.
               </p>
               <form
@@ -1146,7 +1236,7 @@ export default function App() {
                   style={{
                     flex: 1,
                     padding: '11px 16px',
-                    borderRadius: '14px',
+                    borderRadius: '16px',
                     backgroundColor: 'rgba(139, 130, 115, 0.04)',
                     border: '1px solid var(--border-strong)',
                     color: 'var(--text-h)',
@@ -1157,7 +1247,7 @@ export default function App() {
                   type="submit"
                   disabled={guestLoading || !guestName.trim()}
                   className="btn btn-primary"
-                  style={{ padding: '11px 20px', borderRadius: '14px', fontSize: '13px', whiteSpace: 'nowrap' }}
+                  style={{ padding: '11px 20px', borderRadius: '16px', fontSize: '13px', whiteSpace: 'nowrap' }}
                 >
                   {guestLoading ? 'Entering...' : 'Enter →'}
                 </button>
@@ -1175,55 +1265,99 @@ export default function App() {
   // ====================================================
 
   const renderDashboardTab = () => {
-    const biddingIpos = ipos.filter(i => i.status === 'bidding');
-    const upcomingIpos = ipos.filter(i => i.status === 'upcoming');
+    // Limit to max 6 IPOs per tab with proper date sorting
+    const biddingIpos = ipos
+      .filter(i => i.status === 'bidding')
+      .slice(0, 6);
+
+    const upcomingIpos = ipos
+      .filter(i => i.status === 'upcoming')
+      .sort((a, b) => {
+        const dateA = new Date(a.open_date || a.close_date || 0).getTime();
+        const dateB = new Date(b.open_date || b.close_date || 0).getTime();
+        return dateA - dateB;
+      })
+      .slice(0, 6);
+
+    // Sort closed IPOs to get the most recently closed listings first (e.g. recent 2026/2025/recent IPOs)
+    const closedIpos = ipos
+      .filter(i => i.status !== 'bidding' && i.status !== 'upcoming')
+      .sort((a, b) => {
+        const dateB = new Date(b.close_date || b.listing_date || b.open_date || 0).getTime();
+        const dateA = new Date(a.close_date || a.listing_date || a.open_date || 0).getTime();
+        return dateB - dateA;
+      })
+      .slice(0, 6);
+
+    // Recommended tab: Only show currently open/bidding IPOs with YES signal
+    const recommendedIpos = ipos
+      .filter(i => i.decision === 'YES' && i.status === 'bidding')
+      .slice(0, 6);
+
     const totalBids = userApplications.length;
     const allottedBids = userApplications.filter(a => a.status === 'ALLOTTED').length;
     const refundedBids = userApplications.filter(a => a.status === 'REFUNDED').length;
-    const winRate = (allottedBids + refundedBids) > 0 ? Math.round((allottedBids / (allottedBids + refundedBids)) * 100) : 0;
+    const winRate = (allottedBids + refundedBids) > 0 ? Math.round((allottedBids / (allottedBids + refundedBids)) * 100) : (allottedBids > 0 ? 100 : 0);
     const totalRealizedProfit = userApplications
       .filter(a => a.status === 'ALLOTTED')
       .reduce((sum, a) => sum + parseFloat(a.listing_profit_rs || 0), 0);
 
+    // Determine current pipeline list based on tab
+    let currentPipelineList = [];
+    let emptyTabMsg = '';
+    if (dashboardPipelineTab === 'recommended') {
+      currentPipelineList = recommendedIpos;
+      emptyTabMsg = 'No open IPOs currently have a YES investment recommendation.';
+    } else if (dashboardPipelineTab === 'open_now') {
+      currentPipelineList = biddingIpos;
+      emptyTabMsg = 'No IPOs are currently active for bidding today.';
+    } else if (dashboardPipelineTab === 'upcoming') {
+      currentPipelineList = upcomingIpos;
+      emptyTabMsg = 'No upcoming IPO listings scheduled in the next 7 days.';
+    } else if (dashboardPipelineTab === 'closed') {
+      currentPipelineList = closedIpos;
+      emptyTabMsg = 'No recently closed IPO listings found.';
+    }
+
     return (
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
         {/* Welcome Banner */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: '16px' }}>
           <div>
-            <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
-              Welcome back, {userProfile?.display_name || 'Investor'}
+            <h2 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
+              Welcome back, {userProfile?.display_name || 'Prabhat'}
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
               Here is the executive summary of your family IPO investment portal today.
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--success)', backgroundColor: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '8px 16px', borderRadius: '20px', fontWeight: '600' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--success)', backgroundColor: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '8px 16px', borderRadius: '20px', fontWeight: '600', alignSelf: isMobile ? 'flex-start' : 'center' }}>
             <Sparkles size={14} /> Live Workspace Sync
           </div>
         </div>
 
-        {/* Statistics Grid */}
+        {/* Top 4 Statistics Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
           <div className="premium-card metric-card">
-            <span className="metric-card-label">Active / Ongoing IPOs</span>
+            <span className="metric-card-label">ACTIVE / ONGOING IPOS</span>
             <div className="metric-card-value">{biddingIpos.length}</div>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>IPOs open for bidding today</span>
           </div>
 
           <div className="premium-card metric-card">
-            <span className="metric-card-label">Upcoming IPOs</span>
+            <span className="metric-card-label">UPCOMING IPOS</span>
             <div className="metric-card-value">{upcomingIpos.length}</div>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Opening in next 7 days</span>
           </div>
 
           <div className="premium-card metric-card">
-            <span className="metric-card-label">Total Invested Bids</span>
+            <span className="metric-card-label">TOTAL INVESTED BIDS</span>
             <div className="metric-card-value">{totalBids}</div>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Bids placed across all PAN profiles</span>
           </div>
 
           <div className="premium-card metric-card">
-            <span className="metric-card-label">Realized Profit</span>
+            <span className="metric-card-label">REALIZED PROFIT</span>
             <div className="metric-card-value" style={{ color: 'var(--success)' }}>
               ₹{totalRealizedProfit.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </div>
@@ -1231,37 +1365,620 @@ export default function App() {
           </div>
         </div>
 
-        {/* Charts and Details Section */}
+        {/* Centerpiece: IPO Pipeline Section */}
+        <div className="premium-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Header Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.3px' }}>
+              IPO Pipeline
+            </h3>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                Last checked: <strong style={{ color: 'var(--text-h)' }}>{lastRefreshedDate}</strong>
+              </span>
+
+              <button 
+                onClick={handleForceRefresh}
+                disabled={dbLoading}
+                className="btn"
+                style={{
+                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--border-strong)',
+                  borderRadius: '999px',
+                  padding: '7px 16px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  color: 'var(--text-h)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: 'var(--shadow-sm)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <RefreshCw size={12} className={dbLoading ? 'spin' : ''} />
+                {dbLoading ? 'Syncing...' : 'Sync Market'}
+              </button>
+
+              <div style={{ display: 'flex', backgroundColor: 'rgba(0,0,0,0.03)', padding: '3px', borderRadius: '999px', border: '1px solid var(--border)' }}>
+                <button
+                  onClick={() => { setViewMode('grid'); localStorage.setItem('ipo_view_mode', 'grid'); }}
+                  style={{
+                    padding: '6px 14px',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    border: 'none',
+                    borderRadius: '999px',
+                    cursor: 'pointer',
+                    backgroundColor: viewMode === 'grid' ? '#ffffff' : 'transparent',
+                    color: viewMode === 'grid' ? 'var(--accent)' : 'var(--text-muted)',
+                    boxShadow: viewMode === 'grid' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Grid View
+                </button>
+                <button
+                  onClick={() => { setViewMode('list'); localStorage.setItem('ipo_view_mode', 'list'); }}
+                  style={{
+                    padding: '6px 14px',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    border: 'none',
+                    borderRadius: '999px',
+                    cursor: 'pointer',
+                    backgroundColor: viewMode === 'list' ? '#ffffff' : 'transparent',
+                    color: viewMode === 'list' ? 'var(--accent)' : 'var(--text-muted)',
+                    boxShadow: viewMode === 'list' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  List View
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Pipeline Tabs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', borderBottom: '1px solid var(--border)', paddingBottom: '14px' }}>
+            <button
+              onClick={() => {
+                setDashboardPipelineTab('recommended');
+                if (pipelineScrollRef.current) pipelineScrollRef.current.scrollTo({ left: 0 });
+                setPipelineScrollPage(0);
+              }}
+              style={{
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: '700',
+                border: dashboardPipelineTab === 'recommended' ? '1px solid var(--accent-border)' : '1px solid transparent',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                backgroundColor: dashboardPipelineTab === 'recommended' ? 'var(--accent-bg)' : 'transparent',
+                color: dashboardPipelineTab === 'recommended' ? 'var(--accent)' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Recommended
+              {recommendedIpos.length > 0 && (
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: '800',
+                  padding: '2px 7px',
+                  borderRadius: '999px',
+                  backgroundColor: dashboardPipelineTab === 'recommended' ? 'var(--accent)' : 'var(--border-strong)',
+                  color: '#ffffff'
+                }}>
+                  {recommendedIpos.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                setDashboardPipelineTab('open_now');
+                if (pipelineScrollRef.current) pipelineScrollRef.current.scrollTo({ left: 0 });
+                setPipelineScrollPage(0);
+              }}
+              style={{
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: '700',
+                border: dashboardPipelineTab === 'open_now' ? '1px solid var(--accent-border)' : '1px solid transparent',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                backgroundColor: dashboardPipelineTab === 'open_now' ? 'var(--accent-bg)' : 'transparent',
+                color: dashboardPipelineTab === 'open_now' ? 'var(--accent)' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Open Now
+              {biddingIpos.length > 0 && (
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: '800',
+                  padding: '2px 7px',
+                  borderRadius: '999px',
+                  backgroundColor: dashboardPipelineTab === 'open_now' ? 'var(--accent)' : 'var(--border-strong)',
+                  color: '#ffffff'
+                }}>
+                  {biddingIpos.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                setDashboardPipelineTab('upcoming');
+                if (pipelineScrollRef.current) pipelineScrollRef.current.scrollTo({ left: 0 });
+                setPipelineScrollPage(0);
+              }}
+              style={{
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: '700',
+                border: dashboardPipelineTab === 'upcoming' ? '1px solid var(--accent-border)' : '1px solid transparent',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                backgroundColor: dashboardPipelineTab === 'upcoming' ? 'var(--accent-bg)' : 'transparent',
+                color: dashboardPipelineTab === 'upcoming' ? 'var(--accent)' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Upcoming
+              {upcomingIpos.length > 0 && (
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: '800',
+                  padding: '2px 7px',
+                  borderRadius: '999px',
+                  backgroundColor: dashboardPipelineTab === 'upcoming' ? 'var(--accent)' : 'var(--border-strong)',
+                  color: '#ffffff'
+                }}>
+                  {upcomingIpos.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                setDashboardPipelineTab('closed');
+                if (pipelineScrollRef.current) pipelineScrollRef.current.scrollTo({ left: 0 });
+                setPipelineScrollPage(0);
+              }}
+              style={{
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: '700',
+                border: dashboardPipelineTab === 'closed' ? '1px solid var(--accent-border)' : '1px solid transparent',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                backgroundColor: dashboardPipelineTab === 'closed' ? 'var(--accent-bg)' : 'transparent',
+                color: dashboardPipelineTab === 'closed' ? 'var(--accent)' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Closed
+              {closedIpos.length > 0 && (
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: '800',
+                  padding: '2px 7px',
+                  borderRadius: '999px',
+                  backgroundColor: dashboardPipelineTab === 'closed' ? 'var(--accent)' : 'var(--border-strong)',
+                  color: '#ffffff'
+                }}>
+                  {closedIpos.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Tab Content (Cards or List View) */}
+          {currentPipelineList.length === 0 ? (
+            <div style={{ padding: '36px 20px', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center' }}>
+              {emptyTabMsg}
+            </div>
+          ) : viewMode === 'list' ? (
+            /* Table List View */
+            <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: 'rgba(0,0,0,0.015)', borderBottom: '1px solid var(--border)' }}>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Company</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>GMP Premium</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>QIB Demand</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Allotment Odds</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Issue Size</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Lot Cost</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Timeline</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Recommendation</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentPipelineList.map(ipo => {
+                    const dateStr = ipo.close_date ? new Date(ipo.close_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'TBA';
+                    return (
+                      <tr
+                        key={ipo.id}
+                        onClick={() => setSelectedIpo(ipo)}
+                        style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.01)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <td style={{ padding: '14px 18px' }}>
+                          <div style={{ fontWeight: '800', color: 'var(--text-h)' }}>{ipo.name}</div>
+                          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Symbol: {ipo.symbol}</div>
+                        </td>
+                        <td style={{ padding: '14px 18px', fontWeight: '700', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
+                          {ipo.gmp_pct ? `+${ipo.gmp_pct}%` : '0%'}
+                        </td>
+                        <td style={{ padding: '14px 18px', fontWeight: '700', color: ipo.qib_sub >= 50 ? 'var(--success)' : ipo.qib_sub > 0 ? 'var(--accent)' : 'var(--text-h)' }}>
+                          {ipo.qib_sub && ipo.qib_sub > 0 ? `${ipo.qib_sub}x` : (ipo.total_sub ? `${ipo.total_sub}x` : 'Not available')}
+                        </td>
+                        <td style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--success)' }}>
+                          {ipo.retail_sub && ipo.retail_sub > 1 ? `${(100 / ipo.retail_sub).toFixed(1)}%` : '100%'}
+                        </td>
+                        <td style={{ padding: '14px 18px', color: 'var(--text-h)' }}>
+                          ₹{ipo.issue_size_cr} Cr
+                        </td>
+                        <td style={{ padding: '14px 18px', color: 'var(--text-h)' }}>
+                          ₹{ipo.retail_lot_cost?.toLocaleString('en-IN') || (ipo.price_band_high && ipo.lot_size ? (ipo.price_band_high * ipo.lot_size).toLocaleString('en-IN') : '14,938')}
+                        </td>
+                        <td style={{ padding: '14px 18px', color: 'var(--text-muted)' }}>
+                          {ipo.status === 'upcoming' ? `Opens ${dateStr}` : `Closes ${dateStr}`}
+                        </td>
+                        <td style={{ padding: '14px 18px' }}>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            color: ipo.decision === 'YES' ? 'var(--success)' : ipo.decision === 'WATCH' ? 'var(--warning)' : 'var(--danger)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            backgroundColor: ipo.decision === 'YES' ? 'rgba(16, 185, 129, 0.08)' : ipo.decision === 'WATCH' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(239, 68, 68, 0.06)',
+                            borderRadius: '16px',
+                            border: ipo.decision === 'YES' ? '1px solid rgba(16, 185, 129, 0.22)' : ipo.decision === 'WATCH' ? '1px solid rgba(245, 158, 11, 0.25)' : '1px solid rgba(239, 68, 68, 0.2)'
+                          }}>
+                            {ipo.decision === 'YES' && <CheckCircle2 size={11} />}
+                            {ipo.decision === 'WATCH' && <AlertTriangle size={11} />}
+                            {ipo.decision === 'NO' && <XCircle size={11} />}
+                            {ipo.decision === 'YES' ? 'YES — APPLY' : ipo.decision === 'WATCH' ? 'MAYBE — WATCH' : 'NO — AVOID'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            /* Cards Horizontal Scroll View (3 cards per screen, max 6) */
+            <div>
+              <div
+                ref={pipelineScrollRef}
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  const isScrolled = el.scrollLeft > 60;
+                  setPipelineScrollPage(isScrolled ? 1 : 0);
+                }}
+                className="ipo-pipeline-grid"
+              >
+                {currentPipelineList.map(ipo => {
+                  const dateStr = ipo.close_date ? new Date(ipo.close_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'TBA';
+                  const lotCost = ipo.retail_lot_cost 
+                    ? ipo.retail_lot_cost.toLocaleString('en-IN') 
+                    : (ipo.price_band_high && ipo.lot_size ? (ipo.price_band_high * ipo.lot_size).toLocaleString('en-IN') : '14,938');
+
+                  return (
+                    <div
+                      key={ipo.id}
+                      onClick={() => setSelectedIpo(ipo)}
+                      className="premium-card ipo-card"
+                      style={{
+                        scrollSnapAlign: 'start',
+                        backgroundColor: 'var(--card-bg)',
+                        borderRadius: '20px',
+                        padding: '20px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        border: '1px solid var(--border)',
+                        boxShadow: 'var(--shadow-sm)',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                        minHeight: '310px',
+                        minWidth: '0px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = 'var(--shadow)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                      }}
+                    >
+                      <div>
+                        {/* 1. Header: Status Badge & Closing/Opening Date */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: '800',
+                            letterSpacing: '0.5px',
+                            textTransform: 'uppercase',
+                            padding: '4px 10px',
+                            borderRadius: '999px',
+                            backgroundColor: ipo.status === 'bidding' ? 'rgba(16, 185, 129, 0.12)' : ipo.status === 'upcoming' ? 'var(--warning-bg)' : 'rgba(0,0,0,0.05)',
+                            color: ipo.status === 'bidding' ? 'var(--success)' : ipo.status === 'upcoming' ? 'var(--warning)' : 'var(--text-muted)'
+                          }}>
+                            {ipo.status === 'bidding' ? 'BIDDING' : ipo.status.toUpperCase()}
+                          </span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}>
+                            <Calendar size={12} /> {ipo.status === 'upcoming' ? `Opens ${dateStr}` : `Closes ${dateStr}`}
+                          </span>
+                        </div>
+
+                        {/* Title & Symbol */}
+                        <h4 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 2px 0', color: 'var(--text-h)', lineHeight: '1.2' }}>
+                          {ipo.name}
+                        </h4>
+                        <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 14px 0' }}>
+                          Symbol: <span style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-h)', fontWeight: '600' }}>{ipo.symbol}</span>
+                        </p>
+
+                        {/* 2. PRIMARY HIERARCHY: Recommendation Box */}
+                        <div style={{
+                          borderRadius: '12px',
+                          padding: '12px 14px',
+                          marginBottom: '16px',
+                          backgroundColor: ipo.decision === 'YES' 
+                            ? 'rgba(16, 185, 129, 0.08)' 
+                            : ipo.decision === 'WATCH' 
+                              ? 'rgba(245, 158, 11, 0.08)' 
+                              : 'rgba(239, 68, 68, 0.06)',
+                          border: ipo.decision === 'YES' 
+                            ? '1px solid rgba(16, 185, 129, 0.22)' 
+                            : ipo.decision === 'WATCH' 
+                              ? '1px solid rgba(245, 158, 11, 0.25)' 
+                              : '1px solid rgba(239, 68, 68, 0.2)'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {ipo.decision === 'YES' && <CheckCircle2 size={18} style={{ color: 'var(--success)', flexShrink: 0 }} />}
+                            {ipo.decision === 'WATCH' && <AlertTriangle size={18} style={{ color: 'var(--warning)', flexShrink: 0 }} />}
+                            {ipo.decision === 'NO' && <XCircle size={18} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
+                            <span style={{
+                              fontSize: '14px',
+                              fontWeight: '800',
+                              letterSpacing: '0.2px',
+                              color: ipo.decision === 'YES' ? 'var(--success)' : ipo.decision === 'WATCH' ? 'var(--warning)' : 'var(--danger)'
+                            }}>
+                              {ipo.decision === 'YES' ? 'YES — APPLY' : ipo.decision === 'WATCH' ? 'MAYBE — WATCH' : 'NO — AVOID'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-h)', marginTop: '4px', fontWeight: '700', paddingLeft: '26px' }}>
+                            Reason: <span style={{ fontWeight: '500', color: 'var(--text-muted)' }}>{ipo.reason || (ipo.decision === 'YES' ? 'All mandatory checks passed' : 'Criteria not met')}</span>
+                          </div>
+                        </div>
+
+                        {/* 3. Decision-Driving Metrics */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(3, 1fr)',
+                          gap: '8px',
+                          marginBottom: '14px'
+                        }}>
+                          <div>
+                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.3px', marginBottom: '2px' }}>
+                              GMP PREMIUM
+                            </span>
+                            <span style={{ fontSize: '14px', fontWeight: '800', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
+                              {ipo.gmp_pct ? `+${ipo.gmp_pct}%` : '0%'}
+                            </span>
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.3px', marginBottom: '2px' }}>
+                              QIB DEMAND
+                            </span>
+                            <span style={{ fontSize: '14px', fontWeight: '800', color: ipo.qib_sub >= 50 ? 'var(--success)' : ipo.qib_sub > 0 ? 'var(--accent)' : 'var(--text-h)' }}>
+                              {ipo.qib_sub && ipo.qib_sub > 0 ? `${ipo.qib_sub}x` : (ipo.total_sub ? `${ipo.total_sub}x` : 'Not available')}
+                            </span>
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.3px', marginBottom: '2px' }}>
+                              ALLOTMENT ODDS
+                            </span>
+                            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--success)' }}>
+                              {ipo.retail_sub && ipo.retail_sub > 1 ? `${(100 / ipo.retail_sub).toFixed(1)}%` : '100%'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 4. Checklist Status Summary Row */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          marginBottom: '14px',
+                          color: 'var(--text-muted)'
+                        }}>
+                          {ipo.decision === 'YES' ? (
+                            <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <CheckCircle2 size={12} /> All mandatory passed • {ipo.score}/8 checks passed
+                            </span>
+                          ) : ipo.decision === 'WATCH' ? (
+                            <span style={{ color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <AlertTriangle size={12} /> {ipo.score}/8 checks passed • {ipo.mandatoryPending || 2} mandatory pending
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <XCircle size={12} /> {ipo.mandatoryFailed > 0 ? `${ipo.mandatoryFailed} mandatory failed` : 'Threshold not met'} • {ipo.score}/8 checks passed
+                            </span>
+                          )}
+                          <Info size={12} style={{ color: 'var(--text-muted)', cursor: 'help' }} />
+                        </div>
+                      </div>
+
+                      {/* 5. Bottom Execution Information: Lot & View Details */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderTop: '1px solid var(--border)',
+                        paddingTop: '12px'
+                      }}>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-h)' }}>
+                          1 Lot: ₹{lotCost}
+                        </span>
+                        <span style={{
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          color: 'var(--accent)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}>
+                          View Details <ChevronRight size={13} />
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Centered Pagination (1 Orange Pill + 1 Grey Dot) - only shown when more than 3 cards (Desktop only) */}
+              {!isMobile && currentPipelineList.length > 3 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '20px' }}>
+                  <button
+                    onClick={() => {
+                      if (pipelineScrollRef.current) {
+                        pipelineScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+                        setPipelineScrollPage(0);
+                      }
+                    }}
+                    style={{
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      width: pipelineScrollPage === 0 ? '22px' : '6px',
+                      height: '6px',
+                      borderRadius: pipelineScrollPage === 0 ? '4px' : '50%',
+                      backgroundColor: pipelineScrollPage === 0 ? 'var(--accent)' : 'var(--border-strong)',
+                      transition: 'all 0.25s ease'
+                    }}
+                    title="Page 1"
+                  />
+                  <button
+                    onClick={() => {
+                      if (pipelineScrollRef.current) {
+                        pipelineScrollRef.current.scrollTo({ left: pipelineScrollRef.current.scrollWidth, behavior: 'smooth' });
+                        setPipelineScrollPage(1);
+                      }
+                    }}
+                    style={{
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      width: pipelineScrollPage === 1 ? '22px' : '6px',
+                      height: '6px',
+                      borderRadius: pipelineScrollPage === 1 ? '4px' : '50%',
+                      backgroundColor: pipelineScrollPage === 1 ? 'var(--accent)' : 'var(--border-strong)',
+                      transition: 'all 0.25s ease'
+                    }}
+                    title="Page 2"
+                  />
+                </div>
+              )}
+
+              {/* Bottom Decision Engine Legend */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginTop: '20px',
+                paddingTop: '16px',
+                borderTop: '1px solid var(--border)',
+                fontSize: '11px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={13} style={{ color: 'var(--success)' }} />
+                    <strong style={{ color: 'var(--text-h)' }}>YES — APPLY</strong>
+                    <span style={{ color: 'var(--text-muted)' }}>Strong probability of listing gain</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertTriangle size={13} style={{ color: 'var(--warning)' }} />
+                    <strong style={{ color: 'var(--text-h)' }}>MAYBE — WATCH</strong>
+                    <span style={{ color: 'var(--text-muted)' }}>Mixed signals, monitor closely</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <XCircle size={13} style={{ color: 'var(--danger)' }} />
+                    <strong style={{ color: 'var(--text-h)' }}>NO — AVOID</strong>
+                    <span style={{ color: 'var(--text-muted)' }}>Low probability of listing gain</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '11px' }}>
+                  <Info size={12} />
+                  <span>2 mandatory checks must pass. Minimum 6 total checks must pass for YES.</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Middle Section: Cumulative Profit Growth & Allotment Win Rate */}
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
           {/* Cumulative Profit Chart */}
           {renderDashboardCharts()}
 
-          {/* Win Rate circular gauge */}
+          {/* Allotment Win Rate Circular Gauge */}
           <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 16px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Allotment Win Rate</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-h)', margin: '0 0 16px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              ALLOTMENT WIN RATE
+            </h3>
             
-            <div style={{ position: 'relative', width: '120px', height: '120px' }}>
-              <svg width="120" height="120" viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" strokeWidth="10" />
-                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--success)" strokeWidth="10" 
-                  strokeDasharray="314.16" 
-                  strokeDashoffset={314.16 - (314.16 * winRate) / 100} 
+            <div style={{ position: 'relative', width: '130px', height: '130px' }}>
+              <svg width="130" height="130" viewBox="0 0 130 130">
+                <circle cx="65" cy="65" r="52" fill="none" stroke="var(--border)" strokeWidth="10" />
+                <circle cx="65" cy="65" r="52" fill="none" stroke="var(--success)" strokeWidth="10" 
+                  strokeDasharray="326.72" 
+                  strokeDashoffset={326.72 - (326.72 * winRate) / 100} 
                   strokeLinecap="round" 
-                  transform="rotate(-90 60 60)"
+                  transform="rotate(-90 65 65)"
                   style={{ transition: 'stroke-dashoffset 0.8s ease' }}
                 />
               </svg>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-h)' }}>{winRate}%</span>
-                <span style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 'bold' }}>Allotted</span>
+                <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-h)', lineHeight: '1' }}>{winRate}%</span>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: '800', marginTop: '4px', letterSpacing: '0.5px' }}>ALLOTTED</span>
               </div>
             </div>
             
-            <div style={{ marginTop: '20px', display: 'flex', gap: '16px', fontSize: '12px' }}>
+            <div style={{ marginTop: '20px', display: 'flex', gap: '16px', fontSize: '12px', alignItems: 'center' }}>
               <div>
-                <span style={{ color: 'var(--success)', fontWeight: '700' }}>{allottedBids}</span> Allotted
+                <span style={{ color: 'var(--success)', fontWeight: '800' }}>{allottedBids}</span> Allotted
               </div>
-              <div style={{ width: '1px', backgroundColor: 'var(--border)' }}></div>
+              <div style={{ width: '1px', height: '14px', backgroundColor: 'var(--border-strong)' }}></div>
               <div>
                 <span style={{ color: 'var(--text-muted)', fontWeight: '700' }}>{refundedBids}</span> Refunded
               </div>
@@ -1269,47 +1986,47 @@ export default function App() {
           </div>
         </div>
 
-        {/* Portfolio Budget & Allocation Summary */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '24px' }}>
-          {/* Capital allocation summary */}
-          <div className="premium-card">
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Family Capital Pool</h3>
+        {/* Bottom Section: Capital Pool & Active Bids Checklist */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          {/* Family Capital Pool */}
+          <div className="premium-card" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Family Capital Pool</h3>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '13px' }}>Total Capital Pool</span>
-              <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-h)' }}>₹{capital.toLocaleString('en-IN')}</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Total Capital Pool</span>
+              <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-h)' }}>₹{capital.toLocaleString('en-IN')}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '13px' }}>ASBA Blocked Funds</span>
-              <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--warning)' }}>₹{totalBlocked.toLocaleString('en-IN')}</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>ASBA Blocked Funds</span>
+              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--warning)' }}>₹{totalBlocked.toLocaleString('en-IN')}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '12px', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', fontWeight: '600' }}>Available Liquid Cash</span>
-              <span style={{ fontSize: '15px', fontWeight: '800', color: 'var(--success)' }}>₹{liquidCapital.toLocaleString('en-IN')}</span>
+              <span style={{ fontSize: '18px', fontWeight: '800', color: 'var(--success)' }}>₹{liquidCapital.toLocaleString('en-IN')}</span>
             </div>
 
             <div style={{ height: '8px', backgroundColor: 'var(--border)', borderRadius: '4px', display: 'flex', overflow: 'hidden', marginTop: '16px' }}>
-              <div style={{ width: `${(liquidCapital / capital) * 100}%`, backgroundColor: 'var(--success)' }}></div>
-              <div style={{ width: `${(totalBlocked / capital) * 100}%`, backgroundColor: 'var(--warning)' }}></div>
+              <div style={{ width: `${(liquidCapital / capital) * 100}%`, backgroundColor: 'var(--success)', transition: 'width 0.3s ease' }}></div>
+              <div style={{ width: `${(totalBlocked / capital) * 100}%`, backgroundColor: 'var(--warning)', transition: 'width 0.3s ease' }}></div>
             </div>
           </div>
 
-          {/* Active bids checklist logs */}
-          <div className="premium-card">
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Active Bids Checklist</h3>
+          {/* Active Bids Checklist */}
+          <div className="premium-card" style={{ padding: '24px' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Active Bid Checklist</h3>
             {userApplications.filter(a => a.status === 'PENDING').length === 0 ? (
               <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
-                No active ASBA blocks found. Start bidding in the Active Tracker!
+                No active ASBA blocks found. Start bidding in the IPO Pipeline above!
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '160px', overflowY: 'auto' }}>
                 {userApplications.filter(a => a.status === 'PENDING').map(app => {
                   const ipo = ipos.find(i => i.id === app.ipo_id);
                   const account = userAccounts.find(acc => acc.id === app.account_id);
                   if (!ipo || !account) return null;
                   
                   return (
-                    <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }}>
+                    <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontWeight: '700', color: 'var(--text-h)' }}>{ipo.name}</span>
                         <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Slot: {account.account_holder_name}</span>
@@ -1327,49 +2044,91 @@ export default function App() {
   };
 
   const renderDashboardCharts = () => {
-    const resolvedBids = [...userApplications]
-      .filter(a => a.status !== 'PENDING')
-      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const allottedBids = [...userApplications]
+      .filter(a => a.status === 'ALLOTTED')
+      .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
 
     let cumulative = 0;
-    const points = resolvedBids.map((bid, idx) => {
-      if (bid.status === 'ALLOTTED') {
-        cumulative += parseFloat(bid.listing_profit_rs || 0);
-      }
-      let d = bid.created_at ? new Date(bid.created_at) : new Date();
-      if (isNaN(d.getTime())) {
-        d = new Date();
-      }
-      // Add slight offset for sequential ordering in case dates are identical
-      d = new Date(d.getTime() + idx * 10 * 60 * 1000);
-      return { 
-        date: d,
-        value: cumulative
+    const profitPoints = allottedBids.map((bid, idx) => {
+      cumulative += parseFloat(bid.listing_profit_rs || 0);
+      const ipo = ipos.find(i => i.id === bid.ipo_id);
+      return {
+        name: ipo ? ipo.name : `Allotment ${idx + 1}`,
+        value: cumulative,
+        profit: parseFloat(bid.listing_profit_rs || 0)
       };
     });
 
-    if (points.length === 0) {
-      return (
-        <div className="premium-card" style={{ padding: '24px', flexGrow: 1 }}>
-          <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Cumulative Gains Trajectory</h3>
-          <div style={{ height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', borderRadius: '12px', border: '1px dashed var(--border-strong)', color: 'var(--text-muted)', fontSize: '12px' }}>
-            Cumulative listing profits will display here. Place bids and declare allotment results in the Rotator!
-          </div>
-        </div>
-      );
-    }
+    const totalGain = cumulative;
 
     return (
-      <div className="premium-card" style={{ padding: '24px', flexGrow: 1, minHeight: '260px' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Cumulative Gains Trajectory</h3>
-        <div style={{ height: '180px' }}>
-          <AreaChart data={points}>
-            <Grid horizontal />
-            <Area dataKey="value" fill="var(--accent)" fillOpacity={0.15} stroke="var(--accent)" strokeWidth={2.5} />
-            <XAxis />
-            <ChartTooltip />
-          </AreaChart>
+      <div className="premium-card" style={{ padding: '24px', flexGrow: 1, minHeight: '260px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0 }}>
+            Cumulative Profit Growth (₹)
+          </h3>
+          <span style={{
+            fontSize: '12px',
+            fontWeight: '800',
+            color: 'var(--success)',
+            backgroundColor: 'var(--success-bg)',
+            border: '1px solid var(--success-border)',
+            padding: '4px 12px',
+            borderRadius: '999px'
+          }}>
+            +₹{totalGain.toLocaleString('en-IN')} Total Gain
+          </span>
         </div>
+
+        {profitPoints.length === 0 ? (
+          <div style={{ height: '160px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', borderRadius: '16px', border: '1px dashed var(--border-strong)', color: 'var(--text-muted)', fontSize: '12px', gap: '6px' }}>
+            <span>Cumulative listing profits will graph here as allotments are harvested.</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Place bids and mark allotment status in the Family Rotator!</span>
+          </div>
+        ) : (
+          <div style={{ position: 'relative', width: '100%', height: '170px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            {/* Guide Grid Lines & Milestones */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%', paddingTop: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--border)', paddingBottom: '4px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>₹{(totalGain).toLocaleString('en-IN')}</span>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)' }}>
+                  ₹{(totalGain).toLocaleString('en-IN')} ({profitPoints[profitPoints.length - 1]?.name || 'Latest Allotment'})
+                </span>
+              </div>
+              {profitPoints.length > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--border)', paddingBottom: '4px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>₹{(profitPoints[0].value).toLocaleString('en-IN')}</span>
+                  <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)' }}>
+                    ₹{(profitPoints[0].value).toLocaleString('en-IN')} ({profitPoints[0]?.name || 'Initial Allotment'})
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* SVG Visual Trajectory Curve */}
+            <div style={{ width: '100%', height: '70px', marginTop: '10px' }}>
+              <svg width="100%" height="70" viewBox="0 0 400 70" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+                <defs>
+                  <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--success)" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="var(--success)" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 0,65 Q 100,50 200,35 T 400,10 L 400,70 L 0,70 Z"
+                  fill="url(#profitGrad)"
+                />
+                <path
+                  d="M 0,65 Q 100,50 200,35 T 400,10"
+                  fill="none"
+                  stroke="var(--success)"
+                  strokeWidth="2.5"
+                />
+                <circle cx="400" cy="10" r="4.5" fill="var(--success)" stroke="#ffffff" strokeWidth="2" />
+              </svg>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1409,11 +2168,11 @@ export default function App() {
 
     const renderIpoList = (list, title, emptyMsg) => (
       <div style={{ marginBottom: '32px' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {title} <span className="badge badge-neutral">{list.length}</span>
         </h3>
         {list.length === 0 ? (
-          <div style={{ padding: '20px', border: '1px dashed var(--border-strong)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '12px', textAlign: 'center' }}>
+          <div style={{ padding: '20px', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: '11px', textAlign: 'center' }}>
             {emptyMsg}
           </div>
         ) : viewMode === 'list' ? (
@@ -1426,6 +2185,7 @@ export default function App() {
                     <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Company</th>
                     <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>GMP Premium</th>
                     <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Subscription</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Allotment Chance</th>
                     <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Issue Size</th>
                     <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Lot Cost</th>
                     <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Closing Date</th>
@@ -1449,7 +2209,10 @@ export default function App() {
                           {ipo.gmp_pct}%
                         </td>
                         <td style={{ padding: '14px 18px', fontWeight: '700', color: ipo.total_sub >= 30 ? 'var(--accent)' : 'var(--text-h)' }}>
-                          {ipo.total_sub}x
+                          {ipo.total_sub}x <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'normal' }}>(Retail: {ipo.retail_sub || 0}x)</span>
+                        </td>
+                        <td style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--success)' }}>
+                          {ipo.retail_sub && ipo.retail_sub > 1 ? `${(100 / ipo.retail_sub).toFixed(1)}%` : '100%'}
                         </td>
                         <td style={{ padding: '14px 18px', color: 'var(--text-h)' }}>
                           ₹{ipo.issue_size_cr} Cr
@@ -1470,7 +2233,7 @@ export default function App() {
                             gap: '4px',
                             padding: '4px 10px',
                             backgroundColor: ipo.decision === 'YES' ? 'var(--accent-bg)' : 'var(--danger-bg)',
-                            borderRadius: '12px',
+                            borderRadius: '16px',
                             border: ipo.decision === 'YES' ? '1px solid var(--accent-border)' : '1px solid var(--danger-border)'
                           }}>
                             {ipo.decision === 'YES' ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
@@ -1486,7 +2249,7 @@ export default function App() {
           </div>
         ) : (
           /* Grid View Cards */
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
             {list.map(ipo => {
               const dateStr = ipo.close_date ? new Date(ipo.close_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'TBA';
               return (
@@ -1520,50 +2283,62 @@ export default function App() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '5px',
-                        backgroundColor: 'rgba(251, 146, 60, 0.12)',
-                        border: '1px solid rgba(251, 146, 60, 0.4)',
-                        borderRadius: '6px',
+                        backgroundColor: 'var(--warning-bg)',
+                        border: '1px solid var(--warning-border)',
+                        borderRadius: '8px',
                         padding: '3px 8px',
                         marginBottom: '8px',
                         fontSize: '10px',
                         fontWeight: '600',
-                        color: '#fb923c',
+                        color: 'var(--warning)',
                         letterSpacing: '0.02em'
                       }}>
                         ⚠️ Simulated / Estimated Data — Not Live
                       </div>
                     )}
 
-                    <h4 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 4px 0', color: 'var(--text-h)', lineHeight: '1.2' }}>
+                    <h4 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 4px 0', color: 'var(--text-h)', lineHeight: '1.2' }}>
                       {ipo.name}
                     </h4>
                     <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 16px 0' }}>
                       Symbol: <span style={{ fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--text-h)', fontWeight: '600' }}>{ipo.symbol}</span>
                     </p>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 12px', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '10px 0', marginBottom: '14px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px 8px', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '10px 0', marginBottom: '14px' }}>
                       <div>
-                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>GMP Premium</span>
-                        <span style={{ fontSize: '14px', fontWeight: '700', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>GMP Premium</span>
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
                           {ipo.gmp_pct}%
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Subscription</span>
-                        <span style={{ fontSize: '14px', fontWeight: '700', color: ipo.total_sub >= 30 ? 'var(--accent)' : 'var(--text-h)' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Subscription</span>
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: ipo.total_sub >= 30 ? 'var(--accent)' : 'var(--text-h)' }}>
                           {ipo.total_sub}x
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Issue Size</span>
-                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-h)' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Allotment %</span>
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--success)' }}>
+                          {ipo.retail_sub && ipo.retail_sub > 1 ? `${(100 / ipo.retail_sub).toFixed(1)}%` : '100%'}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Issue Size</span>
+                        <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-h)' }}>
                           ₹{ipo.issue_size_cr} Cr
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Lot Cost</span>
-                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-h)' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Lot Cost</span>
+                        <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-h)' }}>
                           ₹{ipo.retail_lot_cost?.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Lot Shares</span>
+                        <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-h)' }}>
+                          {ipo.lot_size} Shares
                         </span>
                       </div>
                     </div>
@@ -1573,7 +2348,7 @@ export default function App() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Signal:</span>
                       <span style={{
-                        fontSize: '12px',
+                        fontSize: '13px',
                         fontWeight: '800',
                         color: ipo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)',
                         display: 'flex',
@@ -1600,7 +2375,7 @@ export default function App() {
       <div className="animate-fade-in">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
               Ongoing & Upcoming IPOs
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
@@ -1609,7 +2384,7 @@ export default function App() {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               Last checked: <strong style={{ color: 'var(--text-h)' }}>{lastRefreshedDate}</strong>
             </span>
             
@@ -1622,7 +2397,7 @@ export default function App() {
                 border: '1px solid var(--border-strong)',
                 borderRadius: '999px',
                 padding: '8px 16px',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: '700',
                 color: 'var(--text-h)',
                 cursor: 'pointer',
@@ -1698,18 +2473,18 @@ export default function App() {
         {/* Family sharing section */}
         <div className="premium-card" style={{ padding: '24px' }}>
           <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-h)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Users size={20} style={{ color: 'var(--accent)' }} /> Investment Group Sharing & Collaboration
             </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
               Share PAN cards, trading capitals, and ASBA bid logs in real-time. Invite group members to manage bids together.
             </p>
           </div>
 
           {!familyGroup ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '32px', alignItems: 'start' }}>
               {/* Create Group Form */}
-              <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: '1px solid var(--border)', paddingRight: '32px' }}>
+              <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
                 <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', margin: 0 }}>Create Investment Group</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Group Name</label>
@@ -1748,18 +2523,18 @@ export default function App() {
             </div>
           ) : (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', backgroundColor: 'var(--bg)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: '16px', marginBottom: '20px', backgroundColor: 'var(--bg)', padding: '12px 16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                 <div>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Active Group</span>
-                  <h4 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-h)', margin: 0 }}>{familyGroup.group_name}</h4>
+                  <h4 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0 }}>{familyGroup.group_name}</h4>
                 </div>
                 
                 {/* Invite Code Display Card */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'var(--card-bg)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-strong)' }}>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Invitation Code</span>
-                    <span style={{ fontSize: '14px', fontFamily: 'var(--mono)', fontWeight: '700', color: 'var(--accent)' }}>
-                      {familyGroup.invite_code || 'SANDBOX8'}
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Invitation Code</span>
+                    <span style={{ fontSize: '13px', fontFamily: 'var(--mono)', fontWeight: '700', color: 'var(--accent)' }}>
+                       {familyGroup.invite_code || 'SANDBOX8'}
                     </span>
                   </div>
                   <button 
@@ -1774,10 +2549,10 @@ export default function App() {
                   </button>
                 </div>
 
-                <button onClick={handleLeaveGroup} className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '12px' }}>Leave Group</button>
+                <button onClick={handleLeaveGroup} className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '11px' }}>Leave Group</button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px' }}>
                 {/* Invite form */}
                 <div>
                   <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '10px' }}>Invite Group Member by Email</h4>
@@ -1788,10 +2563,10 @@ export default function App() {
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
                       className="input-field"
-                      style={{ fontSize: '12px' }}
+                      style={{ fontSize: '13px' }}
                       required
                     />
-                    <button type="submit" disabled={inviteLoading} className="btn btn-primary" style={{ padding: '8px 14px', fontSize: '12px' }}>
+                    <button type="submit" disabled={inviteLoading} className="btn btn-primary" style={{ padding: '8px 14px', fontSize: '11px' }}>
                       {inviteLoading ? 'Inviting...' : 'Invite'}
                     </button>
                   </form>
@@ -1804,13 +2579,13 @@ export default function App() {
                   <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '10px' }}>Joined Group Members ({groupMembers.length})</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
                     {groupMembers.map(m => (
-                      <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px', backgroundColor: 'var(--bg)' }}>
+                      <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px', backgroundColor: 'var(--bg)' }}>
                         <div>
                           <span style={{ fontWeight: '700', color: 'var(--text-h)' }}>{m.user_profiles?.display_name || 'Guest User'}</span>
                           <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>{m.user_profiles?.email}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span className={`badge ${m.role === 'admin' ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '9px' }}>
+                          <span className={`badge ${m.role === 'admin' ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '10px' }}>
                             {m.role}
                           </span>
                           {familyGroup.creator_id !== m.user_id && m.user_id !== (session.user?.id || session.id) && (
@@ -1826,7 +2601,7 @@ export default function App() {
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: '24px' }}>
           
           {/* Wallet Summary & PANs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -1834,7 +2609,7 @@ export default function App() {
             {/* Wallet summary */}
             <div className="premium-card" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: '700', margin: 0, color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: '700', margin: 0, color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Wallet size={16} style={{ color: 'var(--accent)' }} /> Family Budget Pool
                 </h3>
                 <button
@@ -1847,7 +2622,7 @@ export default function App() {
 
               <div style={{ marginBottom: '20px' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Total Trading Capital</span>
-                <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-h)', letterSpacing: '-1px' }}>
+                <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-h)', letterSpacing: '-1px' }}>
                   ₹{capital.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
@@ -1858,13 +2633,13 @@ export default function App() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent)' }}></span> Available (Liquid)
                   </span>
                   <span style={{ fontWeight: '700', color: 'var(--text-h)' }}>₹{liquidCapital.toLocaleString('en-IN')}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--warning)' }}></span> ASBA Blocked (UPI)
                   </span>
@@ -1876,7 +2651,7 @@ export default function App() {
             {/* PAN card slots */}
             <div className="premium-card" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: '700', margin: 0, color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: '700', margin: 0, color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Users size={16} style={{ color: 'var(--accent)' }} /> Allotment Slots (PANs)
                 </h3>
                 <button
@@ -1915,7 +2690,7 @@ export default function App() {
                             }}
                           >
                             <div>
-                              <span style={{ fontWeight: '700', fontSize: '12px', color: 'var(--text-h)', display: 'block' }}>
+                              <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-h)', display: 'block' }}>
                                 {account.account_holder_name}
                               </span>
                               <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
@@ -1956,7 +2731,7 @@ export default function App() {
                           }}
                         >
                           <div>
-                            <span style={{ fontWeight: '700', fontSize: '12px', color: 'var(--text-muted)', display: 'block' }}>
+                            <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-muted)', display: 'block' }}>
                               {m.user_profiles?.display_name || 'Group Member'} (Primary)
                             </span>
                             <span style={{ fontSize: '10px', color: 'var(--danger)', fontWeight: '600' }}>
@@ -1992,7 +2767,7 @@ export default function App() {
                           }}
                         >
                           <div>
-                            <span style={{ fontWeight: '700', fontSize: '12px', color: 'var(--text-h)', display: 'block' }}>
+                            <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-h)', display: 'block' }}>
                               {account.account_holder_name}
                             </span>
                             <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
@@ -2027,13 +2802,13 @@ export default function App() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Refunds and listing timelines */}
             <div className="premium-card" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '700', margin: '0 0 16px 0', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: '700', margin: '0 0 16px 0', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Calendar size={16} style={{ color: 'var(--accent)' }} /> ASBA Refund & Listing Schedule
               </h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {userApplications.filter(app => app.status === 'PENDING').length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '24px 0', border: '1px dashed var(--border-strong)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '12px' }}>
+                  <div style={{ textAlign: 'center', padding: '24px 0', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: '11px' }}>
                     No active ASBA blocks. Deploy bids in the Tracker!
                   </div>
                 ) : (
@@ -2050,18 +2825,18 @@ export default function App() {
                           alignItems: 'center',
                           padding: '12px 14px',
                           border: '1px solid var(--border)',
-                          borderRadius: '12px',
+                          borderRadius: '16px',
                           backgroundColor: 'var(--accent-bg)'
                         }}
                       >
                         <div style={{ minWidth: '95px' }}>
-                          <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', fontWeight: 'bold' }}>Allotment Date</span>
-                          <span style={{ fontWeight: '700', fontSize: '12px', color: 'var(--text-h)' }}>
+                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', fontWeight: 'bold' }}>Allotment Date</span>
+                          <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-h)' }}>
                             {ipo.allotment_date ? new Date(ipo.allotment_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'TBA'}
                           </span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, paddingLeft: '14px', borderLeft: '1px solid var(--border)' }}>
-                          <span style={{ fontWeight: '700', color: 'var(--text-h)', fontSize: '12px' }}>{ipo.name}</span>
+                          <span style={{ fontWeight: '700', color: 'var(--text-h)', fontSize: '13px' }}>{ipo.name}</span>
                           <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                             PAN: <strong>{account.account_holder_name}</strong> • Bidding ₹{app.bid_amount.toLocaleString('en-IN')}
                           </span>
@@ -2089,7 +2864,7 @@ export default function App() {
               </div>
 
               {/* Realized gains logs list */}
-              <h3 style={{ fontSize: '14px', fontWeight: '700', marginTop: '24px', marginBottom: '12px', color: 'var(--text-h)' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: '700', marginTop: '24px', marginBottom: '12px', color: 'var(--text-h)' }}>
                 Realized Gains Log
               </h3>
               {userApplications.filter(app => app.status !== 'PENDING').length === 0 ? (
@@ -2107,7 +2882,7 @@ export default function App() {
                           <span style={{ fontWeight: '600', color: 'var(--text-h)', display: 'block' }}>
                             {ipo.name}
                           </span>
-                          <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
+                          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                             Slot: {account.account_holder_name} • Status: {app.status}
                           </span>
                         </div>
@@ -2137,7 +2912,7 @@ export default function App() {
       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div className="premium-card">
           <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: 'var(--text-h)', letterSpacing: '-0.5px' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: '800', margin: 0, color: 'var(--text-h)', letterSpacing: '-0.5px' }}>
               Historical Performance Simulator (2024 - 2026)
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
@@ -2146,7 +2921,7 @@ export default function App() {
           </div>
 
           {/* Interactive sliders */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', backgroundColor: 'var(--bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px', backgroundColor: 'var(--bg)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)', marginBottom: '24px' }}>
             <div>
               <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', display: 'block', marginBottom: '8px' }}>
                 Min. Grey Market Premium (GMP): {gmpThreshold}%
@@ -2179,9 +2954,9 @@ export default function App() {
 
           {/* Simulation outputs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '28px' }}>
-            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '12px' }}>
+            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '16px' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Simulation Yield</span>
-              <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--success)', margin: '4px 0' }}>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--success)', margin: '4px 0' }}>
                 ₹{finalCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </div>
               <span style={{ fontSize: '11px', color: 'var(--success)', fontWeight: '600' }}>
@@ -2189,9 +2964,9 @@ export default function App() {
               </span>
             </div>
 
-            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '12px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Blind Strategy Yield</span>
-              <div style={{ fontSize: '24px', fontWeight: '800', color: originalStats.blind_final_capital < 100000 ? 'var(--danger)' : 'var(--text-h)', margin: '4px 0' }}>
+            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '16px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Blind Strategy Yield</span>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: originalStats.blind_final_capital < 100000 ? 'var(--danger)' : 'var(--text-h)', margin: '4px 0' }}>
                 ₹{originalStats.blind_final_capital?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || '₹99,228'}
               </div>
               <span style={{ fontSize: '11px', color: originalStats.blind_final_capital < 100000 ? 'var(--danger)' : 'var(--text-muted)' }}>
@@ -2199,9 +2974,9 @@ export default function App() {
               </span>
             </div>
 
-            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '12px' }}>
+            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '16px' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Bids Passed / Evaluated</span>
-              <div style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-h)', margin: '4px 0' }}>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-h)', margin: '4px 0' }}>
                 {yesCount} / {originalStats.total_evaluated || 21}
               </div>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -2211,7 +2986,7 @@ export default function App() {
           </div>
 
           {/* Simulation logs table */}
-          <h3 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '12px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '12px' }}>
             Backtesting Execution Trajectory
           </h3>
           <div style={{ overflowX: 'auto' }}>
@@ -2255,7 +3030,7 @@ export default function App() {
                       </td>
                       <td style={{ padding: '10px' }}>{h.probPct}%</td>
                       <td style={{ padding: '10px' }}>
-                        <span className={`badge ${h.decision === 'YES' ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '9px' }}>
+                        <span className={`badge ${h.decision === 'YES' ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '10px' }}>
                           {h.decision}
                         </span>
                       </td>
@@ -2266,7 +3041,7 @@ export default function App() {
                           </span>
                         ) : (
                           <span style={{ fontSize: '11px', color: isLossAvoided ? 'var(--success)' : 'var(--text-muted)', fontWeight: isLossAvoided ? '700' : 'normal' }}>
-                            ₹0 <span style={{ fontSize: '9.5px', opacity: 0.8 }}>({avoidedText})</span>
+                            ₹0 <span style={{ fontSize: '10px', opacity: 0.8 }}>({avoidedText})</span>
                           </span>
                         )}
                       </td>
@@ -2298,7 +3073,7 @@ export default function App() {
           <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Rule {ruleNum} Formula
           </span>
-          <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-h)' }}>{name}</span>
+          <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-h)' }}>{name}</span>
         </div>
         <div style={{
           fontFamily: 'var(--mono)',
@@ -2330,9 +3105,9 @@ export default function App() {
         <p>
           Welcome to the <strong>IPO Investment Tool Guide</strong>. This programmatic system is built strictly to harvest <strong>listing-day gains</strong> on Mainboard IPO allocations in the Indian stock market. It strips emotion and hype from investing by enforcing a data-driven <strong>8-metric filter</strong>.
         </p>
-        <div style={{ padding: '16px', border: '1px solid var(--accent-border)', borderRadius: '12px', backgroundColor: 'var(--accent-bg)', marginBottom: '24px' }}>
+        <div style={{ padding: '16px', border: '1px solid var(--accent-border)', borderRadius: '16px', backgroundColor: 'var(--accent-bg)', marginBottom: '24px' }}>
           <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}><Sparkles size={14} /> The Capital Rotation Cycle</h4>
-          <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <li><strong>PAN Slot Seeding:</strong> Go to the Family Rotator tab and configure family PAN allotment slots (spouse, parent, sibling, etc.).</li>
             <li><strong>Bidding Watch:</strong> Monitor the Active Tracker for listings. The algorithm scores listings daily out of 8 rules.</li>
             <li><strong>Bidding Day Allocation:</strong> On the closing day (typically by 2 PM), check the YES/NO signal. If YES, deploy 1 retail lot block (approx. ₹14,000 to ₹15,000) on each family PAN account slot.</li>
@@ -2493,7 +3268,7 @@ export default function App() {
           Indian stock exchanges host two classes of IPOs: <strong>Mainboard IPOs</strong> and <strong>SME (Small and Medium Enterprises) IPOs</strong>.
         </p>
         <div style={{ overflowX: 'auto', margin: '20px 0' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-strong)', textAlign: 'left', fontWeight: 'bold' }}>
                 <th style={{ padding: '8px' }}>Parameter</th>
@@ -2558,7 +3333,7 @@ export default function App() {
     return (
       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
             User Settings & Profile
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
@@ -2569,7 +3344,7 @@ export default function App() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           {/* Profile details */}
           <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 8px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Personal Information</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 8px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Personal Information</h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Display Name</span>
@@ -2591,7 +3366,7 @@ export default function App() {
                 <button 
                   onClick={handleSaveDisplayName} 
                   className="btn btn-primary"
-                  style={{ padding: '8px 14px', fontSize: '12.5px', borderRadius: '8px' }}
+                  style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '8px' }}
                 >
                   Save
                 </button>
@@ -2600,12 +3375,12 @@ export default function App() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Email Address</span>
-              <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-h)' }}>{userProfile?.email || session?.user?.email || 'N/A'}</span>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-h)' }}>{userProfile?.email || session?.user?.email || 'N/A'}</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Session Type</span>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--success)' }}>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)' }}>
                 {isGuestMode ? 'Offline Simulation (Sandbox)' : 'Supabase Cloud Authenticated'}
               </span>
             </div>
@@ -2613,25 +3388,25 @@ export default function App() {
 
           {/* Group statistics */}
           <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 8px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Investment Group Details</h3>
+            <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 8px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Investment Group Details</h3>
             
             {familyGroup ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Active Group Name</span>
-                  <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-h)' }}>{familyGroup.group_name}</span>
+                  <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-h)' }}>{familyGroup.group_name}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Shared PAN Slots</span>
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-h)' }}>{userAccounts.length} slots</span>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)' }}>{userAccounts.length} slots</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Shared Group Members</span>
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-h)' }}>{groupMembers.length} members</span>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)' }}>{groupMembers.length} members</span>
                 </div>
               </div>
             ) : (
-              <div style={{ color: 'var(--text-muted)', fontSize: '12px', display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
                 You are currently running a personal portfolio. Create an Investment Group in the Rotator tab to collaborate!
               </div>
             )}
@@ -2640,16 +3415,16 @@ export default function App() {
 
         {/* Support educational guides row */}
         <div className="premium-card">
-          <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 12px 0' }}>Help & Support</h3>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 16px 0' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 12px 0' }}>Help & Support</h3>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 16px 0' }}>
             Need help configuring Telegram alerts or banking ASBA blocks? Check our repository documentation or read the 8 Rules Guide.
           </p>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn btn-secondary" onClick={() => setActiveTab('guide')} style={{ fontSize: '12px' }}>
+            <button className="btn btn-secondary" onClick={() => setActiveTab('guide')} style={{ fontSize: '11px' }}>
               Read the Guides
             </button>
             <a href="https://github.com/Prabhat-12/ipo-investment-tool" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-              <button className="btn btn-secondary" style={{ fontSize: '12px' }}>
+              <button className="btn btn-secondary" style={{ fontSize: '11px' }}>
                 View GitHub Repository
               </button>
             </a>
@@ -2664,18 +3439,27 @@ export default function App() {
   // ==========================================
   return (
     <div className="dashboard-container animate-fade-in">
-      
-      {/* SIDEBAR NAVIGATION PANEL */}
+
+      {/* MOBILE HEADER BAR */}
+      <div className="mobile-header">
+        <span className="mobile-header-title">IPO Investment Tool</span>
+        <span className="mobile-header-status">
+          <Sparkles size={10} />
+          {isGuestMode ? 'Offline' : 'Live Sync'}
+        </span>
+      </div>
+
+      {/* SIDEBAR NAVIGATION PANEL (hidden on mobile via CSS) */}
       <aside className="sidebar">
         <div>
           {/* Brand header */}
           <div className="sidebar-brand">
-            <div style={{ padding: '8px', borderRadius: '12px', backgroundColor: 'var(--accent-bg)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ padding: '8px', borderRadius: '16px', backgroundColor: 'var(--accent-bg)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <TrendingUp size={20} style={{ color: 'var(--accent)' }} />
             </div>
             <div>
               <h1 className="sidebar-brand-name">IPO Investment Tool</h1>
-              <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
                 {isGuestMode ? 'Offline Sandbox' : 'Cloud Connected'}
               </span>
             </div>
@@ -2685,7 +3469,6 @@ export default function App() {
           <nav className="sidebar-menu">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: Layers },
-              { id: 'tracker', label: 'Active Tracker', icon: Calendar },
               { id: 'capital', label: 'Family Rotator', icon: Users },
               { id: 'backtest', label: 'Backtest Engine', icon: TrendingUp },
               { id: 'guide', label: '8 Rules Guide', icon: Info }
@@ -2721,7 +3504,7 @@ export default function App() {
               {userProfile?.display_name ? userProfile.display_name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1 }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-h)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {userProfile?.display_name || 'My Profile'}
               </span>
               <span style={{ fontSize: '10px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -2733,7 +3516,7 @@ export default function App() {
           <button
             onClick={handleLogout}
             className="btn btn-danger"
-            style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
+            style={{ width: '100%', fontSize: '11px', padding: '8px 12px' }}
           >
             <LogOut size={13} />
             <span>Sign Out</span>
@@ -2744,41 +3527,111 @@ export default function App() {
       {/* MAIN VIEW PORTAL CONTENT SECTION */}
       <main className="main-content">
         {activeTab === 'dashboard' && renderDashboardTab()}
-        {activeTab === 'tracker' && renderTrackerTab()}
         {activeTab === 'capital' && renderCapitalTab()}
         {activeTab === 'backtest' && renderBacktestTab()}
         {activeTab === 'guide' && renderGuideTab()}
         {activeTab === 'profile' && renderProfileTab()}
       </main>
 
+      {/* MOBILE BOTTOM TAB BAR */}
+      <nav className="mobile-tab-bar">
+        {[
+          { id: 'dashboard', label: 'Dashboard', icon: Layers },
+          { id: 'capital', label: 'Rotator', icon: Users },
+          { id: 'backtest', label: 'Backtest', icon: TrendingUp },
+          { id: 'more', label: 'More', icon: MoreHorizontal }
+        ].map(tab => {
+          const TabIcon = tab.icon;
+          const isActive = tab.id === 'more'
+            ? (activeTab === 'guide' || activeTab === 'profile' || showMoreSheet)
+            : activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              className={`mobile-tab-btn ${isActive ? 'active' : ''}`}
+              onClick={() => {
+                if (tab.id === 'more') {
+                  setShowMoreSheet(true);
+                } else {
+                  setActiveTab(tab.id);
+                  setSelectedIpo(null);
+                  setShowMoreSheet(false);
+                }
+              }}
+            >
+              <TabIcon size={20} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* MOBILE MORE SHEET */}
+      {showMoreSheet && (
+        <div className="mobile-more-sheet-backdrop" onClick={() => setShowMoreSheet(false)}>
+          <div className="mobile-more-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-more-handle" />
+            <button
+              className="mobile-more-item"
+              onClick={() => { setActiveTab('guide'); setShowMoreSheet(false); setSelectedIpo(null); }}
+            >
+              <BookOpen size={20} />
+              8 Rules Guide
+            </button>
+            <button
+              className="mobile-more-item"
+              onClick={() => { setActiveTab('profile'); setShowMoreSheet(false); setSelectedIpo(null); }}
+            >
+              <User size={20} />
+              {userProfile?.display_name || 'My Profile'}
+            </button>
+            <div style={{ borderTop: '1px solid var(--border)', margin: '8px 0' }} />
+            <button className="mobile-more-item danger" onClick={handleLogout}>
+              <LogOut size={20} />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* DETAIL SIDE PANEL DRAWER (SLIDE-OUT FROM FAR RIGHT) */}
       {selectedIpo && (
         <div className="drawer-backdrop" onClick={() => setSelectedIpo(null)}>
           <div className="drawer-content" onClick={(e) => e.stopPropagation()}>
             
+            {/* Mobile Back Button */}
+            <button
+              onClick={() => setSelectedIpo(null)}
+              className="mobile-back-btn"
+            >
+              <ChevronLeft size={16} /> Back to Dashboard
+            </button>
+
             {/* Header info */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
               <div>
-                <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: 'var(--text-h)', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
+                <h2 style={{ fontSize: '17px', fontWeight: '800', margin: 0, color: 'var(--text-h)', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
                   {selectedIpo.name}
                 </h2>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                   Symbol: <span style={{ fontFamily: 'var(--mono)', fontWeight: '600' }}>{selectedIpo.symbol}</span>
                 </p>
               </div>
-              <button
-                onClick={() => setSelectedIpo(null)}
-                style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--text-muted)', padding: '0 4px', lineHeight: '1' }}
-              >
-                &times;
-              </button>
+              {!isMobile && (
+                <button
+                  onClick={() => setSelectedIpo(null)}
+                  style={{ border: 'none', background: 'none', fontSize: '28px', cursor: 'pointer', color: 'var(--text-muted)', padding: '0 4px', lineHeight: '1' }}
+                >
+                  &times;
+                </button>
+              )}
             </div>
 
             {/* Recommendation badge */}
             <div style={{
-              display: 'flex',
+              display: 'grid',
+              gridTemplateColumns: '2fr 1.2fr 0.8fr',
               alignItems: 'center',
-              justifyContent: 'space-between',
               padding: '12px 16px',
               backgroundColor: selectedIpo.decision === 'YES' ? 'var(--accent-bg)' : 'var(--danger-bg)',
               borderRadius: '16px',
@@ -2786,18 +3639,24 @@ export default function App() {
               marginBottom: '20px'
             }}>
               <div>
-                <span style={{ fontSize: '9px', textTransform: 'uppercase', fontWeight: '800', color: selectedIpo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)', display: 'block', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: '800', color: selectedIpo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)', display: 'block', letterSpacing: '0.5px' }}>
                   Bidding Recommendation
                 </span>
-                <span style={{ fontSize: '15px', fontWeight: '800', color: selectedIpo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)' }}>
+                <span style={{ fontSize: '13px', fontWeight: '800', color: selectedIpo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)' }}>
                   {selectedIpo.decision === 'YES' ? '✔ YES - DEPLOY ASBA' : '✖ NO - AVOID LISTING'}
                 </span>
               </div>
+              <div style={{ textAlign: 'center', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '17px', fontWeight: '800', color: 'var(--success)', display: 'block', lineHeight: '1' }}>
+                  {selectedIpo.retail_sub && selectedIpo.retail_sub > 1 ? `${(100 / selectedIpo.retail_sub).toFixed(1)}%` : '100%'}
+                </span>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Allotment Odds</span>
+              </div>
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-h)', display: 'block', lineHeight: '1' }}>
+                <span style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', display: 'block', lineHeight: '1' }}>
                   {selectedIpo.score}/8
                 </span>
-                <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Rules</span>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Rules</span>
               </div>
             </div>
 
@@ -2811,7 +3670,7 @@ export default function App() {
 
             {/* Bidding Velocities — only show when real subscription data is present */}
             {(selectedIpo.qib_sub != null && selectedIpo.qib_sub > 0) && (
-              <div style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '14px', marginBottom: '20px' }}>
+              <div style={{ border: '1px solid var(--border)', borderRadius: '16px', padding: '14px', marginBottom: '20px' }}>
                 <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)', display: 'block', marginBottom: '10px' }}>Bidding Velocities Multiple</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {[
@@ -2834,7 +3693,7 @@ export default function App() {
             )}
 
             {/* 8 Metric checklist items */}
-            <h3 style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
               8-Metric Checklist Audit
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
@@ -2878,9 +3737,9 @@ export default function App() {
                       alignItems: 'center',
                       padding: '10px 12px',
                       border: '1px solid var(--border)',
-                      borderRadius: '12px',
+                      borderRadius: '16px',
                       backgroundColor: rule.passed ? 'var(--accent-bg)' : 'transparent',
-                      fontSize: '12px'
+                      fontSize: '13px'
                     }}
                   >
                     <div style={{ marginRight: '10px', display: 'flex', alignItems: 'center' }}>
@@ -2894,7 +3753,7 @@ export default function App() {
                       <div style={{ fontWeight: '700', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {rule.title}
                         {rule.mandatory && (
-                          <span style={{ fontSize: '8px', fontWeight: '800', padding: '1px 4px', borderRadius: '4px', backgroundColor: 'var(--danger-bg)', color: 'var(--danger)' }}>
+                          <span style={{ fontSize: '10px', fontWeight: '800', padding: '1px 4px', borderRadius: '4px', backgroundColor: 'var(--danger-bg)', color: 'var(--danger)' }}>
                             MANDATORY
                           </span>
                         )}
@@ -2912,13 +3771,13 @@ export default function App() {
             {/* Financial Margins trajectory */}
             {selectedIpo.financials && selectedIpo.financials.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
+                <h3 style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
                   Historical Financial Margins
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                   {selectedIpo.financials.map((f, idx) => (
                     <div key={idx} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: '8px', textAlign: 'center', backgroundColor: 'var(--bg)' }}>
-                      <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', fontWeight: 'bold' }}>{f.fiscal_year}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', fontWeight: 'bold' }}>{f.fiscal_year}</span>
                       <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)', display: 'block' }}>₹{f.pat_cr} Cr PAT</span>
                       <span style={{ fontSize: '10px', color: f.pat_margin_pct > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: '700' }}>
                         {f.pat_margin_pct}% Margin
@@ -2931,10 +3790,13 @@ export default function App() {
 
             {/* Bid application form */}
             {selectedIpo.status === 'bidding' && (
-              <div style={{ padding: '14px', border: '1px solid var(--border-strong)', borderRadius: '12px', backgroundColor: 'var(--bg)', marginBottom: '20px' }}>
-                <h4 style={{ fontSize: '12px', fontWeight: '700', margin: '0 0 10px 0', color: 'var(--text-h)' }}>
-                  Submit ASBA Application (UPI block)
+              <div style={{ padding: '14px', border: '1px solid var(--border-strong)', borderRadius: '16px', backgroundColor: 'var(--bg)', marginBottom: '20px' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: '700', margin: '0 0 4px 0', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Users size={14} style={{ color: 'var(--accent)' }} /> Multi-PAN Family Rotation Bidding
                 </h4>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 12px 0' }}>
+                  Select the family member accounts who are applying for this IPO.
+                </p>
 
                 {userAccounts.length === 0 ? (
                   <span style={{ fontSize: '11px', color: 'var(--danger)' }}>
@@ -2942,30 +3804,82 @@ export default function App() {
                   </span>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <label style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text)' }}>Account PAN:</label>
-                      <select
-                        id="bid-slot-selector"
-                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border-strong)', fontSize: '11px', flexGrow: 1, outline: 'none' }}
-                      >
-                        {userAccounts.map(acc => (
-                          <option key={acc.id} value={acc.id}>{acc.account_holder_name} (PAN: {acc.pan_mask})</option>
-                        ))}
-                      </select>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '160px', overflowY: 'auto', paddingRight: '4px' }}>
+                      {userAccounts.map(acc => {
+                        const alreadyBid = userApplications.some(app => app.account_id === acc.id && app.ipo_id === selectedIpo.id && app.status === 'PENDING');
+                        const activeBlocked = userApplications
+                          .filter(app => app.account_id === acc.id && app.status === 'PENDING')
+                          .reduce((sum, app) => sum + parseFloat(app.bid_amount), 0);
+                        const isChecked = selectedBidAccounts.includes(acc.id);
+                        
+                        return (
+                          <div 
+                            key={acc.id} 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'space-between', 
+                              padding: '8px 10px', 
+                              border: '1px solid var(--border)', 
+                              borderRadius: '8px', 
+                              backgroundColor: alreadyBid ? 'rgba(0,0,0,0.02)' : (isChecked ? 'var(--accent-bg)' : 'transparent'),
+                              opacity: alreadyBid ? 0.6 : 1
+                            }}
+                          >
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: alreadyBid ? 'not-allowed' : 'pointer', width: '100%', fontSize: '11px', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>
+                              <input
+                                type="checkbox"
+                                checked={isChecked || alreadyBid}
+                                disabled={alreadyBid}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedBidAccounts(prev => [...prev, acc.id]);
+                                  } else {
+                                    setSelectedBidAccounts(prev => prev.filter(id => id !== acc.id));
+                                  }
+                                }}
+                                style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
+                              />
+                              <div>
+                                <span>{acc.account_holder_name}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', fontWeight: 'normal', fontFamily: 'var(--mono)' }}>
+                                  PAN: {acc.pan_mask} {activeBlocked > 0 && <span style={{ color: 'var(--warning)', fontWeight: 'bold' }}>(Blocked: ₹{activeBlocked.toLocaleString('en-IN')})</span>}
+                                </span>
+                              </div>
+                            </label>
+                            
+                            <span style={{ fontSize: '11px', fontWeight: '700', color: alreadyBid ? 'var(--text-muted)' : 'var(--text-h)' }}>
+                              {alreadyBid ? 'Applied' : `₹${selectedIpo.retail_lot_cost?.toLocaleString('en-IN')}`}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
+                    
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>
+                        Selected: <strong>{selectedBidAccounts.length} slot(s)</strong>
+                      </span>
+                      <span style={{ fontWeight: '800', color: 'var(--text-h)' }}>
+                        Total: ₹{(selectedBidAccounts.length * selectedIpo.retail_lot_cost).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+
                     <button
                       onClick={() => {
-                        const selector = document.getElementById('bid-slot-selector');
-                        if (selector) {
-                          handlePlaceBid(selectedIpo.id, selector.value, 1);
+                        if (selectedBidAccounts.length > 0) {
+                          handlePlaceBids(selectedIpo.id, selectedBidAccounts, 1);
                           setSelectedIpo(null);
                         }
                       }}
-                      disabled={selectedIpo.retail_lot_cost > liquidCapital}
+                      disabled={selectedBidAccounts.length === 0 || (selectedBidAccounts.length * selectedIpo.retail_lot_cost) > liquidCapital}
                       className="btn btn-primary"
-                      style={{ padding: '8px 12px', fontSize: '11px', width: '100%' }}
+                      style={{ padding: '10px 14px', fontSize: '13px', width: '100%', marginTop: '6px' }}
                     >
-                      Place Bid (Block ₹{selectedIpo.retail_lot_cost?.toLocaleString('en-IN')})
+                      { (selectedBidAccounts.length * selectedIpo.retail_lot_cost) > liquidCapital 
+                        ? 'Insufficient Liquid Capital' 
+                        : `Submit Applications (Block ₹${(selectedBidAccounts.length * selectedIpo.retail_lot_cost).toLocaleString('en-IN')})`
+                      }
                     </button>
                   </div>
                 )}
@@ -2976,7 +3890,7 @@ export default function App() {
             <button
               onClick={() => setSelectedIpo(null)}
               className="btn btn-secondary"
-              style={{ width: '100%', padding: '10px', fontSize: '12px' }}
+              style={{ width: '100%', padding: '10px', fontSize: '11px' }}
             >
               Close Drawer View
             </button>
@@ -3009,7 +3923,7 @@ export default function App() {
             padding: '24px',
             boxShadow: 'var(--shadow-lg)'
           }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', margin: '0 0 16px 0', color: 'var(--text-h)' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 16px 0', color: 'var(--text-h)' }}>
               Add Allotment Slot (PAN Profile)
             </h3>
 
@@ -3042,13 +3956,13 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setShowAddAccountModal(false)}
-                  style={{ flexGrow: 1, padding: '10px', border: 'none', borderRadius: '8px', backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text)', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}
+                  style={{ flexGrow: 1, padding: '10px', border: 'none', borderRadius: '8px', backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text)', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  style={{ flexGrow: 2, padding: '10px', border: 'none', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'white', cursor: 'pointer', fontWeight: '700', fontSize: '12px' }}
+                  style={{ flexGrow: 2, padding: '10px', border: 'none', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'white', cursor: 'pointer', fontWeight: '700', fontSize: '13px' }}
                 >
                   Create Account Slot
                 </button>
@@ -3141,9 +4055,9 @@ function renderDrawerGmpChart(ipo) {
   const lineColor = isPositive ? accentColor : dangerColor;
 
   return (
-    <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '12px', padding: '14px 16px', border: '1px solid var(--border)' }}>
+    <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '14px 16px', border: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <span style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--text-h)' }}>GMP Premium Curve</span>
+        <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)' }}>GMP Premium Curve</span>
         <span style={{
           fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px',
           backgroundColor: isPositive ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
@@ -3228,9 +4142,9 @@ function renderDrawerPeersChart(ipo) {
   const peerColor = 'rgba(148,163,184,0.5)'; // slate-400 muted
 
   return (
-    <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '12px', padding: '14px 16px', border: '1px solid var(--border)' }}>
+    <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '14px 16px', border: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <span style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--text-h)' }}>Valuation P/E vs Peers</span>
+        <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)' }}>Valuation P/E vs Peers</span>
         <span style={{
           fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px',
           backgroundColor: isDiscount ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',

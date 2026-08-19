@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 
@@ -13,14 +13,14 @@ def process_sync_and_alerts():
     # 1. Trigger scraper sync
     sync_active_ipos()
     
-    # 2. Query database for active bidding IPOs
+    # 2. Query database for active bidding or recently closed IPOs (to re-evaluate decisions with final day data)
     today_str = datetime.now().strftime("%Y-%m-%d")
     today = datetime.now().date()
     
     if db_client.IS_CLOUD_MODE:
         try:
-            # Query active IPOs in cloud mode
-            res = db_client.supabase_client.table("ipos").select("*").eq("status", "bidding").execute()
+            # Query active and closed IPOs in cloud mode
+            res = db_client.supabase_client.table("ipos").select("*").in_("status", ["bidding", "closed"]).execute()
             bidding_ipos = res.data
         except Exception as e:
             print(f"Error querying Cloud DB: {e}")
@@ -28,9 +28,9 @@ def process_sync_and_alerts():
     else:
         # Offline mode
         db = db_client._load_local_db()
-        bidding_ipos = [x for x in db["ipos"] if x["status"] == "bidding"]
+        bidding_ipos = [x for x in db["ipos"] if x["status"] in ["bidding", "closed"]]
         
-    print(f"Detected {len(bidding_ipos)} active bidding IPOs today.")
+    print(f"Detected {len(bidding_ipos)} active bidding or closed IPOs today.")
     
     for ipo in bidding_ipos:
         close_date_str = ipo.get("close_date")
@@ -39,9 +39,9 @@ def process_sync_and_alerts():
             
         close_date = datetime.strptime(close_date_str, "%Y-%m-%d").date()
         
-        # Check if today is the final bidding day
+        # Check if today is the final bidding day or the day after closing (to capture absolute final figures)
         # In a real environment, we'd trigger a notification on the final day, typically around 1 PM - 3 PM
-        if today == close_date:
+        if today == close_date or today == (close_date + timedelta(days=1)):
             # Reconstruct details to run through decision engine
             if db_client.IS_CLOUD_MODE:
                 # Fetch related tables
@@ -68,8 +68,11 @@ def process_sync_and_alerts():
                 sub_list = db["subscriptions"]
                 gmp_list = db["gmp_history"]
                 
-                sub_data = next((x for x in reversed(sub_list) if x["ipo_id"] == ipo["id"]), {})
-                gmp_data = next((x for x in reversed(gmp_list) if x["ipo_id"] == ipo["id"]), {})
+                sub_list_filtered = [x for x in sub_list if x["ipo_id"] == ipo["id"]]
+                gmp_list_filtered = [x for x in gmp_list if x["ipo_id"] == ipo["id"]]
+                
+                sub_data = sorted(sub_list_filtered, key=lambda x: x["date"])[-1] if sub_list_filtered else {}
+                gmp_data = sorted(gmp_list_filtered, key=lambda x: x["date"])[-1] if gmp_list_filtered else {}
                 fin_data = [x for x in db["financials"] if x["ipo_id"] == ipo["id"]]
                 peer_data = [x for x in db["peers"] if x["ipo_id"] == ipo["id"]]
                 

@@ -49,7 +49,7 @@ CREATE INDEX idx_ipos_status ON ipos(status);
 CREATE TABLE subscriptions (
     id SERIAL PRIMARY KEY,
     ipo_id INTEGER REFERENCES ipos(id) ON DELETE CASCADE,
-    date DATE NOT NULL,
+    date TIMESTAMP WITH TIME ZONE NOT NULL,
     qib NUMERIC(8, 2) DEFAULT 0.00,
     nii NUMERIC(8, 2) DEFAULT 0.00,
     retail NUMERIC(8, 2) DEFAULT 0.00,
@@ -62,7 +62,7 @@ CREATE TABLE subscriptions (
 CREATE TABLE gmp_history (
     id SERIAL PRIMARY KEY,
     ipo_id INTEGER REFERENCES ipos(id) ON DELETE CASCADE,
-    date DATE NOT NULL,
+    date TIMESTAMP WITH TIME ZONE NOT NULL,
     gmp_rs NUMERIC(10, 2) DEFAULT 0.00,
     estimated_listing NUMERIC(10, 2),
     implied_gain_pct NUMERIC(6, 2) DEFAULT 0.00,

@@ -1,34 +1,35 @@
-name: IPO Data Scraper — Every 30 Minutes
+name: Run IPO Scraper Sync
 
 on:
   schedule:
-    # Runs every 30 minutes, Mon–Fri, 09:00–15:30 IST (03:30–10:00 UTC)
-    - cron: '*/30 3-10 * * 1-5'
-  workflow_dispatch: # Allow manual trigger any time
+    # Runs hourly during Indian market hours (3:30 AM to 11:30 AM UTC, Mon-Fri)
+    # This maps to 9:00 AM to 5:00 PM IST
+    - cron: '30 3-11 * * 1-5'
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions UI
 
 jobs:
-  scrape:
+  run-scraper:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run IPO scraper → push to Supabase
+      - name: Run Sync and Alert Job
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: python scraper_main.py
-
-      - name: Log completion
-        run: echo "Scrape completed at $(date -u)"
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python sync_and_alert.py

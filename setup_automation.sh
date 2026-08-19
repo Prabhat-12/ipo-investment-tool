@@ -36,7 +36,7 @@ cat <<EOF > "$PLIST_PATH"
     <true/>
     
     <key>StartInterval</key>
-    <integer>21600</integer> <!-- Run every 6 hours (21600 seconds) -->
+    <integer>7200</integer> <!-- Run every 2 hours (7200 seconds) -->
     
     <key>StandardOutPath</key>
     <string>$DIR/logs/automation.log</string>

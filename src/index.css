@@ -291,6 +291,7 @@ body {
   margin: 0;
   background: linear-gradient(135deg, var(--text-h) 30%, var(--accent) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -307,7 +308,7 @@ body {
   gap: 12px;
   padding: 12px 18px;
   border-radius: 999px; /* Capsule buttons like Reference 1 & 2 */
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
   background: transparent;
@@ -395,7 +396,7 @@ body {
 }
 
 .metric-card-label {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -403,7 +404,7 @@ body {
 }
 
 .metric-card-value {
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 800;
   color: var(--text-h);
   letter-spacing: -0.75px;
@@ -470,7 +471,7 @@ body {
   align-items: center;
   padding: 10px 16px;
   border-radius: 999px; /* Capsule like Sidebar */
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
   background: transparent;
@@ -561,11 +562,11 @@ body {
 /* Modern inputs and buttons */
 .input-field {
   padding: 12px 18px;
-  border-radius: 14px; /* More rounded */
+  border-radius: 16px; /* rounded.md per DESIGN.md */
   border: 1px solid var(--border-strong);
   background-color: rgba(255, 255, 255, 0.6);
   color: var(--text-h);
-  font-size: 13.5px;
+  font-size: 13px;
   outline: none;
   transition: all 0.2s ease;
   width: 100%;
@@ -584,7 +585,7 @@ body {
   gap: 8px;
   padding: 12px 22px;
   border-radius: 999px; /* Capsule style buttons like Ref 1 */
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   border: none;
@@ -660,11 +661,328 @@ body {
   }
 }
 
+/* =============================================
+   MOBILE APP EXPERIENCE
+   ============================================= */
+
+/* --- Bottom Tab Bar (always rendered, hidden on desktop) --- */
+.mobile-tab-bar {
+  display: none;
+}
+
+.mobile-more-sheet-backdrop {
+  display: none;
+}
+
+/* --- Mobile Header Bar (always rendered, hidden on desktop) --- */
+.mobile-header {
+  display: none;
+}
+
+/* Guard hover effects — only on pointer devices */
+@media (hover: hover) and (pointer: fine) {
+  .premium-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+@media (hover: none) {
+  .premium-card:hover {
+    transform: none;
+    box-shadow: var(--shadow);
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* ======= HIDE SIDEBAR, SHOW MOBILE NAV ======= */
+  .sidebar {
+    display: none !important;
+  }
+
+  .mobile-header {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    height: 56px;
+    padding: 0 16px;
+    padding-top: env(safe-area-inset-top, 0px);
+    background-color: rgba(248, 248, 248, 0.88);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mobile-header-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-h);
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, var(--text-h) 30%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .mobile-header-status {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--success);
+    background-color: var(--success-bg);
+    border: 1px solid var(--success-border);
+    padding: 4px 10px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mobile-tab-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 64px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-top: 1px solid var(--border);
+    align-items: stretch;
+    justify-content: space-around;
+  }
+
+  .mobile-tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 0;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    transition: color 0.2s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+
+  .mobile-tab-btn:active {
+    transform: scale(0.88);
+  }
+
+  .mobile-tab-btn.active {
+    color: var(--accent);
+  }
+
+  .mobile-tab-btn.active::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+    background-color: var(--accent);
+  }
+
+  /* ======= MAIN CONTENT MOBILE ADJUSTMENTS ======= */
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .main-content {
+    height: 100vh;
+    padding: calc(56px + env(safe-area-inset-top, 0px) + 12px) 16px calc(64px + env(safe-area-inset-bottom, 0px) + 12px) 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    box-sizing: border-box;
+  }
+
+  /* ======= IPO CARDS — SINGLE COLUMN VERTICAL STACK ======= */
+  .ipo-card {
+    min-height: auto !important;
+    min-width: 0 !important;
+  }
+
+  /* ======= DRAWER → FULL SCREEN SHEET ======= */
+  .drawer-content {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-left: none !important;
+    border-radius: 0 !important;
+    padding: 24px 16px !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px) !important;
+    animation: slideUpSheet 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  .drawer-backdrop {
+    z-index: 1100 !important;
+  }
+
+  @keyframes slideUpSheet {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* ======= PREMIUM CARD MOBILE ADJUSTMENTS ======= */
+  .premium-card {
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .metric-card-value {
+    font-size: 22px;
+  }
+
+  /* ======= DOCS LAYOUT MOBILE ======= */
+  .docs-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  .docs-sidebar {
+    position: static !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding-bottom: 8px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .docs-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .docs-sidebar-title {
+    display: none;
+  }
+
+  .docs-nav-link {
+    white-space: nowrap;
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .docs-content h1 {
+    font-size: 24px;
+  }
+
+  .docs-content h2 {
+    font-size: 18px;
+  }
+
+  .docs-content {
+    font-size: 14px;
+  }
+
+  /* ======= MORE SHEET ======= */
+  .mobile-more-sheet-backdrop {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1200;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeInOverlay 0.2s ease-out forwards;
+  }
+
+  .mobile-more-sheet {
+    width: 100%;
+    max-height: 60vh;
+    background-color: var(--card-bg);
+    border-radius: 20px 20px 0 0;
+    padding: 12px 16px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .mobile-more-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: var(--border-strong);
+    margin: 0 auto 16px auto;
+  }
+
+  .mobile-more-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: none;
+    border: none;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-h);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-more-item:active {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  .mobile-more-item.danger {
+    color: var(--danger);
+  }
+
+  /* ======= TOUCH FEEDBACK ======= */
+  .btn:active {
+    transform: scale(0.96) !important;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.96) !important;
+  }
+
+  /* Login grid — already handled */
+  .login-grid {
+    padding: 20px 16px;
+  }
+
+  /* Minimum touch targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Hide "Sync Market" text but keep icon on very small screens */
+  @media (max-width: 380px) {
+    .sync-btn-text {
+      display: none;
+    }
+  }
+}
+
+
+
 @theme inline {
 
   --font-heading: var(--font-sans);
 
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   --color-sidebar-ring: var(--sidebar-ring);
 
@@ -880,6 +1198,54 @@ body {
   --chart-scale-05: oklch(0.68 0.07 270);
 
   --chart-scale-pattern-color: oklch(0.145 0 0);
+}
+
+.ipo-pipeline-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 40px) / 3);
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ipo-pipeline-grid::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .ipo-pipeline-grid {
+    grid-auto-flow: row !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    overflow-x: visible !important;
+    scroll-snap-type: none !important;
+  }
+}
+
+.mobile-back-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-back-btn {
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 0;
+    cursor: pointer;
+    margin-bottom: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 @layer base {

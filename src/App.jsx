@@ -1103,7 +1103,7 @@ export default function App() {
               </div>
               <div>
                 <h1 style={{ fontSize: '30px', fontWeight: '900', margin: 0, letterSpacing: '-1px', color: 'var(--text-h)' }}>
-                  IPO Investment Tool
+                  IPO Investment Engine
                 </h1>
                 <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Systematic Listing Gain Engine
@@ -3442,7 +3442,7 @@ export default function App() {
 
       {/* MOBILE HEADER BAR */}
       <div className="mobile-header">
-        <span className="mobile-header-title">IPO Investment Tool</span>
+        <span className="mobile-header-title">IPO Investment Engine</span>
         <span className="mobile-header-status">
           <Sparkles size={10} />
           {isGuestMode ? 'Offline' : 'Live Sync'}
@@ -3458,7 +3458,10 @@ export default function App() {
               <TrendingUp size={20} style={{ color: 'var(--accent)' }} />
             </div>
             <div>
-              <h1 className="sidebar-brand-name">IPO Investment Tool</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h1 className="sidebar-brand-name">IPO Investment Engine</h1>
+                <span style={{ fontSize: '9px', fontWeight: '800', padding: '1px 5px', borderRadius: '4px', backgroundColor: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>v2.0</span>
+              </div>
               <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
                 {isGuestMode ? 'Offline Sandbox' : 'Cloud Connected'}
               </span>

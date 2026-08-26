@@ -4050,8 +4050,8 @@ function renderDrawerGmpChart(ipo) {
     return dt.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
   };
 
-  const accentColor = '#10b981'; // emerald green for positive
-  const dangerColor = '#ef4444';
+  const accentColor = 'var(--accent)'; // orange brand accent
+  const dangerColor = 'var(--danger)'; // gray brand neutral
   const lineColor = isPositive ? accentColor : dangerColor;
 
   return (
@@ -4060,7 +4060,7 @@ function renderDrawerGmpChart(ipo) {
         <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)' }}>GMP Premium Curve</span>
         <span style={{
           fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px',
-          backgroundColor: isPositive ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+          backgroundColor: isPositive ? 'var(--accent-bg)' : 'var(--danger-bg)',
           color: lineColor
         }}>
           Latest: {latestVal}%
@@ -4137,7 +4137,7 @@ function renderDrawerPeersChart(ipo) {
 
   const peerAvg = chartData.slice(1).reduce((s, d) => s + d.pe, 0) / Math.max(1, chartData.length - 1);
   const isDiscount = companyPe < peerAvg;
-  const accentGreen = '#10b981';
+  const accentGreen = 'var(--accent)';
   const accentOrange = 'var(--accent)';
   const peerColor = 'rgba(148,163,184,0.5)'; // slate-400 muted
 
@@ -4147,8 +4147,8 @@ function renderDrawerPeersChart(ipo) {
         <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)' }}>Valuation P/E vs Peers</span>
         <span style={{
           fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px',
-          backgroundColor: isDiscount ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
-          color: isDiscount ? accentGreen : '#ef4444'
+          backgroundColor: isDiscount ? 'var(--accent-bg)' : 'var(--danger-bg)',
+          color: isDiscount ? 'var(--accent)' : 'var(--danger)'
         }}>
           {isDiscount ? '✓ Discounted' : '⚠ Premium'} {companyPe.toFixed(1)}x
         </span>
@@ -4171,8 +4171,8 @@ function renderDrawerPeersChart(ipo) {
           const x = padL + i * (barW + gap);
           const y = padT + chartH - barH;
           const isCompany = i === 0;
-          const color = isCompany ? (isDiscount ? accentGreen : accentOrange) : peerColor;
-          const labelColor = isCompany ? (isDiscount ? accentGreen : 'var(--accent)') : 'var(--text-muted)';
+          const color = isCompany ? 'var(--accent)' : peerColor;
+          const labelColor = isCompany ? 'var(--accent)' : 'var(--text-muted)';
           const shortName = d.name.length > 10 ? d.name.slice(0, 9) + '…' : d.name;
           return (
             <g key={i}>

@@ -24,17 +24,17 @@
   --accent-bg: rgba(229, 92, 60, 0.08);
   --accent-border: rgba(229, 92, 60, 0.15);
 
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.08);
-  --success-border: rgba(16, 185, 129, 0.15);
+  --success: #e55c3c;
+  --success-bg: rgba(229, 92, 60, 0.08);
+  --success-border: rgba(229, 92, 60, 0.15);
 
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.06);
-  --danger-border: rgba(239, 68, 68, 0.15);
+  --danger: #6b7280;
+  --danger-bg: rgba(107, 114, 128, 0.08);
+  --danger-border: rgba(107, 114, 128, 0.15);
 
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.08);
-  --warning-border: rgba(245, 158, 11, 0.2);
+  --warning: #9ca3af;
+  --warning-bg: rgba(156, 163, 175, 0.08);
+  --warning-border: rgba(156, 163, 175, 0.15);
 
   --info: #3b82f6;
   --info-bg: rgba(59, 130, 246, 0.08);
@@ -174,17 +174,17 @@
     --accent-bg: rgba(229, 92, 60, 0.08);
     --accent-border: rgba(229, 92, 60, 0.15);
 
-    --success: #10b981;
-    --success-bg: rgba(16, 185, 129, 0.08);
-    --success-border: rgba(16, 185, 129, 0.15);
+    --success: #e55c3c;
+    --success-bg: rgba(229, 92, 60, 0.08);
+    --success-border: rgba(229, 92, 60, 0.15);
 
-    --danger: #ef4444;
-    --danger-bg: rgba(239, 68, 68, 0.06);
-    --danger-border: rgba(239, 68, 68, 0.15);
+    --danger: #6b7280;
+    --danger-bg: rgba(107, 114, 128, 0.08);
+    --danger-border: rgba(107, 114, 128, 0.15);
 
-    --warning: #f59e0b;
-    --warning-bg: rgba(245, 158, 11, 0.08);
-    --warning-border: rgba(245, 158, 11, 0.2);
+    --warning: #9ca3af;
+    --warning-bg: rgba(156, 163, 175, 0.08);
+    --warning-border: rgba(156, 163, 175, 0.15);
 
     --info: #3b82f6;
     --info-bg: rgba(59, 130, 246, 0.08);

@@ -8,48 +8,65 @@
 
 :root {
 
-  --text: #4b5563;
-  --text-muted: #9ca3af;
-  --text-h: #111827;
-  --bg: #f8f8f8;
-  --bg-gradient: #f8f8f8;
+  --text: #5F6368;
+  --text-muted: #8B9198;
+  --text-h: #171717;
+  --bg: #ffffff;
+  --bg-gradient: #ffffff;
   --card-bg: #ffffff;
-  --sidebar-bg: #ffffff;
-  --border: rgba(0, 0, 0, 0.05);
-  --border-strong: rgba(0, 0, 0, 0.1);
+  --sidebar-bg: #f9fafb;
+  --border: #E7E8EA;
+  --border-strong: #D9DBDE;
 
-  /* Premium Coral Palette */
-  --accent: #e55c3c;
+  /* Premium Coral Palette (Strict Brand Accent) */
+  --accent: #E55C3C;
   --accent-hover: #d24e2f;
-  --accent-bg: rgba(229, 92, 60, 0.08);
-  --accent-border: rgba(229, 92, 60, 0.15);
+  --accent-bg: #FFF1ED;
+  --accent-border: #FFBEAD;
 
-  --success: #e55c3c;
-  --success-bg: rgba(229, 92, 60, 0.08);
-  --success-border: rgba(229, 92, 60, 0.15);
+  /* Option B: Strict Monochrome Mappings - Eliminating Semantic Colors */
+  --success: #E55C3C;
+  --success-bg: #FFF1ED;
+  --success-border: #FFBEAD;
 
-  --danger: #6b7280;
-  --danger-bg: rgba(107, 114, 128, 0.08);
-  --danger-border: rgba(107, 114, 128, 0.15);
+  --danger: #171717;
+  --danger-bg: #FAFAFA;
+  --danger-border: #D9DBDE;
 
-  --warning: #9ca3af;
-  --warning-bg: rgba(156, 163, 175, 0.08);
-  --warning-border: rgba(156, 163, 175, 0.15);
+  --warning: #5F6368;
+  --warning-bg: #FAFAFA;
+  --warning-border: #E7E8EA;
 
-  --info: #3b82f6;
-  --info-bg: rgba(59, 130, 246, 0.08);
+  --info: #171717;
+  --info-bg: #F5F6F7;
 
   /* Premium Soft Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.02);
-  --shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 24px 50px -12px rgba(0, 0, 0, 0.12);
-  --shadow-drawer: -16px 0 45px -10px rgba(0, 0, 0, 0.08);
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-lg: none;
+  --shadow-drawer: -1px 0 0 #e5e7eb;
 
-  --sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --sidebar-width: 280px;
-  --theme-border-radius: 28px;
+  --theme-border-radius: 12px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Typography Scale Variables (No 700/800 weights) */
+  --font-xs: 11px;
+  --font-caption: 12px;
+  --font-sm: 13px;
+  --font-base: 14px;
+  --font-md: 16px;
+  --font-section: 18px;
+  --font-lg: 28px;
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
 
   box-sizing: border-box;
 
@@ -379,35 +396,33 @@ body {
   background-color: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--theme-border-radius);
-  padding: 28px;
+  padding: 20px;
   box-shadow: var(--shadow);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .premium-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+  /* Flat look: no hover elevation */
 }
 
 .metric-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .metric-card-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: var(--font-caption);
+  font-weight: var(--weight-medium);
+  /* text-transform: uppercase; Removed for sentence case */
   color: var(--text-muted);
-  letter-spacing: 0.75px;
+  letter-spacing: 0.2px;
 }
 
 .metric-card-value {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: var(--font-lg);
+  font-weight: var(--weight-semibold);
   color: var(--text-h);
-  letter-spacing: -0.75px;
+  letter-spacing: -0.5px;
 }
 
 /* Right Side sliding drawer */
@@ -527,18 +542,17 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: 9999px; /* Capsule */
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.2px;
 }
 
 .badge-success {
-  background-color: var(--success-bg);
-  color: var(--success);
-  border: 1px solid var(--success-border);
+  background-color: var(--accent);
+  color: #ffffff;
+  border: 1px solid var(--accent);
 }
 
 .badge-danger {
@@ -554,9 +568,9 @@ body {
 }
 
 .badge-neutral {
-  background-color: rgba(139, 130, 115, 0.08);
-  color: var(--text);
-  border: 1px solid var(--border-strong);
+  background-color: #FAFAFA;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 /* Modern inputs and buttons */
@@ -584,9 +598,9 @@ body {
   justify-content: center;
   gap: 8px;
   padding: 12px 22px;
-  border-radius: 999px; /* Capsule style buttons like Ref 1 */
-  font-size: 13px;
-  font-weight: 700;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-base);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   border: none;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -682,15 +696,15 @@ body {
 /* Guard hover effects — only on pointer devices */
 @media (hover: hover) and (pointer: fine) {
   .premium-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    transform: none;
+    box-shadow: none;
   }
 }
 
 @media (hover: none) {
   .premium-card:hover {
     transform: none;
-    box-shadow: var(--shadow);
+    box-shadow: none;
   }
 }
 

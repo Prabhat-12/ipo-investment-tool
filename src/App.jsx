@@ -88,6 +88,7 @@ export default function App() {
 
   // 8 Rules Doc Sub-Section Selection State
   const [docSection, setDocSection] = useState('welcome');
+  const [activeRuleModal, setActiveRuleModal] = useState(null);
 
   // Auth Screen State
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
@@ -1090,11 +1091,10 @@ export default function App() {
         justifyContent: 'center',
         backgroundColor: 'var(--bg)',
         backgroundImage: 'radial-gradient(ellipse at top right, rgba(229,92,60,0.06), transparent 50%), radial-gradient(ellipse at bottom left, rgba(139,130,115,0.05), transparent 50%)',
-        padding: '24px',
+        padding: '16px',
         color: 'var(--text)'
       }}>
         <div className="login-grid">
-
           {/* Logo & Product Concept */}
           <div className="login-branding" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1103,28 +1103,93 @@ export default function App() {
               </div>
               <div>
                 <h1 style={{ fontSize: '30px', fontWeight: '900', margin: 0, letterSpacing: '-1px', color: 'var(--text-h)' }}>
-                  IPO Investment Engine
+                   IPO Tracker
                 </h1>
-                <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--accent)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Systematic Listing Gain Engine
                 </span>
               </div>
             </div>
 
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
-              An algorithmic analyzer that strips emotion from IPO bidding in India. By tracking real-time QIB/retail subscriptions, GMP premium curves, and promoters' post-IPO stakes, the engine provides clear YES/NO investment signals.
+            <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
+               An algorithmic analyzer that strips emotion from IPO bidding in India. By tracking real-time QIB/retail subscriptions, GMP premium curves, and promoters' post-IPO stakes, the engine provides clear YES/NO investment signals.
             </p>
 
+            {/* GMP Premium Trend Mockup Card */}
+            <div style={{
+              backgroundColor: 'var(--card-bg)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--theme-border-radius)',
+              boxShadow: 'var(--shadow)',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+              width: '100%',
+              boxSizing: 'border-box',
+              marginTop: '10px',
+              marginBottom: '10px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <span style={{ fontFamily: 'var(--sans)', fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)' }}>
+                  GMP Premium Trend
+                </span>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  backgroundColor: 'var(--success-bg)',
+                  border: '1px solid var(--success-border)',
+                  borderRadius: '8px',
+                  padding: '4px 8px'
+                }}>
+                  <span style={{ fontFamily: 'var(--sans)', fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--success)' }}>
+                    ₹9,633 Est. Gain
+                  </span>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontFamily: 'var(--sans)', fontSize: 'var(--font-lg)', fontWeight: '600', color: 'var(--text-h)', lineHeight: '34px' }}>
+                  +34.2%
+                </span>
+                <span style={{ fontFamily: 'var(--sans)', fontSize: 'var(--font-xs)', color: 'var(--text-muted)', fontWeight: '600' }}>
+                  Average listing gain yield across active bids
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', height: '110px', position: 'relative' }}>
+                <svg width="100%" height="90" viewBox="0 0 400 90" preserveAspectRatio="none" style={{ flexShrink: 0 }}>
+                  <defs>
+                    <linearGradient id="login-chart-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--success)" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="var(--success)" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <path d="M 0 80 Q 80 75 120 50 T 240 30 T 360 10 T 400 5 L 400 90 L 0 90 Z" fill="url(#login-chart-grad)" />
+                  <path d="M 0 80 Q 80 75 120 50 T 240 30 T 360 10 T 400 5" fill="none" stroke="var(--success)" strokeWidth="3" strokeLinecap="round" />
+                  <circle cx="400" cy="5" r="4" fill="var(--success)" />
+                </svg>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Day 1</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Day 2</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Day 3</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Day 4</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Day 5 (Today)</span>
+                </div>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: 'var(--font-sm)' }}>
                 <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
                 <span><strong>8 strict quantitative rules</strong> evaluating demand, metrics, and anchors.</span>
               </div>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: 'var(--font-sm)' }}>
                 <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
                 <span><strong>Multi-PAN Account Management</strong> to optimize retail allotment odds.</span>
               </div>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: 'var(--font-sm)' }}>
                 <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
                 <span><strong>Telegram Push Notifications</strong> delivering closing alerts to your phone.</span>
               </div>
@@ -1136,7 +1201,7 @@ export default function App() {
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
             borderRadius: 'var(--theme-border-radius)',
-            padding: '40px 32px',
+            padding: '28px 24px',
             boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             flexDirection: 'column',
@@ -1149,18 +1214,17 @@ export default function App() {
               <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '20px', paddingBottom: '2px' }}>
                 <button
                   onClick={() => setAuthMode('login')}
-                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'login' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'login' ? '2px solid var(--accent)' : 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'login' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'login' ? '2px solid var(--accent)' : 'none', fontWeight: '600', fontSize: 'var(--font-sm)', cursor: 'pointer' }}
                 >
                   Sign In
                 </button>
                 <button
                   onClick={() => setAuthMode('signup')}
-                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'signup' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'signup' ? '2px solid var(--accent)' : 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'signup' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'signup' ? '2px solid var(--accent)' : 'none', fontWeight: '600', fontSize: 'var(--font-sm)', cursor: 'pointer' }}
                 >
                   Create Account
                 </button>
               </div>
-
               <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {authMode === 'signup' && (
                   <input
@@ -1169,7 +1233,7 @@ export default function App() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="input-field"
-                    style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
+                    style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: 'var(--font-sm)' }}
                     required
                   />
                 )}
@@ -1179,7 +1243,7 @@ export default function App() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field"
-                  style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
+                  style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: 'var(--font-sm)' }}
                   required
                 />
                 <input
@@ -1188,27 +1252,33 @@ export default function App() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-field"
-                  style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
+                  style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: 'var(--font-sm)' }}
                   required
                 />
 
-                {authError && <div style={{ fontSize: '11px', color: 'var(--danger)' }}>{authError}</div>}
+                {authError && <div style={{ fontSize: 'var(--font-xs)', color: 'var(--danger)' }}>{authError}</div>}
 
-                <button
-                  type="submit"
-                  disabled={authLoading}
-                  className="btn btn-primary"
-                  style={{
-                    padding: '12px',
-                    borderRadius: '999px',
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    width: '100%',
-                    opacity: authLoading ? 0.6 : 1
-                  }}
-                >
-                  {authLoading ? 'Authorizing...' : authMode === 'login' ? 'Sign In Securely' : 'Register Account'}
-                </button>
+                {(() => {
+                  const isAuthDisabled = authLoading || (authMode === 'login' ? (!email.trim() || !password.trim()) : (!email.trim() || !password.trim() || !displayName.trim()));
+                  return (
+                    <button
+                      type="submit"
+                      disabled={isAuthDisabled}
+                      className="btn btn-primary"
+                      style={{
+                        padding: '12px',
+                        borderRadius: '999px',
+                        fontSize: 'var(--font-sm)',
+                        fontWeight: '600',
+                        width: '100%',
+                        opacity: isAuthDisabled ? 0.6 : 1,
+                        cursor: isAuthDisabled ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {authLoading ? 'Authorizing...' : authMode === 'login' ? 'Sign In Securely' : 'Register Account'}
+                    </button>
+                  );
+                })()}
               </form>
             </div>
 
@@ -1216,11 +1286,11 @@ export default function App() {
             <div style={{ borderTop: '1px dashed var(--border-strong)', paddingTop: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 <Sparkles size={14} style={{ color: 'var(--accent)' }} />
-                <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--accent)', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', textTransform: 'uppercase', color: 'var(--accent)', letterSpacing: '0.5px' }}>
                   Guest Access
                 </span>
               </div>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 14px 0', lineHeight: '1.5' }}>
+              <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', margin: '0 0 14px 0', lineHeight: '1.5' }}>
                 Want to explore the portfolio? Enter your name — no email or password needed.
               </p>
               <form
@@ -1240,17 +1310,29 @@ export default function App() {
                     backgroundColor: 'rgba(139, 130, 115, 0.04)',
                     border: '1px solid var(--border-strong)',
                     color: 'var(--text-h)',
-                    fontSize: '13px'
+                    fontSize: 'var(--font-sm)'
                   }}
                 />
-                <button
-                  type="submit"
-                  disabled={guestLoading || !guestName.trim()}
-                  className="btn btn-primary"
-                  style={{ padding: '11px 20px', borderRadius: '16px', fontSize: '13px', whiteSpace: 'nowrap' }}
-                >
-                  {guestLoading ? 'Entering...' : 'Enter →'}
-                </button>
+                {(() => {
+                  const isGuestDisabled = guestLoading || !guestName.trim();
+                  return (
+                    <button
+                      type="submit"
+                      disabled={isGuestDisabled}
+                      className="btn btn-primary"
+                      style={{
+                        padding: '11px 20px',
+                        borderRadius: '16px',
+                        fontSize: 'var(--font-sm)',
+                        whiteSpace: 'nowrap',
+                        opacity: isGuestDisabled ? 0.6 : 1,
+                        cursor: isGuestDisabled ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {guestLoading ? 'Entering...' : 'Explore'}
+                    </button>
+                  );
+                })()}
               </form>
             </div>
 
@@ -1320,61 +1402,70 @@ export default function App() {
     }
 
     return (
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Welcome Banner */}
         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', gap: '16px' }}>
           <div>
-            <h2 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
+            <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: '600', color: 'var(--text-h)', margin: 0, letterSpacing: 'var(--tracking-tight)' }}>
               Welcome back, {userProfile?.display_name || 'Prabhat'}
             </h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-              Here is the executive summary of your family IPO investment portal today.
+            <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+              Here is your IPO decision brief for today.
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--success)', backgroundColor: 'var(--success-bg)', border: '1px solid var(--success-border)', padding: '8px 16px', borderRadius: '20px', fontWeight: '600', alignSelf: isMobile ? 'flex-start' : 'center' }}>
-            <Sparkles size={14} /> Live Workspace Sync
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text)', backgroundColor: 'var(--bg)', border: '1px solid var(--border-strong)', padding: '8px 16px', borderRadius: '999px', fontWeight: '500', alignSelf: isMobile ? 'flex-start' : 'center' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent)' }}></div>
+            Live Workspace Sync
           </div>
         </div>
 
-        {/* Top 4 Statistics Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-          <div className="premium-card metric-card">
-            <span className="metric-card-label">ACTIVE / ONGOING IPOS</span>
-            <div className="metric-card-value">{biddingIpos.length}</div>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>IPOs open for bidding today</span>
-          </div>
-
-          <div className="premium-card metric-card">
-            <span className="metric-card-label">UPCOMING IPOS</span>
-            <div className="metric-card-value">{upcomingIpos.length}</div>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Opening in next 7 days</span>
-          </div>
-
-          <div className="premium-card metric-card">
-            <span className="metric-card-label">TOTAL INVESTED BIDS</span>
-            <div className="metric-card-value">{totalBids}</div>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Bids placed across all PAN profiles</span>
-          </div>
-
-          <div className="premium-card metric-card">
-            <span className="metric-card-label">REALIZED PROFIT</span>
-            <div className="metric-card-value" style={{ color: 'var(--success)' }}>
-              ₹{totalRealizedProfit.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+        {/* Top 4 Statistics Strip */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span className="metric-card-value">{biddingIpos.length}</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="metric-card-label">Active IPOs</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Open for bidding today</span>
             </div>
-            <span style={{ fontSize: '11px', color: 'var(--success)' }}>Listing morning gains harvested</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span className="metric-card-value">{upcomingIpos.length}</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="metric-card-label">Upcoming IPOs</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Opening in next 7 days</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span className="metric-card-value">{totalBids}</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="metric-card-label">Total Bids</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Across all PAN profiles</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span className="metric-card-value" style={{ color: 'var(--text-h)' }}>
+              ₹{totalRealizedProfit.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="metric-card-label">Realized Profit</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Listing morning gains</span>
+            </div>
           </div>
         </div>
 
         {/* Centerpiece: IPO Pipeline Section */}
-        <div className="premium-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="premium-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Header Row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.3px' }}>
+            <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: 0, letterSpacing: 'var(--tracking-tight)' }}>
               IPO Pipeline
             </h3>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
                 Last checked: <strong style={{ color: 'var(--text-h)' }}>{lastRefreshedDate}</strong>
               </span>
 
@@ -1388,7 +1479,7 @@ export default function App() {
                   borderRadius: '999px',
                   padding: '7px 16px',
                   fontSize: '12px',
-                  fontWeight: '700',
+                  fontWeight: '600',
                   color: 'var(--text-h)',
                   cursor: 'pointer',
                   display: 'flex',
@@ -1407,8 +1498,8 @@ export default function App() {
                   onClick={() => { setViewMode('grid'); localStorage.setItem('ipo_view_mode', 'grid'); }}
                   style={{
                     padding: '6px 14px',
-                    fontSize: '11px',
-                    fontWeight: '700',
+                    fontSize: 'var(--font-xs)',
+                    fontWeight: '600',
                     border: 'none',
                     borderRadius: '999px',
                     cursor: 'pointer',
@@ -1424,8 +1515,8 @@ export default function App() {
                   onClick={() => { setViewMode('list'); localStorage.setItem('ipo_view_mode', 'list'); }}
                   style={{
                     padding: '6px 14px',
-                    fontSize: '11px',
-                    fontWeight: '700',
+                    fontSize: 'var(--font-xs)',
+                    fontWeight: '600',
                     border: 'none',
                     borderRadius: '999px',
                     cursor: 'pointer',
@@ -1451,8 +1542,8 @@ export default function App() {
               }}
               style={{
                 padding: '8px 16px',
-                fontSize: '13px',
-                fontWeight: '700',
+                fontSize: 'var(--font-sm)',
+                fontWeight: '600',
                 border: dashboardPipelineTab === 'recommended' ? '1px solid var(--accent-border)' : '1px solid transparent',
                 borderRadius: '999px',
                 cursor: 'pointer',
@@ -1467,8 +1558,8 @@ export default function App() {
               Recommended
               {recommendedIpos.length > 0 && (
                 <span style={{
-                  fontSize: '10px',
-                  fontWeight: '800',
+                  fontSize: 'var(--font-xs)',
+                  fontWeight: '600',
                   padding: '2px 7px',
                   borderRadius: '999px',
                   backgroundColor: dashboardPipelineTab === 'recommended' ? 'var(--accent)' : 'var(--border-strong)',
@@ -1487,8 +1578,8 @@ export default function App() {
               }}
               style={{
                 padding: '8px 16px',
-                fontSize: '13px',
-                fontWeight: '700',
+                fontSize: 'var(--font-sm)',
+                fontWeight: '600',
                 border: dashboardPipelineTab === 'open_now' ? '1px solid var(--accent-border)' : '1px solid transparent',
                 borderRadius: '999px',
                 cursor: 'pointer',
@@ -1503,8 +1594,8 @@ export default function App() {
               Open Now
               {biddingIpos.length > 0 && (
                 <span style={{
-                  fontSize: '10px',
-                  fontWeight: '800',
+                  fontSize: 'var(--font-xs)',
+                  fontWeight: '600',
                   padding: '2px 7px',
                   borderRadius: '999px',
                   backgroundColor: dashboardPipelineTab === 'open_now' ? 'var(--accent)' : 'var(--border-strong)',
@@ -1523,8 +1614,8 @@ export default function App() {
               }}
               style={{
                 padding: '8px 16px',
-                fontSize: '13px',
-                fontWeight: '700',
+                fontSize: 'var(--font-sm)',
+                fontWeight: '600',
                 border: dashboardPipelineTab === 'upcoming' ? '1px solid var(--accent-border)' : '1px solid transparent',
                 borderRadius: '999px',
                 cursor: 'pointer',
@@ -1539,8 +1630,8 @@ export default function App() {
               Upcoming
               {upcomingIpos.length > 0 && (
                 <span style={{
-                  fontSize: '10px',
-                  fontWeight: '800',
+                  fontSize: 'var(--font-xs)',
+                  fontWeight: '600',
                   padding: '2px 7px',
                   borderRadius: '999px',
                   backgroundColor: dashboardPipelineTab === 'upcoming' ? 'var(--accent)' : 'var(--border-strong)',
@@ -1559,8 +1650,8 @@ export default function App() {
               }}
               style={{
                 padding: '8px 16px',
-                fontSize: '13px',
-                fontWeight: '700',
+                fontSize: 'var(--font-sm)',
+                fontWeight: '600',
                 border: dashboardPipelineTab === 'closed' ? '1px solid var(--accent-border)' : '1px solid transparent',
                 borderRadius: '999px',
                 cursor: 'pointer',
@@ -1575,8 +1666,8 @@ export default function App() {
               Closed
               {closedIpos.length > 0 && (
                 <span style={{
-                  fontSize: '10px',
-                  fontWeight: '800',
+                  fontSize: 'var(--font-xs)',
+                  fontWeight: '600',
                   padding: '2px 7px',
                   borderRadius: '999px',
                   backgroundColor: dashboardPipelineTab === 'closed' ? 'var(--accent)' : 'var(--border-strong)',
@@ -1590,23 +1681,23 @@ export default function App() {
 
           {/* Tab Content (Cards or List View) */}
           {currentPipelineList.length === 0 ? (
-            <div style={{ padding: '36px 20px', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center' }}>
+            <div style={{ padding: '36px 20px', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: 'var(--font-sm)', textAlign: 'center' }}>
               {emptyTabMsg}
             </div>
           ) : viewMode === 'list' ? (
             /* Table List View */
             <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '12px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 'var(--font-sm)' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'rgba(0,0,0,0.015)', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Company</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>GMP Premium</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>QIB Demand</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Allotment Odds</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Issue Size</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Lot Cost</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Timeline</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Recommendation</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Company</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>GMP Premium</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>QIB Demand</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Allotment Odds</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Issue Size</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Lot Cost</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Timeline</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Recommendation</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1621,16 +1712,16 @@ export default function App() {
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                       >
                         <td style={{ padding: '14px 18px' }}>
-                          <div style={{ fontWeight: '800', color: 'var(--text-h)' }}>{ipo.name}</div>
-                          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Symbol: {ipo.symbol}</div>
+                          <div style={{ fontWeight: '600', color: 'var(--text-h)' }}>{ipo.name}</div>
+                          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Symbol: {ipo.symbol}</div>
                         </td>
-                        <td style={{ padding: '14px 18px', fontWeight: '700', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
+                        <td style={{ padding: '14px 18px', fontWeight: '600', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
                           {ipo.gmp_pct ? `+${ipo.gmp_pct}%` : '0%'}
                         </td>
-                        <td style={{ padding: '14px 18px', fontWeight: '700', color: ipo.qib_sub >= 50 ? 'var(--success)' : ipo.qib_sub > 0 ? 'var(--accent)' : 'var(--text-h)' }}>
+                        <td style={{ padding: '14px 18px', fontWeight: '600', color: ipo.qib_sub >= 50 ? 'var(--success)' : ipo.qib_sub > 0 ? 'var(--accent)' : 'var(--text-h)' }}>
                           {ipo.qib_sub && ipo.qib_sub > 0 ? `${ipo.qib_sub}x` : (ipo.total_sub ? `${ipo.total_sub}x` : 'Not available')}
                         </td>
-                        <td style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--success)' }}>
+                        <td style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--success)' }}>
                           {ipo.retail_sub && ipo.retail_sub > 1 ? `${(100 / ipo.retail_sub).toFixed(1)}%` : '100%'}
                         </td>
                         <td style={{ padding: '14px 18px', color: 'var(--text-h)' }}>
@@ -1644,16 +1735,16 @@ export default function App() {
                         </td>
                         <td style={{ padding: '14px 18px' }}>
                           <span style={{
-                            fontSize: '11px',
-                            fontWeight: '800',
+                            fontSize: 'var(--font-xs)',
+                            fontWeight: '600',
                             color: ipo.decision === 'YES' ? 'var(--success)' : ipo.decision === 'WATCH' ? 'var(--warning)' : 'var(--danger)',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
                             padding: '4px 10px',
-                            backgroundColor: ipo.decision === 'YES' ? 'rgba(16, 185, 129, 0.08)' : ipo.decision === 'WATCH' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(239, 68, 68, 0.06)',
+                            backgroundColor: ipo.decision === 'YES' ? 'var(--success-bg)' : ipo.decision === 'WATCH' ? 'var(--warning-bg)' : 'var(--danger-bg)',
                             borderRadius: '16px',
-                            border: ipo.decision === 'YES' ? '1px solid rgba(16, 185, 129, 0.22)' : ipo.decision === 'WATCH' ? '1px solid rgba(245, 158, 11, 0.25)' : '1px solid rgba(239, 68, 68, 0.2)'
+                            border: ipo.decision === 'YES' ? '1px solid var(--success-border)' : ipo.decision === 'WATCH' ? '1px solid var(--warning-border)' : '1px solid var(--danger-border)'
                           }}>
                             {ipo.decision === 'YES' && <CheckCircle2 size={11} />}
                             {ipo.decision === 'WATCH' && <AlertTriangle size={11} />}
@@ -1718,28 +1809,28 @@ export default function App() {
                         {/* 1. Header: Status Badge & Closing/Opening Date */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                           <span style={{
-                            fontSize: '10px',
-                            fontWeight: '800',
+                            fontSize: 'var(--font-xs)',
+                            fontWeight: '600',
                             letterSpacing: '0.5px',
                             textTransform: 'uppercase',
                             padding: '4px 10px',
                             borderRadius: '999px',
-                            backgroundColor: ipo.status === 'bidding' ? 'rgba(16, 185, 129, 0.12)' : ipo.status === 'upcoming' ? 'var(--warning-bg)' : 'rgba(0,0,0,0.05)',
+                            backgroundColor: ipo.status === 'bidding' ? 'var(--success-bg)' : ipo.status === 'upcoming' ? 'var(--warning-bg)' : 'rgba(0,0,0,0.05)',
                             color: ipo.status === 'bidding' ? 'var(--success)' : ipo.status === 'upcoming' ? 'var(--warning)' : 'var(--text-muted)'
                           }}>
                             {ipo.status === 'bidding' ? 'BIDDING' : ipo.status.toUpperCase()}
                           </span>
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}>
+                          <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}>
                             <Calendar size={12} /> {ipo.status === 'upcoming' ? `Opens ${dateStr}` : `Closes ${dateStr}`}
                           </span>
                         </div>
 
                         {/* Title & Symbol */}
-                        <h4 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 2px 0', color: 'var(--text-h)', lineHeight: '1.2' }}>
+                        <h4 style={{ fontSize: 'var(--font-md)', fontWeight: '600', margin: '0 0 2px 0', color: 'var(--text-h)', lineHeight: '1.2' }}>
                           {ipo.name}
                         </h4>
-                        <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 14px 0' }}>
-                          Symbol: <span style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-h)', fontWeight: '600' }}>{ipo.symbol}</span>
+                        <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', margin: '0 0 14px 0' }}>
+                          Symbol: <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-xs)', color: 'var(--text-h)', fontWeight: '600' }}>{ipo.symbol}</span>
                         </p>
 
                         {/* 2. PRIMARY HIERARCHY: Recommendation Box */}
@@ -1748,15 +1839,15 @@ export default function App() {
                           padding: '12px 14px',
                           marginBottom: '16px',
                           backgroundColor: ipo.decision === 'YES' 
-                            ? 'rgba(16, 185, 129, 0.08)' 
+                            ? 'var(--success-bg)' 
                             : ipo.decision === 'WATCH' 
-                              ? 'rgba(245, 158, 11, 0.08)' 
-                              : 'rgba(239, 68, 68, 0.06)',
+                              ? 'var(--warning-bg)' 
+                              : 'var(--danger-bg)',
                           border: ipo.decision === 'YES' 
-                            ? '1px solid rgba(16, 185, 129, 0.22)' 
+                            ? '1px solid var(--success-border)' 
                             : ipo.decision === 'WATCH' 
-                              ? '1px solid rgba(245, 158, 11, 0.25)' 
-                              : '1px solid rgba(239, 68, 68, 0.2)'
+                              ? '1px solid var(--warning-border)' 
+                              : '1px solid var(--danger-border)'
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {ipo.decision === 'YES' && <CheckCircle2 size={18} style={{ color: 'var(--success)', flexShrink: 0 }} />}
@@ -1764,14 +1855,14 @@ export default function App() {
                             {ipo.decision === 'NO' && <XCircle size={18} style={{ color: 'var(--danger)', flexShrink: 0 }} />}
                             <span style={{
                               fontSize: '14px',
-                              fontWeight: '800',
+                              fontWeight: '600',
                               letterSpacing: '0.2px',
                               color: ipo.decision === 'YES' ? 'var(--success)' : ipo.decision === 'WATCH' ? 'var(--warning)' : 'var(--danger)'
                             }}>
                               {ipo.decision === 'YES' ? 'YES — APPLY' : ipo.decision === 'WATCH' ? 'MAYBE — WATCH' : 'NO — AVOID'}
                             </span>
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-h)', marginTop: '4px', fontWeight: '700', paddingLeft: '26px' }}>
+                          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-h)', marginTop: '4px', fontWeight: '600', paddingLeft: '26px' }}>
                             Reason: <span style={{ fontWeight: '500', color: 'var(--text-muted)' }}>{ipo.reason || (ipo.decision === 'YES' ? 'All mandatory checks passed' : 'Criteria not met')}</span>
                           </div>
                         </div>
@@ -1784,26 +1875,26 @@ export default function App() {
                           marginBottom: '14px'
                         }}>
                           <div>
-                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.3px', marginBottom: '2px' }}>
+                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.3px', marginBottom: '2px' }}>
                               GMP PREMIUM
                             </span>
-                            <span style={{ fontSize: '14px', fontWeight: '800', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
+                            <span style={{ fontSize: '14px', fontWeight: '600', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
                               {ipo.gmp_pct ? `+${ipo.gmp_pct}%` : '0%'}
                             </span>
                           </div>
                           <div>
-                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.3px', marginBottom: '2px' }}>
+                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.3px', marginBottom: '2px' }}>
                               QIB DEMAND
                             </span>
-                            <span style={{ fontSize: '14px', fontWeight: '800', color: ipo.qib_sub >= 50 ? 'var(--success)' : ipo.qib_sub > 0 ? 'var(--accent)' : 'var(--text-h)' }}>
+                            <span style={{ fontSize: '14px', fontWeight: '600', color: ipo.qib_sub >= 50 ? 'var(--success)' : ipo.qib_sub > 0 ? 'var(--accent)' : 'var(--text-h)' }}>
                               {ipo.qib_sub && ipo.qib_sub > 0 ? `${ipo.qib_sub}x` : (ipo.total_sub ? `${ipo.total_sub}x` : 'Not available')}
                             </span>
                           </div>
                           <div>
-                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.3px', marginBottom: '2px' }}>
+                            <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.3px', marginBottom: '2px' }}>
                               ALLOTMENT ODDS
                             </span>
-                            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--success)' }}>
+                            <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--success)' }}>
                               {ipo.retail_sub && ipo.retail_sub > 1 ? `${(100 / ipo.retail_sub).toFixed(1)}%` : '100%'}
                             </span>
                           </div>
@@ -1814,7 +1905,7 @@ export default function App() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          fontSize: '11px',
+                          fontSize: 'var(--font-xs)',
                           fontWeight: '600',
                           marginBottom: '14px',
                           color: 'var(--text-muted)'
@@ -1844,12 +1935,12 @@ export default function App() {
                         borderTop: '1px solid var(--border)',
                         paddingTop: '12px'
                       }}>
-                        <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-h)' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-h)' }}>
                           1 Lot: ₹{lotCost}
                         </span>
                         <span style={{
                           fontSize: '12px',
-                          fontWeight: '700',
+                          fontWeight: '600',
                           color: 'var(--accent)',
                           display: 'flex',
                           alignItems: 'center',
@@ -1917,7 +2008,7 @@ export default function App() {
                 marginTop: '20px',
                 paddingTop: '16px',
                 borderTop: '1px solid var(--border)',
-                fontSize: '11px'
+                fontSize: 'var(--font-xs)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1937,7 +2028,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '11px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: 'var(--font-xs)' }}>
                   <Info size={12} />
                   <span>2 mandatory checks must pass. Minimum 6 total checks must pass for YES.</span>
                 </div>
@@ -1952,8 +2043,8 @@ export default function App() {
           {renderDashboardCharts()}
 
           {/* Allotment Win Rate Circular Gauge */}
-          <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-h)', margin: '0 0 16px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '16px' }}>
+            <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: '0 0 16px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               ALLOTMENT WIN RATE
             </h3>
             
@@ -1969,18 +2060,18 @@ export default function App() {
                 />
               </svg>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-h)', lineHeight: '1' }}>{winRate}%</span>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: '800', marginTop: '4px', letterSpacing: '0.5px' }}>ALLOTTED</span>
+                <span style={{ fontSize: 'var(--font-lg)', fontWeight: '600', color: 'var(--text-h)', lineHeight: '1' }}>{winRate}%</span>
+                <span style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: '600', marginTop: '4px', letterSpacing: '0.5px' }}>ALLOTTED</span>
               </div>
             </div>
             
             <div style={{ marginTop: '20px', display: 'flex', gap: '16px', fontSize: '12px', alignItems: 'center' }}>
               <div>
-                <span style={{ color: 'var(--success)', fontWeight: '800' }}>{allottedBids}</span> Allotted
+                <span style={{ color: 'var(--success)', fontWeight: '600' }}>{allottedBids}</span> Allotted
               </div>
               <div style={{ width: '1px', height: '14px', backgroundColor: 'var(--border-strong)' }}></div>
               <div>
-                <span style={{ color: 'var(--text-muted)', fontWeight: '700' }}>{refundedBids}</span> Refunded
+                <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>{refundedBids}</span> Refunded
               </div>
             </div>
           </div>
@@ -1989,20 +2080,20 @@ export default function App() {
         {/* Bottom Section: Capital Pool & Active Bids Checklist */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           {/* Family Capital Pool */}
-          <div className="premium-card" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Family Capital Pool</h3>
+          <div className="premium-card" style={{ padding: '16px' }}>
+            <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Family Capital Pool</h3>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Total Capital Pool</span>
-              <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-h)' }}>₹{capital.toLocaleString('en-IN')}</span>
+              <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)' }}>Total Capital Pool</span>
+              <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)' }}>₹{capital.toLocaleString('en-IN')}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>ASBA Blocked Funds</span>
-              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--warning)' }}>₹{totalBlocked.toLocaleString('en-IN')}</span>
+              <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)' }}>ASBA Blocked Funds</span>
+              <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--warning)' }}>₹{totalBlocked.toLocaleString('en-IN')}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '12px', alignItems: 'center' }}>
-              <span style={{ fontSize: '13px', fontWeight: '600' }}>Available Liquid Cash</span>
-              <span style={{ fontSize: '18px', fontWeight: '800', color: 'var(--success)' }}>₹{liquidCapital.toLocaleString('en-IN')}</span>
+              <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600' }}>Available Liquid Cash</span>
+              <span style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--success)' }}>₹{liquidCapital.toLocaleString('en-IN')}</span>
             </div>
 
             <div style={{ height: '8px', backgroundColor: 'var(--border)', borderRadius: '4px', display: 'flex', overflow: 'hidden', marginTop: '16px' }}>
@@ -2012,10 +2103,10 @@ export default function App() {
           </div>
 
           {/* Active Bids Checklist */}
-          <div className="premium-card" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Active Bid Checklist</h3>
+          <div className="premium-card" style={{ padding: '16px' }}>
+            <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Active Bid Checklist</h3>
             {userApplications.filter(a => a.status === 'PENDING').length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
+              <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: 'var(--font-sm)' }}>
                 No active ASBA blocks found. Start bidding in the IPO Pipeline above!
               </div>
             ) : (
@@ -2026,10 +2117,10 @@ export default function App() {
                   if (!ipo || !account) return null;
                   
                   return (
-                    <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px' }}>
+                    <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: 'var(--font-sm)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: '700', color: 'var(--text-h)' }}>{ipo.name}</span>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Slot: {account.account_holder_name}</span>
+                        <span style={{ fontWeight: '600', color: 'var(--text-h)' }}>{ipo.name}</span>
+                        <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Slot: {account.account_holder_name}</span>
                       </div>
                       <span className="badge badge-warning">Blocked ₹{app.bid_amount.toLocaleString('en-IN')}</span>
                     </div>
@@ -2062,14 +2153,14 @@ export default function App() {
     const totalGain = cumulative;
 
     return (
-      <div className="premium-card" style={{ padding: '24px', flexGrow: 1, minHeight: '260px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <div className="premium-card" style={{ padding: '16px', flexGrow: 1, minHeight: '260px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0 }}>
+          <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>
             Cumulative Profit Growth (₹)
           </h3>
           <span style={{
             fontSize: '12px',
-            fontWeight: '800',
+            fontWeight: '600',
             color: 'var(--success)',
             backgroundColor: 'var(--success-bg)',
             border: '1px solid var(--success-border)',
@@ -2083,22 +2174,22 @@ export default function App() {
         {profitPoints.length === 0 ? (
           <div style={{ height: '160px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', borderRadius: '16px', border: '1px dashed var(--border-strong)', color: 'var(--text-muted)', fontSize: '12px', gap: '6px' }}>
             <span>Cumulative listing profits will graph here as allotments are harvested.</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Place bids and mark allotment status in the Family Rotator!</span>
+            <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Place bids and mark allotment status in the Family Rotator!</span>
           </div>
         ) : (
           <div style={{ position: 'relative', width: '100%', height: '170px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             {/* Guide Grid Lines & Milestones */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%', paddingTop: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', paddingTop: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--border)', paddingBottom: '4px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>₹{(totalGain).toLocaleString('en-IN')}</span>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)' }}>
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>₹{(totalGain).toLocaleString('en-IN')}</span>
+                <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--success)' }}>
                   ₹{(totalGain).toLocaleString('en-IN')} ({profitPoints[profitPoints.length - 1]?.name || 'Latest Allotment'})
                 </span>
               </div>
               {profitPoints.length > 1 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed var(--border)', paddingBottom: '4px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>₹{(profitPoints[0].value).toLocaleString('en-IN')}</span>
-                  <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>₹{(profitPoints[0].value).toLocaleString('en-IN')}</span>
+                  <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text-muted)' }}>
                     ₹{(profitPoints[0].value).toLocaleString('en-IN')} ({profitPoints[0]?.name || 'Initial Allotment'})
                   </span>
                 </div>
@@ -2168,28 +2259,28 @@ export default function App() {
 
     const renderIpoList = (list, title, emptyMsg) => (
       <div style={{ marginBottom: '32px' }}>
-        <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {title} <span className="badge badge-neutral">{list.length}</span>
         </h3>
         {list.length === 0 ? (
-          <div style={{ padding: '20px', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: '11px', textAlign: 'center' }}>
+          <div style={{ padding: '20px', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: 'var(--font-xs)', textAlign: 'center' }}>
             {emptyMsg}
           </div>
         ) : viewMode === 'list' ? (
           /* Sleek Table List View */
           <div className="premium-card" style={{ padding: '0px', overflow: 'hidden', border: '1px solid var(--border)' }}>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 'var(--font-sm)' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'rgba(0,0,0,0.015)', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Company</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>GMP Premium</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Subscription</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Allotment Chance</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Issue Size</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Lot Cost</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Closing Date</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Signal</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Company</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>GMP Premium</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Subscription</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Allotment Chance</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Issue Size</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Lot Cost</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Closing Date</th>
+                    <th style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--text-h)' }}>Signal</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2202,16 +2293,16 @@ export default function App() {
                         style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
                       >
                         <td style={{ padding: '14px 18px' }}>
-                          <div style={{ fontWeight: '800', color: 'var(--text-h)' }}>{ipo.name}</div>
-                          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Symbol: {ipo.symbol}</div>
+                          <div style={{ fontWeight: '600', color: 'var(--text-h)' }}>{ipo.name}</div>
+                          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Symbol: {ipo.symbol}</div>
                         </td>
-                        <td style={{ padding: '14px 18px', fontWeight: '700', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
+                        <td style={{ padding: '14px 18px', fontWeight: '600', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
                           {ipo.gmp_pct}%
                         </td>
-                        <td style={{ padding: '14px 18px', fontWeight: '700', color: ipo.total_sub >= 30 ? 'var(--accent)' : 'var(--text-h)' }}>
-                          {ipo.total_sub}x <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'normal' }}>(Retail: {ipo.retail_sub || 0}x)</span>
+                        <td style={{ padding: '14px 18px', fontWeight: '600', color: ipo.total_sub >= 30 ? 'var(--accent)' : 'var(--text-h)' }}>
+                          {ipo.total_sub}x <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', fontWeight: 'normal' }}>(Retail: {ipo.retail_sub || 0}x)</span>
                         </td>
-                        <td style={{ padding: '14px 18px', fontWeight: '700', color: 'var(--success)' }}>
+                        <td style={{ padding: '14px 18px', fontWeight: '600', color: 'var(--success)' }}>
                           {ipo.retail_sub && ipo.retail_sub > 1 ? `${(100 / ipo.retail_sub).toFixed(1)}%` : '100%'}
                         </td>
                         <td style={{ padding: '14px 18px', color: 'var(--text-h)' }}>
@@ -2225,19 +2316,19 @@ export default function App() {
                         </td>
                         <td style={{ padding: '14px 18px' }}>
                           <span style={{
-                            fontSize: '11px',
-                            fontWeight: '800',
-                            color: ipo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)',
+                            fontSize: 'var(--font-xs)',
+                            fontWeight: '600',
+                            color: ipo.decision === 'YES' ? '#ffffff' : 'var(--text-muted)',
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
                             padding: '4px 10px',
-                            backgroundColor: ipo.decision === 'YES' ? 'var(--accent-bg)' : 'var(--danger-bg)',
+                            backgroundColor: ipo.decision === 'YES' ? 'var(--accent)' : '#FAFAFA',
                             borderRadius: '16px',
-                            border: ipo.decision === 'YES' ? '1px solid var(--accent-border)' : '1px solid var(--danger-border)'
+                            border: ipo.decision === 'YES' ? 'none' : '1px solid var(--border)'
                           }}>
                             {ipo.decision === 'YES' ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
-                            {ipo.decision}
+                            {ipo.decision === 'YES' ? 'YES — APPLY' : ipo.decision === 'NO' ? 'NO — AVOID' : 'MAYBE — WATCH'}
                           </span>
                         </td>
                       </tr>
@@ -2260,7 +2351,7 @@ export default function App() {
                   style={{
                     backgroundColor: 'var(--card-bg)',
                     borderRadius: 'var(--theme-border-radius)',
-                    padding: '24px',
+                    padding: '16px',
                     cursor: 'pointer',
                     position: 'relative',
                     display: 'flex',
@@ -2274,8 +2365,20 @@ export default function App() {
                       <span className={`badge ${ipo.status === 'bidding' ? 'badge-success' : ipo.status === 'upcoming' ? 'badge-warning' : 'badge-neutral'}`}>
                         {ipo.status.toUpperCase()}
                       </span>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Calendar size={12} /> Closes {dateStr}
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        color: ipo.decision === 'YES' ? '#ffffff' : 'var(--text-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 10px',
+                        backgroundColor: ipo.decision === 'YES' ? 'var(--accent)' : '#FAFAFA',
+                        borderRadius: '16px',
+                        border: ipo.decision === 'YES' ? 'none' : '1px solid var(--border)'
+                      }}>
+                        {ipo.decision === 'YES' ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
+                        {ipo.decision === 'YES' ? 'YES — APPLY' : ipo.decision === 'NO' ? 'NO — AVOID' : 'MAYBE — WATCH'}
                       </span>
                     </div>
                     {ipo.is_fallback && (
@@ -2288,79 +2391,57 @@ export default function App() {
                         borderRadius: '8px',
                         padding: '3px 8px',
                         marginBottom: '8px',
-                        fontSize: '10px',
+                        fontSize: 'var(--font-xs)',
                         fontWeight: '600',
-                        color: 'var(--warning)',
+                        color: 'var(--text-h)',
                         letterSpacing: '0.02em'
                       }}>
                         ⚠️ Simulated / Estimated Data — Not Live
                       </div>
                     )}
 
-                    <h4 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 4px 0', color: 'var(--text-h)', lineHeight: '1.2' }}>
+                    <h4 style={{ fontSize: 'var(--font-md)', fontWeight: '600', margin: '0 0 4px 0', color: 'var(--text-h)', lineHeight: '1.2' }}>
                       {ipo.name}
                     </h4>
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 16px 0' }}>
-                      Symbol: <span style={{ fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--text-h)', fontWeight: '600' }}>{ipo.symbol}</span>
+                    <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', margin: '0 0 16px 0' }}>
+                      Symbol: <span style={{ fontFamily: 'var(--mono)', fontSize: 'var(--font-xs)', color: 'var(--text-h)', fontWeight: '600' }}>{ipo.symbol}</span>
                     </p>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px 8px', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '10px 0', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: 'var(--font-xs)', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                      <span style={{ color: 'var(--accent)', fontWeight: '600' }}>{ipo.score}/8 Rules Passed</span>
+                      <span>•</span>
+                      <span>Closes {dateStr}</span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px 8px', borderTop: '1px solid var(--border)', padding: '12px 0', marginTop: 'auto' }}>
                       <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>GMP Premium</span>
-                        <span style={{ fontSize: '13px', fontWeight: '700', color: ipo.gmp_pct >= 20 ? 'var(--accent)' : 'var(--text-h)' }}>
+                        <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '500' }}>GMP Premium</span>
+                        <span style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-h)', letterSpacing: '-0.5px' }}>
                           {ipo.gmp_pct}%
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Subscription</span>
-                        <span style={{ fontSize: '13px', fontWeight: '700', color: ipo.total_sub >= 30 ? 'var(--accent)' : 'var(--text-h)' }}>
+                        <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '500' }}>QIB Sub</span>
+                        <span style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-h)', letterSpacing: '-0.5px' }}>
                           {ipo.total_sub}x
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Allotment %</span>
-                        <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--success)' }}>
+                        <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: '500' }}>Retail Odds</span>
+                        <span style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-h)', letterSpacing: '-0.5px' }}>
                           {ipo.retail_sub && ipo.retail_sub > 1 ? `${(100 / ipo.retail_sub).toFixed(1)}%` : '100%'}
-                        </span>
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Issue Size</span>
-                        <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-h)' }}>
-                          ₹{ipo.issue_size_cr} Cr
-                        </span>
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Lot Cost</span>
-                        <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-h)' }}>
-                          ₹{ipo.retail_lot_cost?.toLocaleString('en-IN')}
-                        </span>
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', fontWeight: 'bold' }}>Lot Shares</span>
-                        <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-h)' }}>
-                          {ipo.lot_size} Shares
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Signal:</span>
-                      <span style={{
-                        fontSize: '13px',
-                        fontWeight: '800',
-                        color: ipo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '2px'
-                      }}>
-                        {ipo.decision === 'YES' ? <CheckCircle2 size={12} style={{ color: 'var(--accent)' }} /> : <XCircle size={12} style={{ color: 'var(--danger)' }} />}
-                        {ipo.decision}
-                      </span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Lot Size</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-h)' }}>₹{ipo.retail_lot_cost?.toLocaleString('en-IN')}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '11px', color: 'var(--accent)', fontWeight: '600' }}>
-                      {ipo.score}/8 passed <ChevronRight size={12} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: 'var(--font-xs)', color: 'var(--accent)', fontWeight: '600' }}>
+                      View details <ChevronRight size={14} />
                     </div>
                   </div>
                 </div>
@@ -2375,16 +2456,16 @@ export default function App() {
       <div className="animate-fade-in">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h2 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
+            <h2 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: 0, letterSpacing: 'var(--tracking-tight)' }}>
               Ongoing & Upcoming IPOs
             </h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+            <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
               Track demand multiples and GMP curves daily. Yes signals are highlighted on closing-day bids.
             </p>
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               Last checked: <strong style={{ color: 'var(--text-h)' }}>{lastRefreshedDate}</strong>
             </span>
             
@@ -2397,8 +2478,8 @@ export default function App() {
                 border: '1px solid var(--border-strong)',
                 borderRadius: '999px',
                 padding: '8px 16px',
-                fontSize: '13px',
-                fontWeight: '700',
+                fontSize: 'var(--font-sm)',
+                fontWeight: '600',
                 color: 'var(--text-h)',
                 cursor: 'pointer',
                 display: 'flex',
@@ -2417,8 +2498,8 @@ export default function App() {
                 onClick={() => { setViewMode('grid'); localStorage.setItem('ipo_view_mode', 'grid'); }}
                 style={{
                   padding: '6px 12px',
-                  fontSize: '11px',
-                  fontWeight: '700',
+                  fontSize: 'var(--font-xs)',
+                  fontWeight: '600',
                   border: 'none',
                   borderRadius: '999px',
                   cursor: 'pointer',
@@ -2434,8 +2515,8 @@ export default function App() {
                 onClick={() => { setViewMode('list'); localStorage.setItem('ipo_view_mode', 'list'); }}
                 style={{
                   padding: '6px 12px',
-                  fontSize: '11px',
-                  fontWeight: '700',
+                  fontSize: 'var(--font-xs)',
+                  fontWeight: '600',
                   border: 'none',
                   borderRadius: '999px',
                   cursor: 'pointer',
@@ -2452,7 +2533,7 @@ export default function App() {
         </div>
 
         {dbLoading ? (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: 'var(--font-sm)' }}>
             Synchronizing data pools...
           </div>
         ) : (
@@ -2467,349 +2548,279 @@ export default function App() {
   };
 
   const renderCapitalTab = () => {
+    // 1. Calculate stats
+    const activePanSlots = userAccounts.length;
+    const totalCapital = capital;
+    const availableCash = liquidCapital;
+    
+    // Group members accounts
+    const accountsWithStats = userAccounts.map(account => {
+      const activeBids = userApplications.filter(app => app.account_id === account.id && app.status === 'PENDING');
+      const activeBlocked = activeBids.reduce((sum, app) => sum + parseFloat(app.bid_amount), 0);
+      
+      // Determine relationship
+      const holderLower = account.account_holder_name.toLowerCase();
+      let rel = 'FAMILY MEMBER';
+      let capitalLimit = 20000;
+      if (holderLower.includes('prabhat')) {
+        rel = 'SELF (PRIMARY)';
+        capitalLimit = 35000;
+      } else if (holderLower.includes('mona')) {
+        rel = 'MOTHER';
+        capitalLimit = 20000;
+      } else if (holderLower.includes('kishore')) {
+        rel = 'FATHER';
+        capitalLimit = 25000;
+      } else if (account.user_id === (session?.user?.id || session?.id)) {
+        rel = 'SELF (PRIMARY)';
+        capitalLimit = 35000;
+      }
+      
+      // Get initials
+      const names = account.account_holder_name.split(' ');
+      const initials = names.map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+      return {
+        ...account,
+        activeBids,
+        activeBlocked,
+        relationship: rel,
+        capitalLimit,
+        initials
+      };
+    });
+
+    const linkedBankAccountsCount = userAccounts.reduce((sum, acc) => {
+      return sum + (acc.bank_name ? acc.bank_name.split(',').length : 1);
+    }, 0);
+
+    // Active allocations
+    const activeAllocationsTotal = accountsWithStats.reduce((sum, acc) => sum + acc.capitalLimit, 0);
+
     return (
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
-        {/* Family sharing section */}
-        <div className="premium-card" style={{ padding: '24px' }}>
-          <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Users size={20} style={{ color: 'var(--accent)' }} /> Investment Group Sharing & Collaboration
-            </h3>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-              Share PAN cards, trading capitals, and ASBA bid logs in real-time. Invite group members to manage bids together.
+        {/* Header Row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: '600', color: 'var(--text-h)', margin: 0, letterSpacing: 'var(--tracking-tight)' }}>
+              Family Rotator
+            </h2>
+            <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+              Manage family member PAN slots, ASBA bank accounts, and capital limits.
             </p>
           </div>
-
-          {!familyGroup ? (
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '32px', alignItems: 'start' }}>
-              {/* Create Group Form */}
-              <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none', paddingRight: isMobile ? '0' : '32px', paddingBottom: isMobile ? '32px' : '0' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', margin: 0 }}>Create Investment Group</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Group Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Prabhat Group Pool"
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-                    className="input-field"
-                    required
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Create Group</button>
-              </form>
-
-              {/* Join Group with Code Form */}
-              <form onSubmit={handleJoinWithCode} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', margin: 0 }}>Join with Invitation Code</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>8-Character Code</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. AB12CD34"
-                    value={inviteCodeInput}
-                    onChange={(e) => setInviteCodeInput(e.target.value)}
-                    className="input-field"
-                    maxLength={8}
-                    required
-                  />
-                </div>
-                <button type="submit" disabled={joinLoading} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
-                  {joinLoading ? 'Joining...' : 'Join Group'}
-                </button>
-                {joinError && <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '4px' }}>{joinError}</div>}
-              </form>
-            </div>
-          ) : (
-            <div>
-              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: '16px', marginBottom: '20px', backgroundColor: 'var(--bg)', padding: '12px 16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                <div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Active Group</span>
-                  <h4 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0 }}>{familyGroup.group_name}</h4>
-                </div>
-                
-                {/* Invite Code Display Card */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'var(--card-bg)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-strong)' }}>
-                  <div>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', fontWeight: 'bold' }}>Invitation Code</span>
-                    <span style={{ fontSize: '13px', fontFamily: 'var(--mono)', fontWeight: '700', color: 'var(--accent)' }}>
-                       {familyGroup.invite_code || 'SANDBOX8'}
-                    </span>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(familyGroup.invite_code || 'SANDBOX8');
-                      alert("Invitation code copied to clipboard!");
-                    }}
-                    className="btn btn-secondary" 
-                    style={{ padding: '4px 8px', fontSize: '10px' }}
-                  >
-                    Copy
-                  </button>
-                </div>
-
-                <button onClick={handleLeaveGroup} className="btn btn-danger" style={{ padding: '6px 12px', fontSize: '11px' }}>Leave Group</button>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px' }}>
-                {/* Invite form */}
-                <div>
-                  <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '10px' }}>Invite Group Member by Email</h4>
-                  <form onSubmit={handleInviteMember} style={{ display: 'flex', gap: '10px' }}>
-                    <input
-                      type="email"
-                      placeholder="member@example.com"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      className="input-field"
-                      style={{ fontSize: '13px' }}
-                      required
-                    />
-                    <button type="submit" disabled={inviteLoading} className="btn btn-primary" style={{ padding: '8px 14px', fontSize: '11px' }}>
-                      {inviteLoading ? 'Inviting...' : 'Invite'}
-                    </button>
-                  </form>
-                  {inviteError && <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '6px' }}>{inviteError}</div>}
-                  {inviteSuccess && <div style={{ fontSize: '11px', color: 'var(--success)', marginTop: '6px' }}>Invitation sent successfully! Member added.</div>}
-                </div>
-
-                {/* Member list */}
-                <div>
-                  <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '10px' }}>Joined Group Members ({groupMembers.length})</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
-                    {groupMembers.map(m => (
-                      <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px', backgroundColor: 'var(--bg)' }}>
-                        <div>
-                          <span style={{ fontWeight: '700', color: 'var(--text-h)' }}>{m.user_profiles?.display_name || 'Guest User'}</span>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>{m.user_profiles?.email}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span className={`badge ${m.role === 'admin' ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '10px' }}>
-                            {m.role}
-                          </span>
-                          {familyGroup.creator_id !== m.user_id && m.user_id !== (session.user?.id || session.id) && (
-                            <button onClick={() => handleRemoveMember(m.user_id)} style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '11px', padding: '2px' }}>&times;</button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text)', backgroundColor: 'var(--bg)', border: '1px solid var(--border-strong)', padding: '8px 16px', borderRadius: '999px', fontWeight: '500' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent)' }}></span> Active Session
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: '24px' }}>
+        {/* Top 4 Statistics Strip */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', paddingBottom: '20px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span className="metric-card-value" style={{ color: 'var(--text-h)' }}>
+              ₹{availableCash.toLocaleString('en-IN')}
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="metric-card-label">Available Liquid</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
+                {totalCapital > 0 ? Math.round((availableCash / totalCapital) * 100) : 100}% Capital Deployable
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span className="metric-card-value">₹{totalCapital.toLocaleString('en-IN')}</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="metric-card-label">Total Capital Pool</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Consolidated family capital</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span className="metric-card-value">{activePanSlots}</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="metric-card-label">Active PAN Slots</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Across primary & secondary</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <span className="metric-card-value">{linkedBankAccountsCount}</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="metric-card-label">Linked Banks</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>ASBA enabled netbanking profiles</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Over-Allocation Warning */}
+        {activeAllocationsTotal > totalCapital && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: '#171717', color: '#ffffff', borderRadius: '12px', marginBottom: '8px' }}>
+            <span style={{ color: 'var(--accent)' }}>⚠️</span>
+            <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600' }}>
+              Over-allocated by ₹{(activeAllocationsTotal - totalCapital).toLocaleString('en-IN')}. Please adjust member limits.
+            </span>
+          </div>
+        )}
+
+        {/* Two-Column Layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.7fr 1fr', gap: '24px', alignItems: 'start' }}>
           
-          {/* Wallet Summary & PANs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            
-            {/* Wallet summary */}
-            <div className="premium-card" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '17px', fontWeight: '700', margin: 0, color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Wallet size={16} style={{ color: 'var(--accent)' }} /> Family Budget Pool
-                </h3>
-                <button
-                  onClick={handleResetCapital}
-                  style={{ border: 'none', background: 'transparent', color: 'var(--danger)', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
-                >
-                  Clear History
-                </button>
-              </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Total Trading Capital</span>
-                <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-h)', letterSpacing: '-1px' }}>
-                  ₹{capital.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </div>
-              </div>
-
-              <div style={{ height: '8px', backgroundColor: 'var(--border)', borderRadius: '4px', display: 'flex', overflow: 'hidden', marginBottom: '20px' }}>
-                <div style={{ width: `${(liquidCapital / capital) * 100}%`, backgroundColor: 'var(--accent)' }}></div>
-                <div style={{ width: `${(totalBlocked / capital) * 100}%`, backgroundColor: 'var(--warning)' }}></div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent)' }}></span> Available (Liquid)
-                  </span>
-                  <span style={{ fontWeight: '700', color: 'var(--text-h)' }}>₹{liquidCapital.toLocaleString('en-IN')}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--warning)' }}></span> ASBA Blocked (UPI)
-                  </span>
-                  <span style={{ fontWeight: '700', color: 'var(--text-h)' }}>₹{totalBlocked.toLocaleString('en-IN')}</span>
-                </div>
-              </div>
+          {/* Left Column: PAN Slots & Credentials */}
+          <div className="premium-card" style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
+              <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>
+                PAN Slots & Credentials
+              </h3>
+              <button
+                onClick={() => setShowAddAccountModal(true)}
+                className="btn btn-primary"
+                style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '16px' }}
+              >
+                + Add Member
+              </button>
             </div>
 
-            {/* PAN card slots */}
-            <div className="premium-card" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '17px', fontWeight: '700', margin: 0, color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Users size={16} style={{ color: 'var(--accent)' }} /> Allotment Slots (PANs)
-                </h3>
-                <button
-                  onClick={() => setShowAddAccountModal(true)}
-                  className="btn btn-primary"
-                  style={{ padding: '4px 8px', fontSize: '10px' }}
-                >
-                  <Plus size={12} /> Add
-                </button>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 'var(--font-sm)' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 'var(--font-xs)', fontWeight: '600' }}>
+                    <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Member Profile</th>
+                    <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>ASBA Netbanking</th>
+                    <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Capital Limit</th>
+                    <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Active Status</th>
+                    <th style={{ padding: '10px 12px' }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {accountsWithStats.map(account => (
+                    <tr key={account.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '14px 12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            backgroundColor: 'var(--success-bg)',
+                            border: '1px solid var(--success-border)',
+                            color: 'var(--success)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: '600',
+                            fontSize: '12px',
+                            flexShrink: 0
+                          }}>
+                            {account.initials}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: '600', color: 'var(--text-h)' }}>{account.account_holder_name}</div>
+                            <div style={{ fontSize: 'var(--font-xs)', color: 'var(--success)', fontWeight: '600', textTransform: 'uppercase' }}>
+                              {account.relationship}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 12px' }}>
+                        <div style={{ fontWeight: '600', color: 'var(--text-h)' }}>{account.bank_name || 'SBI'}</div>
+                        <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
+                          PAN: {account.pan_mask}
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 12px', fontWeight: '600', color: 'var(--text-h)' }}>
+                        ₹{account.capitalLimit.toLocaleString('en-IN')}
+                      </td>
+                      <td style={{ padding: '14px 12px' }}>
+                        <span className={`badge ${account.activeBids.length > 0 ? 'badge-success' : 'badge-neutral'}`} style={{ borderRadius: '8px', padding: '4px 10px' }}>
+                          {account.activeBids.length > 0 ? (
+                            <>
+                              <CheckCircle2 size={10} />
+                              {account.activeBids.length} Active Bid{account.activeBids.length > 1 ? 's' : ''}
+                            </>
+                          ) : (
+                            'Idle'
+                          )}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 12px', textAlign: 'right' }}>
+                        <button
+                          onClick={() => handleDeleteAccountSlot(account.id)}
+                          style={{ border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                          title="Delete Slot"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {accountsWithStats.length === 0 && (
+                    <tr>
+                      <td colSpan="5" style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No family members configured. Click '+ Add Member' to link a PAN slot.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Right Column: Capital Allocation & ASBA Block History */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            
+            {/* Capital Allocation Progress Card */}
+            <div className="premium-card" style={{ padding: '16px' }}>
+              <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: '0 0 4px 0' }}>
+                Capital Allocation
+              </h3>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '20px' }}>
+                Active Allocations: ₹{activeAllocationsTotal.toLocaleString('en-IN')} / ₹{totalCapital.toLocaleString('en-IN')}
               </div>
-
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 16px 0', lineHeight: '1.4' }}>
-                Deploying 1 lot across multiple unique family profiles maximizes allotment odds.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {familyGroup ? (
-                  groupMembers.flatMap(m => {
-                    const memberAccounts = userAccounts.filter(acc => acc.user_id === m.user_id);
-                    if (memberAccounts.length > 0) {
-                      return memberAccounts.map(account => {
-                        const activeBlocked = userApplications
-                          .filter(app => app.account_id === account.id && app.status === 'PENDING')
-                          .reduce((sum, app) => sum + parseFloat(app.bid_amount), 0);
-                        return (
-                          <div
-                            key={account.id}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '10px 12px',
-                              border: '1px solid var(--border)',
-                              borderRadius: '10px',
-                              backgroundColor: activeBlocked > 0 ? 'var(--accent-bg)' : 'transparent'
-                            }}
-                          >
-                            <div>
-                              <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-h)', display: 'block' }}>
-                                {account.account_holder_name}
-                              </span>
-                              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
-                                PAN: {account.pan_mask}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{ textAlign: 'right' }}>
-                                <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>Blocked</span>
-                                <span style={{ fontSize: '11px', fontWeight: '700', color: activeBlocked > 0 ? 'var(--warning)' : 'var(--text-h)' }}>
-                                  ₹{activeBlocked.toLocaleString('en-IN')}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => handleDeleteAccountSlot(account.id)}
-                                style={{ padding: '6px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}
-                                title="Delete Account Slot"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      });
-                    } else {
-                      // Render placeholder for group member without PAN configured
-                      return (
-                        <div
-                          key={`placeholder-${m.user_id}`}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '10px 12px',
-                            border: '1px dashed var(--border-strong)',
-                            borderRadius: '10px',
-                            backgroundColor: 'rgba(0,0,0,0.01)'
-                          }}
-                        >
-                          <div>
-                            <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-muted)', display: 'block' }}>
-                              {m.user_profiles?.display_name || 'Group Member'} (Primary)
-                            </span>
-                            <span style={{ fontSize: '10px', color: 'var(--danger)', fontWeight: '600' }}>
-                              ⚠️ PAN Setup Pending
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                            Awaiting Setup
-                          </span>
-                        </div>
-                      );
-                    }
-                  })
-                ) : (
-                  userAccounts
-                    .filter(acc => acc.user_id === (session.user?.id || session.id))
-                    .map(account => {
-                      const activeBlocked = userApplications
-                        .filter(app => app.account_id === account.id && app.status === 'PENDING')
-                        .reduce((sum, app) => sum + parseFloat(app.bid_amount), 0);
-
-                      return (
-                        <div
-                          key={account.id}
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '10px 12px',
-                            border: '1px solid var(--border)',
-                            borderRadius: '10px',
-                            backgroundColor: activeBlocked > 0 ? 'var(--accent-bg)' : 'transparent'
-                          }}
-                        >
-                          <div>
-                            <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-h)', display: 'block' }}>
-                              {account.account_holder_name}
-                            </span>
-                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
-                              PAN: {account.pan_mask}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ textAlign: 'right' }}>
-                              <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>Blocked</span>
-                              <span style={{ fontSize: '11px', fontWeight: '700', color: activeBlocked > 0 ? 'var(--warning)' : 'var(--text-h)' }}>
-                                ₹{activeBlocked.toLocaleString('en-IN')}
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => handleDeleteAccountSlot(account.id)}
-                              style={{ padding: '6px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}
-                              title="Delete Account Slot"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {accountsWithStats.map(account => {
+                  const pct = totalCapital > 0 ? Math.round((account.capitalLimit / totalCapital) * 100) : 0;
+                  return (
+                    <div key={account.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                        <span style={{ fontWeight: '600', color: 'var(--text-h)' }}>{account.account_holder_name}</span>
+                        <span style={{ fontWeight: '600', color: 'var(--text-h)' }}>₹{account.capitalLimit.toLocaleString('en-IN')} ({pct}%)</span>
+                      </div>
+                      <div style={{ height: '6px', backgroundColor: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', backgroundColor: 'var(--accent)', borderRadius: '3px' }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Unallocated Reserve */}
+                {availableCash > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                      <span style={{ fontWeight: '600', color: 'var(--text-muted)' }}>Unallocated Reserve</span>
+                      <span style={{ fontWeight: '600', color: 'var(--text-muted)' }}>
+                        ₹{availableCash.toLocaleString('en-IN')} ({totalCapital > 0 ? Math.round((availableCash / totalCapital) * 100) : 100}%)
+                      </span>
+                    </div>
+                    <div style={{ height: '6px', backgroundColor: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${totalCapital > 0 ? (availableCash / totalCapital) * 100 : 100}%`, height: '100%', backgroundColor: 'var(--text-muted)', opacity: 0.3, borderRadius: '3px' }}></div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
-          </div>
-
-          {/* Timelines and realized gains */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Refunds and listing timelines */}
-            <div className="premium-card" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '17px', fontWeight: '700', margin: '0 0 16px 0', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Calendar size={16} style={{ color: 'var(--accent)' }} /> ASBA Refund & Listing Schedule
+            {/* ASBA Block History Card */}
+            <div className="premium-card" style={{ padding: '16px' }}>
+              <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: '0 0 16px 0' }}>
+                ASBA Block History
               </h3>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {userApplications.filter(app => app.status === 'PENDING').length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '24px 0', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: '11px' }}>
-                    No active ASBA blocks. Deploy bids in the Tracker!
+                  <div style={{ textAlign: 'center', padding: '20px 0', border: '1px dashed var(--border-strong)', borderRadius: '16px', color: 'var(--text-muted)', fontSize: 'var(--font-xs)' }}>
+                    No active ASBA blocks found. Deploy bids in the Tracker!
                   </div>
                 ) : (
                   userApplications.filter(app => app.status === 'PENDING').map(app => {
@@ -2822,82 +2833,134 @@ export default function App() {
                         key={app.id}
                         style={{
                           display: 'flex',
+                          justifyContent: 'space-between',
                           alignItems: 'center',
-                          padding: '12px 14px',
+                          padding: '12px',
                           border: '1px solid var(--border)',
                           borderRadius: '16px',
-                          backgroundColor: 'var(--accent-bg)'
+                          backgroundColor: '#FAFAFA'
                         }}
                       >
-                        <div style={{ minWidth: '95px' }}>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', fontWeight: 'bold' }}>Allotment Date</span>
-                          <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-h)' }}>
-                            {ipo.allotment_date ? new Date(ipo.allotment_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'TBA'}
+                        <div>
+                          <span style={{ fontWeight: '600', color: 'var(--text-h)', fontSize: 'var(--font-sm)', display: 'block' }}>
+                            {ipo.name}
+                          </span>
+                          <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
+                            Slot: <strong>{account.account_holder_name}</strong>
                           </span>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, paddingLeft: '14px', borderLeft: '1px solid var(--border)' }}>
-                          <span style={{ fontWeight: '700', color: 'var(--text-h)', fontSize: '13px' }}>{ipo.name}</span>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                            PAN: <strong>{account.account_holder_name}</strong> • Bidding ₹{app.bid_amount.toLocaleString('en-IN')}
+                        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--accent)', fontFamily: 'var(--mono)' }}>
+                            ₹{parseFloat(app.bid_amount).toLocaleString('en-IN')}
                           </span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button
-                            onClick={() => handleResolveApplication(app.id, true)}
-                            className="btn btn-primary"
-                            style={{ padding: '4px 8px', fontSize: '10px' }}
-                          >
-                            Allotted
-                          </button>
-                          <button
-                            onClick={() => handleResolveApplication(app.id, false)}
-                            className="btn btn-secondary"
-                            style={{ padding: '4px 8px', fontSize: '10px' }}
-                          >
-                            Refund
-                          </button>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button
+                              onClick={() => handleResolveApplication(app.id, true)}
+                              className="btn btn-primary"
+                              style={{ padding: '3px 8px', fontSize: '9px', borderRadius: '6px' }}
+                            >
+                              Allot
+                            </button>
+                            <button
+                              onClick={() => handleResolveApplication(app.id, false)}
+                              className="btn btn-secondary"
+                              style={{ padding: '3px 8px', fontSize: '9px', borderRadius: '6px' }}
+                            >
+                              Refund
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
                   })
                 )}
               </div>
+            </div>
 
-              {/* Realized gains logs list */}
-              <h3 style={{ fontSize: '17px', fontWeight: '700', marginTop: '24px', marginBottom: '12px', color: 'var(--text-h)' }}>
-                Realized Gains Log
-              </h3>
-              {userApplications.filter(app => app.status !== 'PENDING').length === 0 ? (
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>No completed allotments or refunds recorded yet.</p>
+          </div>
+        </div>
+
+        {/* Group Collaboration Collapse Section */}
+        <div className="premium-card" style={{ padding: '20px 24px' }}>
+          <details>
+            <summary style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)', cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Users size={16} style={{ color: 'var(--success)' }} /> Group Sharing Settings & Invite Members
+            </summary>
+            
+            <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+              {!familyGroup ? (
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px' }}>
+                  <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <h4 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>Create Group</h4>
+                    <input
+                      type="text"
+                      placeholder="Group Name (e.g. Motwani Family Pool)"
+                      value={newGroupName}
+                      onChange={(e) => setNewGroupName(e.target.value)}
+                      className="input-field"
+                      required
+                    />
+                    <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', padding: '8px 16px', borderRadius: '12px' }}>Create</button>
+                  </form>
+                  <form onSubmit={handleJoinWithCode} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <h4 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>Join Group with Code</h4>
+                    <input
+                      type="text"
+                      placeholder="Invitation Code (8 chars)"
+                      value={inviteCodeInput}
+                      onChange={(e) => setInviteCodeInput(e.target.value)}
+                      className="input-field"
+                      maxLength={8}
+                      required
+                    />
+                    <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', padding: '8px 16px', borderRadius: '12px' }}>Join</button>
+                  </form>
+                </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
-                  {userApplications.filter(app => app.status !== 'PENDING').map(app => {
-                    const ipo = ipos.find(i => i.id === app.ipo_id);
-                    const account = userAccounts.find(a => a.id === app.account_id);
-                    if (!ipo || !account) return null;
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg)', padding: '12px 16px', borderRadius: '16px' }}>
+                    <div>
+                      <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Active Collaboration Group</span>
+                      <h4 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>{familyGroup.group_name}</h4>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'var(--mono)', fontWeight: '600', color: 'var(--success)' }}>Code: {familyGroup.invite_code || 'SANDBOX8'}</span>
+                      <button onClick={handleLeaveGroup} className="btn btn-danger" style={{ padding: '6px 12px', fontSize: 'var(--font-xs)', borderRadius: '10px' }}>Leave Group</button>
+                    </div>
+                  </div>
 
-                    return (
-                      <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '11px' }}>
-                        <div>
-                          <span style={{ fontWeight: '600', color: 'var(--text-h)', display: 'block' }}>
-                            {ipo.name}
-                          </span>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                            Slot: {account.account_holder_name} • Status: {app.status}
-                          </span>
-                        </div>
-                        <span style={{ fontWeight: '700', color: app.status === 'ALLOTTED' ? 'var(--success)' : 'var(--text-muted)' }}>
-                          {app.status === 'ALLOTTED' ? `+ ₹${parseFloat(app.listing_profit_rs).toFixed(0)}` : 'Refunded'}
-                        </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px' }}>
+                    <form onSubmit={handleInviteMember} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <input
+                        type="email"
+                        placeholder="Invite member by email"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        className="input-field"
+                        required
+                      />
+                      <button type="submit" className="btn btn-primary" style={{ padding: '10px 18px', borderRadius: '12px', whiteSpace: 'nowrap' }}>Invite</button>
+                    </form>
+                    <div>
+                      <h4 style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-h)', marginBottom: '8px' }}>Members List ({groupMembers.length})</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '110px', overflowY: 'auto' }}>
+                        {groupMembers.map(m => (
+                          <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }}>
+                            <span>{m.user_profiles?.display_name || 'Guest'} ({m.role})</span>
+                            {familyGroup.creator_id !== m.user_id && m.user_id !== (session.user?.id || session.id) && (
+                              <button onClick={() => handleRemoveMember(m.user_id)} style={{ border: 'none', background: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '12px' }}>&times;</button>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    );
-                  })}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-
+          </details>
         </div>
+
       </div>
     );
   };
@@ -2907,143 +2970,197 @@ export default function App() {
     const finalCapital = dynamicRes.finalCapital;
     const yesCount = dynamicRes.yesCount;
     const originalStats = backtestData?.stats || {};
+    const totalEvaluated = dynamicRes.history.length;
+
+    // Calculate profitable wins & avoided losses dynamically
+    const profitableYes = dynamicRes.history.filter(h => h.decision === 'YES' && h.potentialOutcome > 0).length;
+    const avoidedLosses = dynamicRes.history.filter(h => h.decision === 'NO' && h.potentialOutcome < 0).length;
+    const winRate = totalEvaluated > 0 ? Math.round(((profitableYes + avoidedLosses) / totalEvaluated) * 100) : 0;
 
     return (
-      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <div className="premium-card">
-          <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '17px', fontWeight: '800', margin: 0, color: 'var(--text-h)', letterSpacing: '-0.5px' }}>
-              Historical Performance Simulator (2024 - 2026)
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        
+        {/* Header Row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: '600', color: 'var(--text-h)', margin: 0, letterSpacing: 'var(--tracking-tight)' }}>
+              Backtest Engine
             </h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-              Adjust filtering thresholds to see how systematic decisions optimize returns vs. a blind allocation lottery.
+            <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+              Adjust parameters to view simulated historical returns against a blind allocation lottery.
             </p>
           </div>
+          <button
+            onClick={() => {
+              alert("Backtest simulation recalculated using active thresholds!");
+            }}
+            className="btn btn-primary"
+            style={{ padding: '10px 20px', fontSize: 'var(--font-sm)', borderRadius: '16px' }}
+          >
+            Run Backtest Simulation
+          </button>
+        </div>
 
-          {/* Interactive sliders */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px', backgroundColor: 'var(--bg)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)', marginBottom: '24px' }}>
-            <div>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', display: 'block', marginBottom: '8px' }}>
-                Min. Grey Market Premium (GMP): {gmpThreshold}%
-              </label>
-              <input
-                type="range"
-                min="5"
-                max="50"
-                value={gmpThreshold}
-                onChange={(e) => setGmpThreshold(parseInt(e.target.value))}
-                style={{ width: '100%', accentColor: 'var(--accent)' }}
-              />
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Filters out listings with weak demand premiums.</span>
-            </div>
-            <div>
-              <label style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', display: 'block', marginBottom: '8px' }}>
-                Min. Demand Subscription: {subThreshold}x
-              </label>
-              <input
-                type="range"
-                min="5"
-                max="100"
-                value={subThreshold}
-                onChange={(e) => setSubThreshold(parseInt(e.target.value))}
-                style={{ width: '100%', accentColor: 'var(--accent)' }}
-              />
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Filters out listings with weak closing-day velocity.</span>
-            </div>
+        {/* 3 Metric Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+          <div className="premium-card metric-card">
+            <span className="metric-card-label">SIMULATED PERIOD</span>
+            <div className="metric-card-value">Past 3 Years</div>
+            <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Aug 2023 - Aug 2026</span>
           </div>
 
-          {/* Simulation outputs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '28px' }}>
-            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '16px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Simulation Yield</span>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--success)', margin: '4px 0' }}>
-                ₹{finalCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-              </div>
-              <span style={{ fontSize: '11px', color: 'var(--success)', fontWeight: '600' }}>
-                + {((finalCapital - 100000) / 1000).toFixed(1)}% Listing Returns
-              </span>
-            </div>
-
-            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '16px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Blind Strategy Yield</span>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: originalStats.blind_final_capital < 100000 ? 'var(--danger)' : 'var(--text-h)', margin: '4px 0' }}>
-                ₹{originalStats.blind_final_capital?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || '₹99,228'}
-              </div>
-              <span style={{ fontSize: '11px', color: originalStats.blind_final_capital < 100000 ? 'var(--danger)' : 'var(--text-muted)' }}>
-                Bidding blind lots to all listings
-              </span>
-            </div>
-
-            <div style={{ padding: '16px', border: '1px solid var(--border-strong)', borderRadius: '16px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Bids Passed / Evaluated</span>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-h)', margin: '4px 0' }}>
-                {yesCount} / {originalStats.total_evaluated || 21}
-              </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                Deploying cash only on high probabilities
-              </span>
-            </div>
+          <div className="premium-card metric-card">
+            <span className="metric-card-label">TOTAL IPOS SCREENED</span>
+            <div className="metric-card-value">{totalEvaluated} Listings</div>
+            <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Matching minimal sizing requirements</span>
           </div>
 
-          {/* Simulation logs table */}
-          <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', marginBottom: '12px' }}>
-            Backtesting Execution Trajectory
+          <div className="premium-card metric-card">
+            <span className="metric-card-label">SIMULATED WIN RATE</span>
+            <div className="metric-card-value">{winRate}%</div>
+            <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
+              {profitableYes} Wins • {avoidedLosses} Avoided Losses
+            </span>
+          </div>
+        </div>
+
+        {/* Expandable Simulator Control Panel */}
+        <div className="premium-card" style={{ padding: '20px 24px' }}>
+          <details>
+            <summary style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)', cursor: 'pointer', outline: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              ⚙️ Simulator Settings (GMP & Subscription Thresholds)
+            </summary>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px', backgroundColor: 'var(--bg)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)', marginTop: '16px' }}>
+              <div>
+                <label style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)', display: 'block', marginBottom: '8px' }}>
+                  Min. Grey Market Premium (GMP): {gmpThreshold}%
+                </label>
+                <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  value={gmpThreshold}
+                  onChange={(e) => setGmpThreshold(parseInt(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--accent)' }}
+                />
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Filters out listings with weak demand premiums.</span>
+              </div>
+              <div>
+                <label style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)', display: 'block', marginBottom: '8px' }}>
+                  Min. Demand Subscription: {subThreshold}x
+                </label>
+                <input
+                  type="range"
+                  min="5"
+                  max="100"
+                  value={subThreshold}
+                  onChange={(e) => setSubThreshold(parseInt(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--accent)' }}
+                />
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>Filters out listings with weak closing-day velocity.</span>
+              </div>
+            </div>
+            
+            {/* Display Yield comparison inside control panel */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+              <div style={{ padding: '12px', border: '1px solid var(--border)', borderRadius: '12px', backgroundColor: 'var(--success-bg)' }}>
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Simulated Return Yield</span>
+                <div style={{ fontSize: '20px', fontWeight: '600', color: 'var(--success)', marginTop: '4px' }}>
+                  ₹{finalCapital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                </div>
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--success)', fontWeight: '600' }}>
+                  + {((finalCapital - 100000) / 1000).toFixed(1)}% Listing Returns
+                </span>
+              </div>
+              <div style={{ padding: '12px', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Blind Strategy Yield</span>
+                <div style={{ fontSize: '20px', fontWeight: '600', color: 'var(--text-h)', marginTop: '4px' }}>
+                  ₹{originalStats.blind_final_capital?.toLocaleString('en-IN', { maximumFractionDigits: 0 }) || '₹99,228'}
+                </div>
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
+                  Bidding blind lots to all listings
+                </span>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        {/* Backtest Results Card Table */}
+        <div className="premium-card" style={{ padding: '16px' }}>
+          <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', marginBottom: '16px' }}>
+            Backtest Simulation Results
           </h3>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-sm)' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-strong)', color: 'var(--text-h)', textAlign: 'left' }}>
-                  <th style={{ padding: '10px' }}>Company (Symbol)</th>
-                  <th style={{ padding: '10px' }}>Listing Gains %</th>
-                  <th style={{ padding: '10px' }}>Allotment Prob.</th>
-                  <th style={{ padding: '10px' }}>Decision</th>
-                  <th style={{ padding: '10px' }}>Simulated Outcome (per lot)</th>
+                <tr style={{ borderBottom: '1px solid var(--border-strong)', color: 'var(--text-muted)', fontSize: 'var(--font-xs)', fontWeight: '600', textAlign: 'left' }}>
+                  <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Company Name</th>
+                  <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Listing Date</th>
+                  <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Est. GMP</th>
+                  <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Listing Gain</th>
+                  <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Decision</th>
+                  <th style={{ padding: '10px 12px', textTransform: 'uppercase' }}>Outcome</th>
                 </tr>
               </thead>
               <tbody>
                 {dynamicRes.history.map((h, idx) => {
                   const item = backtestData.stats.detailed_results[idx];
-                  const fmtDate = (dStr) => dStr ? new Date(dStr).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) : 'TBA';
+                  const fmtDate = (dStr) => dStr ? new Date(dStr).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBA';
                   
                   // Color codes for avoided outcomes
                   const isLossAvoided = h.decision === 'NO' && h.potentialOutcome < 0;
-                  const avoidedText = h.potentialOutcome < 0 
-                    ? `Avoided loss: -₹${Math.round(Math.abs(h.potentialOutcome)).toLocaleString('en-IN')}`
-                    : `Avoided gain: +₹${Math.round(h.potentialOutcome).toLocaleString('en-IN')}`;
+                  
+                  let outcomeText = '';
+                  let outcomeColor = 'var(--text-muted)';
+                  
+                  if (h.decision === 'YES') {
+                    if (h.potentialOutcome > 0) {
+                      outcomeText = 'SUCCESSFUL GAIN';
+                      outcomeColor = 'var(--success)';
+                    } else {
+                      outcomeText = 'REALIZED LOSS';
+                      outcomeColor = 'var(--danger)';
+                    }
+                  } else {
+                    if (h.potentialOutcome < 0) {
+                      outcomeText = 'AVOIDED LOSS';
+                      outcomeColor = 'var(--success)';
+                    } else {
+                      outcomeText = 'AVOIDED GAIN';
+                      outcomeColor = 'var(--text-muted)';
+                    }
+                  }
 
                   return (
                     <tr 
                       key={idx} 
                       onClick={() => setSelectedIpo(item)}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.015)'}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.01)'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                       style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background-color 0.2s' }}
                     >
-                      <td style={{ padding: '10px' }}>
+                      <td style={{ padding: '14px 12px' }}>
                         <div style={{ fontWeight: '600', color: 'var(--text-h)' }}>{h.name}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                          Symbol: {item.symbol} • Bidding: {fmtDate(item.open_date)} • Listed: {fmtDate(item.listing_date)}
+                        <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
+                          Symbol: <span style={{ fontFamily: 'var(--mono)', fontWeight: '600' }}>{item.symbol}</span>
                         </div>
                       </td>
-                      <td style={{ padding: '10px', fontWeight: '700', color: item.listing_gains_pct > 0 ? 'var(--success)' : 'var(--danger)' }}>
+                      <td style={{ padding: '14px 12px', fontWeight: '500', color: 'var(--text-h)' }}>
+                        {fmtDate(item.listing_date || item.open_date)}
+                      </td>
+                      <td style={{ padding: '14px 12px', fontWeight: '600', color: 'var(--text-h)' }}>
+                        +{item.gmp_pct != null ? item.gmp_pct : 0}%
+                      </td>
+                      <td style={{ padding: '14px 12px', fontWeight: '600', color: item.listing_gains_pct > 0 ? 'var(--success)' : 'var(--danger)' }}>
                         {item.listing_gains_pct > 0 ? '+' : ''}{item.listing_gains_pct}%
                       </td>
-                      <td style={{ padding: '10px' }}>{h.probPct}%</td>
-                      <td style={{ padding: '10px' }}>
-                        <span className={`badge ${h.decision === 'YES' ? 'badge-success' : 'badge-neutral'}`} style={{ fontSize: '10px' }}>
-                          {h.decision}
+                      <td style={{ padding: '14px 12px' }}>
+                        <span className={`badge ${h.decision === 'YES' ? 'badge-success' : 'badge-neutral'}`} style={{ borderRadius: '8px', padding: '4px 10px' }}>
+                          {h.decision === 'YES' ? 'YES — APPLY' : 'NO — AVOID'}
                         </span>
                       </td>
-                      <td style={{ padding: '10px' }}>
-                        {h.decision === 'YES' ? (
-                          <span style={{ fontWeight: '700', color: h.potentialOutcome > 0 ? 'var(--success)' : 'var(--danger)' }}>
-                            {h.potentialOutcome > 0 ? '+' : ''}₹{Math.round(h.potentialOutcome).toLocaleString('en-IN')}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: '11px', color: isLossAvoided ? 'var(--success)' : 'var(--text-muted)', fontWeight: isLossAvoided ? '700' : 'normal' }}>
-                            ₹0 <span style={{ fontSize: '10px', opacity: 0.8 }}>({avoidedText})</span>
-                          </span>
-                        )}
+                      <td style={{ padding: '14px 12px', fontWeight: '600', color: outcomeColor, fontSize: 'var(--font-xs)', letterSpacing: '0.2px' }}>
+                        {outcomeText}
                       </td>
                     </tr>
                   );
@@ -3052,279 +3169,281 @@ export default function App() {
             </table>
           </div>
         </div>
+
       </div>
     );
   };
 
   const renderGuideTab = () => {
-    const FormulaCard = ({ ruleNum, name, expr, parameters }) => (
-      <div style={{
-        padding: '18px',
-        border: '1px solid var(--border-strong)',
-        borderRadius: '16px',
-        background: 'linear-gradient(135deg, var(--bg), rgba(255, 255, 255, 0.02))',
-        boxShadow: 'var(--shadow-sm)',
-        margin: '16px 0 20px 0',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Rule {ruleNum} Formula
-          </span>
-          <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-h)' }}>{name}</span>
+    const rulesList = [
+      {
+        id: 1,
+        title: "Rule 1: GMP Premium > 20%",
+        badge: "MANDATORY",
+        desc: "Grey Market Premium (GMP) must display an estimated premium of at least 20% over the high end of the price band to buffer listing-day price drops.",
+        formula: "Estimated Listing Price = Price Band High * (1 + GMP% / 100)",
+        parameters: [
+          { label: "Minimum GMP requirement", val: ">= 20.0%" },
+          { label: "Target listing gain margin", val: ">= 15.0%" }
+        ],
+        details: "Grey Market Premium (GMP) represents unofficial trading activity before the official listing. A minimum premium of 20% acts as a margin of safety against market volatility on listing day."
+      },
+      {
+        id: 2,
+        title: "Rule 2: QIB Demand > 30x",
+        badge: "MANDATORY",
+        desc: "Qualified Institutional Buyers (QIB) segment subscription must be at least 30x on the final day, verifying strong institutional interest.",
+        formula: "Institutional Over-Subscription = QIB Bids / QIB Portion",
+        parameters: [
+          { label: "Minimum QIB Over-subscription", val: "30.0x" },
+          { label: "Bidding day 3 speed threshold", val: "10.0x by 12:00 PM" }
+        ],
+        details: "QIB subscription represents smart institutional capital. Strong QIB demand indicates that mutual funds, insurance companies, and foreign institutions support the IPO pricing."
+      },
+      {
+        id: 3,
+        title: "Rule 3: Retail Subscription < 15x",
+        badge: "OPTIONAL",
+        desc: "Retail subscription should ideally be moderate (less than 15x) to ensure reasonable allotment odds when bidding from multiple family accounts.",
+        formula: "Allotment Probability = 1 / Retail Over-Subscription",
+        parameters: [
+          { label: "Target Retail Over-subscription", val: "< 15.0x" },
+          { label: "Retail Allotment Allocation", val: "35% of total issue (Mainboard)" }
+        ],
+        details: "Lower retail subscription means higher allotment odds per application. By placing single-lot bids across multiple unique family PAN cards, we maximize the probability of winning an allotment."
+      },
+      {
+        id: 4,
+        title: "Rule 4: Valuation P/E Discount",
+        badge: "MANDATORY",
+        desc: "The IPO price band high must reflect a discount of at least 15% on the price-to-earnings (P/E) multiple compared to public peers.",
+        formula: "Discount% = (1 - (IPO P/E / Industry Peer Average P/E)) * 100",
+        parameters: [
+          { label: "Minimum P/E discount to peers", val: "15.0%" },
+          { label: "IPO price band high cap", val: "₹14,938 (Retail lot threshold)" }
+        ],
+        details: "IPOs priced at a discount to public industry peers offer 'money on the table' for listing gains. Fully priced or over-valued listings carry high downside risks on listing day."
+      },
+      {
+        id: 5,
+        title: "Rule 5: Net Profit YoY Growth",
+        badge: "MANDATORY",
+        desc: "Net Profit after tax (PAT) must exhibit a positive compound growth rate of at least 10% YoY over the preceding 3 fiscal years.",
+        formula: "PAT CAGR = ((Year 3 PAT / Year 1 PAT) ^ (1/2) - 1) * 100",
+        parameters: [
+          { label: "Minimum Profit YoY growth", val: ">= 10.0%" },
+          { label: "Net Margin status", val: "Positive & stable margins" }
+        ],
+        details: "Strong historical earnings growth verifies that the company has a scalable business model. Avoid companies with erratic or negative bottom-line trends."
+      },
+      {
+        id: 6,
+        title: "Rule 6: Post-IPO Promoter Stake",
+        badge: "OPTIONAL",
+        desc: "Post-IPO promoter shareholding should ideally remain above 50% to ensure key stake-holders have strong incentive alignment.",
+        formula: "Promoter Stake% = (Post-IPO Shares Held / Total Shares Outstanding) * 100",
+        parameters: [
+          { label: "Target Post-IPO Promoter Stake", val: ">= 50.0%" },
+          { label: "Lock-in period", val: "90 Days (Minimum for promoters)" }
+        ],
+        details: "Promoter alignment ensures that the founders have 'skin in the game'. If promoters exit completely or hold very low stake, there is less incentive for long-term growth."
+      },
+      {
+        id: 7,
+        title: "Rule 7: Debt-to-Equity < 1.0",
+        badge: "MANDATORY",
+        desc: "The debt-to-equity ratio of the company must be less than 1.0, ensuring high solvency and low interest liability risk.",
+        formula: "Debt-to-Equity Ratio = Total Debt / Shareholder Equity",
+        parameters: [
+          { label: "Debt-to-equity ratio threshold", val: "< 1.0" },
+          { label: "Interest coverage ratio", val: "> 3.0x" }
+        ],
+        details: "High debt increases insolvency risk and interest burdens, which can depress future earnings. A clean balance sheet indicates capital efficiency and financial stability."
+      },
+      {
+        id: 8,
+        title: "Rule 8: Fresh Issue > 50%",
+        badge: "OPTIONAL",
+        desc: "Fresh capital issue component must be greater than 50% of the total issue size, meaning money goes to growth rather than promoters exiting.",
+        formula: "Fresh Issue Share% = (Fresh Issue Size / Total Issue Size) * 100",
+        parameters: [
+          { label: "Target Fresh Issue share", val: "> 50.0%" },
+          { label: "OFS (Offer for Sale) share", val: "< 50.0%" }
+        ],
+        details: "Fresh issue capital goes directly to the company's treasury for growth, debt reduction, or expansion. Offer for Sale (OFS) capital goes to exiting shareholders, providing no benefit to the company."
+      }
+    ];
+
+    const activeRule = rulesList.find(r => r.id === activeRuleModal);
+
+    return (
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        
+        {/* Header Row */}
+        <div>
+          <h2 style={{ fontSize: 'var(--font-lg)', fontWeight: '600', color: 'var(--text-h)', margin: 0, letterSpacing: 'var(--tracking-tight)' }}>
+            8 Rules Guide
+          </h2>
+          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+            Our core listing-day risk management and opportunity filtering framework.
+          </p>
         </div>
-        <div style={{
-          fontFamily: 'var(--mono)',
-          fontSize: '13px',
-          fontWeight: '700',
-          color: 'var(--text-h)',
-          backgroundColor: 'rgba(0, 0, 0, 0.03)',
-          padding: '10px 14px',
-          borderRadius: '8px',
-          border: '1px solid var(--border)',
-          overflowX: 'auto'
-        }}>
-          {expr}
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {parameters.map((p, idx) => (
-            <div key={idx} style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>{p.label}</span>
-              <span style={{ fontWeight: '600', color: 'var(--text-h)' }}>{p.val}</span>
+
+        {/* 2-Column Rules Grid Container */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px' }}>
+          {rulesList.map(rule => (
+            <div
+              key={rule.id}
+              onClick={() => setActiveRuleModal(rule.id)}
+              className="premium-card"
+              style={{
+                padding: '16px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                border: '1px solid var(--border)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                backgroundColor: 'var(--card-bg)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = 'var(--shadow)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)' }}>
+                  {rule.title}
+                </span>
+                <span className={`badge ${rule.badge === 'MANDATORY' ? 'badge-success' : 'badge-neutral'}`} style={{ borderRadius: '8px', padding: '4px 10px' }}>
+                  {rule.badge}
+                </span>
+              </div>
+              <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text)', margin: 0, lineHeight: '1.5' }}>
+                {rule.desc}
+              </p>
+              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--accent)', fontWeight: '600', textTransform: 'uppercase', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                View Formula & parameters →
+              </div>
             </div>
           ))}
         </div>
-      </div>
-    );
 
-    const renderWelcomeDoc = () => (
-      <div>
-        <h1>IPO Investment Tool Quickstart</h1>
-        <p>
-          Welcome to the <strong>IPO Investment Tool Guide</strong>. This programmatic system is built strictly to harvest <strong>listing-day gains</strong> on Mainboard IPO allocations in the Indian stock market. It strips emotion and hype from investing by enforcing a data-driven <strong>8-metric filter</strong>.
-        </p>
-        <div style={{ padding: '16px', border: '1px solid var(--accent-border)', borderRadius: '16px', backgroundColor: 'var(--accent-bg)', marginBottom: '24px' }}>
-          <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}><Sparkles size={14} /> The Capital Rotation Cycle</h4>
-          <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <li><strong>PAN Slot Seeding:</strong> Go to the Family Rotator tab and configure family PAN allotment slots (spouse, parent, sibling, etc.).</li>
-            <li><strong>Bidding Watch:</strong> Monitor the Active Tracker for listings. The algorithm scores listings daily out of 8 rules.</li>
-            <li><strong>Bidding Day Allocation:</strong> On the closing day (typically by 2 PM), check the YES/NO signal. If YES, deploy 1 retail lot block (approx. ₹14,000 to ₹15,000) on each family PAN account slot.</li>
-            <li><strong>Listing Morning Harvest:</strong> If allotted, sell 100% of shares on listing morning (9:45 AM) to lock in listing profits. If refunded, the bank unblocks the funds instantly to reuse in the next active IPO bidding cycle.</li>
-          </ol>
-        </div>
-        <h2>How multi-PAN profiles work</h2>
-        <p>
-          IPO allotments in highly oversubscribed retail categories are decided via draw of lots. Applying for multiple lots on a single PAN card profile does NOT increase allotment chances. 
-          To maximize allocation probabilities, you must apply for <strong>1 lot across multiple unique PAN card slots</strong> (e.g. spouse, brother, self) rather than multiple lots under a single profile.
-        </p>
-      </div>
-    );
+        {/* Interactive Modal Drawer for Rule details */}
+        {activeRuleModal !== null && activeRule && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px'
+          }} onClick={() => setActiveRuleModal(null)}>
+            <div style={{
+              backgroundColor: 'var(--card-bg)',
+              border: '1px solid var(--border)',
+              borderRadius: '28px',
+              boxShadow: 'var(--shadow-lg)',
+              maxWidth: '520px',
+              width: '100%',
+              padding: '32px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+              position: 'relative'
+            }} onClick={(e) => e.stopPropagation()}>
+              
+              {/* Close X Button */}
+              <button
+                onClick={() => setActiveRuleModal(null)}
+                style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                  border: 'none',
+                  background: 'none',
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer'
+                }}
+              >
+                &times;
+              </button>
 
-    const renderMandatoryGatesDoc = () => (
-      <div>
-        <h1>Mandatory Gates: Rules 1 & 2</h1>
-        <p>
-          IPOs must pass both Mandatory Gates to receive a <strong>YES</strong> recommendation. Failing either gate triggers an automatic <strong>NO</strong> recommendation, regardless of the overall score.
-        </p>
-        
-        <h2>Rule 1: Real-Time Demand (Gate 1)</h2>
-        <FormulaCard 
-          ruleNum="1" 
-          name="Real-Time Demand (Gate 1)" 
-          expr="Total Subscription >= 30x OR QIB Subscription >= 50x" 
-          parameters={[
-            { label: 'Minimum Total Subscription Threshold', val: '30.0x Multiple' },
-            { label: 'Minimum Qualified Institutional Buyers (QIB) Subscription', val: '50.0x Multiple' }
-          ]} 
-        />
-        <p>
-          Backtesting proves that institutional and retail bid velocity is the single strongest indicator of listing-day morning buying surges. Strong oversubscriptions create demand FOMO, pushing listing prices up on listing morning.
-        </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+                <h3 style={{ fontSize: '19px', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>
+                  {activeRule.title}
+                </h3>
+                <span className={`badge ${activeRule.badge === 'MANDATORY' ? 'badge-success' : 'badge-neutral'}`} style={{ borderRadius: '8px', padding: '4px 10px' }}>
+                  {activeRule.badge}
+                </span>
+              </div>
 
-        <h2>Rule 2: Sentiment Anchor (Gate 2)</h2>
-        <FormulaCard 
-          ruleNum="2" 
-          name="Sentiment Anchor (Gate 2)" 
-          expr="Implied Grey Market Premium (GMP) >= 20.0%" 
-          parameters={[
-            { label: 'Minimum Grey Market Premium (GMP)', val: '20.0% Premium' },
-            { label: 'Informal Market Demand Index', val: 'Premium above IPO issue price' }
-          ]} 
-        />
-        <p>
-          Grey Market Premium represents informal trading rates before listing. A premium above 20% guarantees robust market sentiments and buffers against sudden listing day selloffs or secondary market volatilities.
-        </p>
-      </div>
-    );
+              <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+                <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', margin: 0, lineHeight: '1.5' }}>
+                  {activeRule.details}
+                </p>
+              </div>
 
-    const renderValuationStructureDoc = () => (
-      <div>
-        <h1>Valuation Buffer & Capital Structure: Rules 3 & 4</h1>
-        
-        <h2>Rule 3: Capital Structure (OFS Filter)</h2>
-        <FormulaCard 
-          ruleNum="3" 
-          name="Capital Structure (OFS Filter)" 
-          expr="Offer For Sale (OFS) component < 50.0%" 
-          parameters={[
-            { label: 'Maximum Promoters / VCs Exit Share (OFS)', val: '50.0% of total issue size' },
-            { label: 'Minimum Corporate Growth Funding (Fresh Issue)', val: '50.0% of total issue size' }
-          ]} 
-        />
-        <p>
-          An Offer For Sale means existing promoters are selling their stakes, pocketing the cash. Conversely, a Fresh Issue means the cash goes into the company's bank accounts to fund capital expenditures. Keeping OFS below 50% ensures that more than half of the raised IPO cash enters the firm to finance actual expansion rather than facilitating early promoter exits.
-        </p>
+              {/* Formula Card */}
+              <div style={{
+                padding: '18px',
+                border: '1px solid var(--border-strong)',
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, var(--bg), rgba(255, 255, 255, 0.02))',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Rule Evaluation Formula
+                </span>
+                <div style={{
+                  fontFamily: 'var(--mono)',
+                  fontSize: 'var(--font-sm)',
+                  fontWeight: '600',
+                  color: 'var(--text-h)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.03)',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border)',
+                  overflowX: 'auto'
+                }}>
+                  {activeRule.formula}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {activeRule.parameters.map((p, idx) => (
+                    <div key={idx} style={{ fontSize: 'var(--font-xs)', display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>{p.label}</span>
+                      <span style={{ fontWeight: '600', color: 'var(--text-h)' }}>{p.val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-        <h2>Rule 4: Valuation Buffer (P/E Discount)</h2>
-        <FormulaCard 
-          ruleNum="4" 
-          name="Valuation Buffer (P/E Discount)" 
-          expr="IPO P/E Ratio <= Peer Median P/E * 0.85" 
-          parameters={[
-            { label: 'Required Valuation Discount', val: '>= 15.0% Discount' },
-            { label: 'Benchmark Competitor PE comparison', val: 'Listed sector peers median PE' }
-          ]} 
-        />
-        <p>
-          Speculative pricing can lead to overpriced listings that crash on listing morning (e.g. Paytm). Demanding a minimum 15% valuation discount relative to listed sector competitors creates a margin of safety for retail buyers.
-        </p>
-      </div>
-    );
+              <button
+                onClick={() => setActiveRuleModal(null)}
+                className="btn btn-primary"
+                style={{ width: '100%', padding: '12px', borderRadius: '16px' }}
+              >
+                Close Rule details
+              </button>
+            </div>
+          </div>
+        )}
 
-    const renderBackingMarginsDoc = () => (
-      <div>
-        <h1>Backing & Margins: Rules 5 & 6</h1>
-        
-        <h2>Rule 5: Institutional Backing (Anchor Book Quality)</h2>
-        <FormulaCard 
-          ruleNum="5" 
-          name="Institutional Backing (Anchor Book)" 
-          expr="Anchor Quality Score >= 70 / 100" 
-          parameters={[
-            { label: 'Minimum Anchor Book Score', val: '70 / 100' },
-            { label: 'Blue-Chip Institution presence', val: 'Mutual Funds, tier-1 Sovereign wealth funds' }
-          ]} 
-        />
-        <p>
-          Anchor investors bid on the day before the IPO opens. The presence of reputable mutual funds (like SBI MF, HDFC MF, ICICI Prudential) or marquee global sovereign funds indicates thorough institutional due diligence, giving retail buyers peace of mind.
-        </p>
-
-        <h2>Rule 6: Fundamental Reality (PAT Margins)</h2>
-        <FormulaCard 
-          ruleNum="6" 
-          name="Fundamental Reality (PAT Margins)" 
-          expr="PAT Margins (T-3 to T-1) > 0 AND Growing" 
-          parameters={[
-            { label: 'Minimum Margin Requirement', val: 'Positive margins (no loss-making entries)' },
-            { label: 'Trend Requirement', val: 'Increasing over last 3 consecutive fiscal years' }
-          ]} 
-        />
-        <p>
-          Many modern tech IPOs are loss-making and burn cash. Antigravity protects your capital pool by auditing margins: PAT margins must be positive and growing year-over-year, filtering out cash-burning entities.
-        </p>
-      </div>
-    );
-
-    const renderSizeSkinDoc = () => (
-      <div>
-        <h1>Size & Promoter Skin: Rules 7 & 8</h1>
-        
-        <h2>Rule 7: Issue Size Cap</h2>
-        <FormulaCard 
-          ruleNum="7" 
-          name="Issue Size Cap" 
-          expr="Total Issue Size < ₹3,000 Crore" 
-          parameters={[
-            { label: 'Maximum Gross Float Threshold', val: '₹3,000 Crore Cap' },
-            { label: 'Retail Absorption Index', val: 'Prevents massive float stagnation' }
-          ]} 
-        />
-        <p>
-          Mega-sized listings (like Hyundai Motor India, LIC, Paytm) raise huge amounts of capital. These large float volumes require massive institutional buying to drive prices up, resulting in stagnant listing-day pops. Smaller floats (under ₹3,000 Cr) are easily absorbed by retail and local institutional liquidity, enabling sharp listing morning pops.
-        </p>
-
-        <h2>Rule 8: Skin in the Game</h2>
-        <FormulaCard 
-          ruleNum="8" 
-          name="Skin in the Game" 
-          expr="Post-IPO Promoter Holding >= 50.0%" 
-          parameters={[
-            { label: 'Minimum Promoter Post-IPO Stake', val: '50.0% Stake' },
-            { label: 'Alignment Index', val: 'Ensures promoter interests match public shareholders' }
-          ]} 
-        />
-        <p>
-          A high post-IPO promoter stake guarantees that promoters stay aligned with public shareholders and prevents aggressive dumping of shares after lock-in periods expire.
-        </p>
-      </div>
-    );
-
-    const renderSmeDoc = () => (
-      <div>
-        <h1>Bidding Strategies: Mainboard vs. SME</h1>
-        <p>
-          Indian stock exchanges host two classes of IPOs: <strong>Mainboard IPOs</strong> and <strong>SME (Small and Medium Enterprises) IPOs</strong>.
-        </p>
-        <div style={{ overflowX: 'auto', margin: '20px 0' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-strong)', textAlign: 'left', fontWeight: 'bold' }}>
-                <th style={{ padding: '8px' }}>Parameter</th>
-                <th style={{ padding: '8px' }}>Mainboard IPO</th>
-                <th style={{ padding: '8px' }}>SME IPO</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '8px', fontWeight: '600' }}>Min. Lot Cost</td>
-                <td style={{ padding: '8px' }}>₹14,000 to ₹15,000</td>
-                <td style={{ padding: '8px' }}>₹1,00,000 to ₹1,40,000</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '8px', fontWeight: '600' }}>Issue Size</td>
-                <td style={{ padding: '8px' }}>&gt; ₹250 Crore</td>
-                <td style={{ padding: '8px' }}>₹10 Crore to ₹100 Crore</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '8px', fontWeight: '600' }}>Liquidity Risk</td>
-                <td style={{ padding: '8px', color: 'var(--success)', fontWeight: '600' }}>Low (Active secondary trade)</td>
-                <td style={{ padding: '8px', color: 'var(--danger)', fontWeight: '600' }}>High (Traded only in lots)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p>
-          Because SME IPOs require a minimum block of over ₹1 Lakh per bid, they do not facilitate easy capital rotation inside a ₹1 Lakh budget pool, and present extremely high liquidity risks. Therefore, <strong>the IPO Investment Tool focuses strictly on Mainboard IPOs</strong> where listing-day volatility can be systematically harvested.
-        </p>
-      </div>
-    );
-
-    return (
-      <div className="docs-layout animate-fade-in">
-        <aside className="docs-sidebar">
-          <span className="docs-sidebar-title">Getting Started</span>
-          <button className={`docs-nav-link ${docSection === 'welcome' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('welcome')}>Quickstart Guide</button>
-          
-          <span className="docs-sidebar-title">The 8 Metrics</span>
-          <button className={`docs-nav-link ${docSection === 'mandatory-gates' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('mandatory-gates')}>1 & 2: Mandatory Gates</button>
-          <button className={`docs-nav-link ${docSection === 'valuation-structure' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('valuation-structure')}>3 & 4: Valuation & OFS</button>
-          <button className={`docs-nav-link ${docSection === 'backing-margins' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('backing-margins')}>5 & 6: Backing & Margins</button>
-          <button className={`docs-nav-link ${docSection === 'size-skin' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('size-skin')}>7 & 8: Size & Stake</button>
-
-          <span className="docs-sidebar-title">Strategies</span>
-          <button className={`docs-nav-link ${docSection === 'sme-bidding' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('sme-bidding')}>Mainboard vs SME</button>
-        </aside>
-
-        <div className="docs-content">
-          {docSection === 'welcome' && renderWelcomeDoc()}
-          {docSection === 'mandatory-gates' && renderMandatoryGatesDoc()}
-          {docSection === 'valuation-structure' && renderValuationStructureDoc()}
-          {docSection === 'backing-margins' && renderBackingMarginsDoc()}
-          {docSection === 'size-skin' && renderSizeSkinDoc()}
-          {docSection === 'sme-bidding' && renderSmeDoc()}
-        </div>
       </div>
     );
   };
@@ -3333,10 +3452,10 @@ export default function App() {
     return (
       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0, letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: 0, letterSpacing: 'var(--tracking-tight)' }}>
             User Settings & Profile
           </h2>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
             Manage your personal profile, credentials, and collaborative family pools.
           </p>
         </div>
@@ -3344,10 +3463,10 @@ export default function App() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           {/* Profile details */}
           <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 8px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Personal Information</h3>
+            <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: '0 0 8px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Personal Information</h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Display Name</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Display Name</span>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="text"
@@ -3357,7 +3476,7 @@ export default function App() {
                     padding: '8px 12px',
                     borderRadius: '8px',
                     border: '1px solid var(--border-strong)',
-                    fontSize: '13px',
+                    fontSize: 'var(--font-sm)',
                     flex: 1,
                     backgroundColor: 'rgba(0, 0, 0, 0.01)',
                     outline: 'none'
@@ -3366,7 +3485,7 @@ export default function App() {
                 <button 
                   onClick={handleSaveDisplayName} 
                   className="btn btn-primary"
-                  style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '8px' }}
+                  style={{ padding: '8px 14px', fontSize: 'var(--font-sm)', borderRadius: '8px' }}
                 >
                   Save
                 </button>
@@ -3374,13 +3493,13 @@ export default function App() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Email Address</span>
-              <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-h)' }}>{userProfile?.email || session?.user?.email || 'N/A'}</span>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Email Address</span>
+              <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)' }}>{userProfile?.email || session?.user?.email || 'N/A'}</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Session Type</span>
-              <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--success)' }}>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Session Type</span>
+              <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--success)' }}>
                 {isGuestMode ? 'Offline Simulation (Sandbox)' : 'Supabase Cloud Authenticated'}
               </span>
             </div>
@@ -3388,25 +3507,25 @@ export default function App() {
 
           {/* Group statistics */}
           <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 8px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Investment Group Details</h3>
+            <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: '0 0 8px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Investment Group Details</h3>
             
             {familyGroup ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Active Group Name</span>
-                  <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-h)' }}>{familyGroup.group_name}</span>
+                  <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Active Group Name</span>
+                  <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)' }}>{familyGroup.group_name}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Shared PAN Slots</span>
-                  <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)' }}>{userAccounts.length} slots</span>
+                  <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Shared PAN Slots</span>
+                  <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)' }}>{userAccounts.length} slots</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Shared Group Members</span>
-                  <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)' }}>{groupMembers.length} members</span>
+                  <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Shared Group Members</span>
+                  <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)' }}>{groupMembers.length} members</span>
                 </div>
               </div>
             ) : (
-              <div style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ color: 'var(--text-muted)', fontSize: 'var(--font-sm)', display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
                 You are currently running a personal portfolio. Create an Investment Group in the Rotator tab to collaborate!
               </div>
             )}
@@ -3415,16 +3534,16 @@ export default function App() {
 
         {/* Support educational guides row */}
         <div className="premium-card">
-          <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-h)', margin: '0 0 12px 0' }}>Help & Support</h3>
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 16px 0' }}>
+          <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', margin: '0 0 12px 0' }}>Help & Support</h3>
+          <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', margin: '0 0 16px 0' }}>
             Need help configuring Telegram alerts or banking ASBA blocks? Check our repository documentation or read the 8 Rules Guide.
           </p>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn btn-secondary" onClick={() => setActiveTab('guide')} style={{ fontSize: '11px' }}>
+            <button className="btn btn-secondary" onClick={() => setActiveTab('guide')} style={{ fontSize: 'var(--font-xs)' }}>
               Read the Guides
             </button>
             <a href="https://github.com/Prabhat-12/ipo-investment-tool" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-              <button className="btn btn-secondary" style={{ fontSize: '11px' }}>
+              <button className="btn btn-secondary" style={{ fontSize: 'var(--font-xs)' }}>
                 View GitHub Repository
               </button>
             </a>
@@ -3459,10 +3578,10 @@ export default function App() {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <h1 className="sidebar-brand-name">IPO Investment Engine</h1>
-                <span style={{ fontSize: '9px', fontWeight: '800', padding: '1px 5px', borderRadius: '4px', backgroundColor: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>v2.0</span>
+                <h1 className="sidebar-brand-name">IPO Tracker</h1>
+                <span style={{ fontSize: '9px', fontWeight: '600', padding: '1px 5px', borderRadius: '4px', backgroundColor: 'var(--accent-bg)', color: 'var(--accent)', border: '1px solid var(--accent-border)' }}>v2.0</span>
               </div>
-              <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
+              <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
                 {isGuestMode ? 'Offline Sandbox' : 'Cloud Connected'}
               </span>
             </div>
@@ -3503,14 +3622,14 @@ export default function App() {
             }}
             className={`sidebar-profile ${activeTab === 'profile' ? 'sidebar-link-active' : ''}`}
           >
-            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-h)', fontWeight: 'bold', fontSize: '13px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-h)', fontWeight: '600', fontSize: 'var(--font-sm)' }}>
               {userProfile?.display_name ? userProfile.display_name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flexGrow: 1 }}>
-              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-h)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: 'var(--text-h)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {userProfile?.display_name || 'My Profile'}
               </span>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {userProfile?.email || 'Settings & sharing'}
               </span>
             </div>
@@ -3519,7 +3638,7 @@ export default function App() {
           <button
             onClick={handleLogout}
             className="btn btn-danger"
-            style={{ width: '100%', fontSize: '11px', padding: '8px 12px' }}
+            style={{ width: '100%', fontSize: 'var(--font-xs)', padding: '8px 12px' }}
           >
             <LogOut size={13} />
             <span>Sign Out</span>
@@ -3613,17 +3732,17 @@ export default function App() {
             {/* Header info */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
               <div>
-                <h2 style={{ fontSize: '17px', fontWeight: '800', margin: 0, color: 'var(--text-h)', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
+                <h2 style={{ fontSize: 'var(--font-md)', fontWeight: '600', margin: 0, color: 'var(--text-h)', letterSpacing: 'var(--tracking-tight)', lineHeight: '1.2' }}>
                   {selectedIpo.name}
                 </h2>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                   Symbol: <span style={{ fontFamily: 'var(--mono)', fontWeight: '600' }}>{selectedIpo.symbol}</span>
                 </p>
               </div>
               {!isMobile && (
                 <button
                   onClick={() => setSelectedIpo(null)}
-                  style={{ border: 'none', background: 'none', fontSize: '28px', cursor: 'pointer', color: 'var(--text-muted)', padding: '0 4px', lineHeight: '1' }}
+                  style={{ border: 'none', background: 'none', fontSize: 'var(--font-lg)', cursor: 'pointer', color: 'var(--text-muted)', padding: '0 4px', lineHeight: '1' }}
                 >
                   &times;
                 </button>
@@ -3642,24 +3761,24 @@ export default function App() {
               marginBottom: '20px'
             }}>
               <div>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: '800', color: selectedIpo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)', display: 'block', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: 'var(--font-xs)', textTransform: 'uppercase', fontWeight: '600', color: selectedIpo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)', display: 'block', letterSpacing: '0.5px' }}>
                   Bidding Recommendation
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: '800', color: selectedIpo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)' }}>
+                <span style={{ fontSize: 'var(--font-sm)', fontWeight: '600', color: selectedIpo.decision === 'YES' ? 'var(--accent)' : 'var(--danger)' }}>
                   {selectedIpo.decision === 'YES' ? '✔ YES - DEPLOY ASBA' : '✖ NO - AVOID LISTING'}
                 </span>
               </div>
               <div style={{ textAlign: 'center', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '17px', fontWeight: '800', color: 'var(--success)', display: 'block', lineHeight: '1' }}>
+                <span style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--success)', display: 'block', lineHeight: '1' }}>
                   {selectedIpo.retail_sub && selectedIpo.retail_sub > 1 ? `${(100 / selectedIpo.retail_sub).toFixed(1)}%` : '100%'}
                 </span>
-                <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Allotment Odds</span>
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Allotment Odds</span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', display: 'block', lineHeight: '1' }}>
+                <span style={{ fontSize: 'var(--font-md)', fontWeight: '600', color: 'var(--text-h)', display: 'block', lineHeight: '1' }}>
                   {selectedIpo.score}/8
                 </span>
-                <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Rules</span>
+                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>Rules</span>
               </div>
             </div>
 
@@ -3674,17 +3793,17 @@ export default function App() {
             {/* Bidding Velocities — only show when real subscription data is present */}
             {(selectedIpo.qib_sub != null && selectedIpo.qib_sub > 0) && (
               <div style={{ border: '1px solid var(--border)', borderRadius: '16px', padding: '14px', marginBottom: '20px' }}>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)', display: 'block', marginBottom: '10px' }}>Bidding Velocities Multiple</span>
+                <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text-h)', display: 'block', marginBottom: '10px' }}>Bidding Velocities Multiple</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {[
                     { label: 'QIB Segment', val: selectedIpo.qib_sub, limit: 50, color: 'var(--accent)' },
                     { label: 'Retail Portion', val: selectedIpo.retail_sub, limit: 10, color: 'var(--success)' },
                     { label: 'Total Oversubscription', val: selectedIpo.total_sub, limit: 30, color: 'var(--warning)' }
                   ].map((sub, idx) => (
-                    <div key={idx} style={{ fontSize: '11px' }}>
+                    <div key={idx} style={{ fontSize: 'var(--font-xs)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
                         <span>{sub.label}</span>
-                        <span style={{ fontWeight: '700' }}>{(sub.val || 0).toFixed(1)}x <span style={{ color: 'var(--text-muted)' }}>(Target: {sub.limit}x)</span></span>
+                        <span style={{ fontWeight: '600' }}>{(sub.val || 0).toFixed(1)}x <span style={{ color: 'var(--text-muted)' }}>(Target: {sub.limit}x)</span></span>
                       </div>
                       <div style={{ height: '6px', backgroundColor: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{ width: `${Math.min(100, ((sub.val || 0) / sub.limit) * 100)}%`, height: '100%', backgroundColor: sub.color, borderRadius: '3px' }}></div>
@@ -3696,7 +3815,7 @@ export default function App() {
             )}
 
             {/* 8 Metric checklist items */}
-            <h3 style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
+            <h3 style={{ fontSize: 'var(--font-sm)', fontWeight: '600', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
               8-Metric Checklist Audit
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
@@ -3742,7 +3861,7 @@ export default function App() {
                       border: '1px solid var(--border)',
                       borderRadius: '16px',
                       backgroundColor: rule.passed ? 'var(--accent-bg)' : 'transparent',
-                      fontSize: '13px'
+                      fontSize: 'var(--font-sm)'
                     }}
                   >
                     <div style={{ marginRight: '10px', display: 'flex', alignItems: 'center' }}>
@@ -3753,17 +3872,17 @@ export default function App() {
                       )}
                     </div>
                     <div style={{ flexGrow: 1 }}>
-                      <div style={{ fontWeight: '700', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {rule.title}
                         {rule.mandatory && (
-                          <span style={{ fontSize: '10px', fontWeight: '800', padding: '1px 4px', borderRadius: '4px', backgroundColor: 'var(--danger-bg)', color: 'var(--danger)' }}>
+                          <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', padding: '1px 4px', borderRadius: '4px', backgroundColor: 'var(--danger-bg)', color: 'var(--danger)' }}>
                             MANDATORY
                           </span>
                         )}
                       </div>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{rule.description}</span>
+                      <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>{rule.description}</span>
                     </div>
-                    <div style={{ fontWeight: '600', color: rule.passed ? 'var(--accent)' : 'var(--text-muted)', fontSize: '11px', textAlign: 'right', minWidth: '80px' }}>
+                    <div style={{ fontWeight: '600', color: rule.passed ? 'var(--accent)' : 'var(--text-muted)', fontSize: 'var(--font-xs)', textAlign: 'right', minWidth: '80px' }}>
                       {rule.value}
                     </div>
                   </div>
@@ -3774,15 +3893,15 @@ export default function App() {
             {/* Financial Margins trajectory */}
             {selectedIpo.financials && selectedIpo.financials.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
+                <h3 style={{ fontSize: 'var(--font-sm)', fontWeight: '600', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
                   Historical Financial Margins
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                   {selectedIpo.financials.map((f, idx) => (
                     <div key={idx} style={{ padding: '8px', border: '1px solid var(--border)', borderRadius: '8px', textAlign: 'center', backgroundColor: 'var(--bg)' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', fontWeight: 'bold' }}>{f.fiscal_year}</span>
-                      <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)', display: 'block' }}>₹{f.pat_cr} Cr PAT</span>
-                      <span style={{ fontSize: '10px', color: f.pat_margin_pct > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: '700' }}>
+                      <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', display: 'block', fontWeight: '600' }}>{f.fiscal_year}</span>
+                      <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text-h)', display: 'block' }}>₹{f.pat_cr} Cr PAT</span>
+                      <span style={{ fontSize: 'var(--font-xs)', color: f.pat_margin_pct > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: '600' }}>
                         {f.pat_margin_pct}% Margin
                       </span>
                     </div>
@@ -3794,15 +3913,15 @@ export default function App() {
             {/* Bid application form */}
             {selectedIpo.status === 'bidding' && (
               <div style={{ padding: '14px', border: '1px solid var(--border-strong)', borderRadius: '16px', backgroundColor: 'var(--bg)', marginBottom: '20px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: '700', margin: '0 0 4px 0', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <h4 style={{ fontSize: 'var(--font-sm)', fontWeight: '600', margin: '0 0 4px 0', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Users size={14} style={{ color: 'var(--accent)' }} /> Multi-PAN Family Rotation Bidding
                 </h4>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 12px 0' }}>
+                <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', margin: '0 0 12px 0' }}>
                   Select the family member accounts who are applying for this IPO.
                 </p>
 
                 {userAccounts.length === 0 ? (
-                  <span style={{ fontSize: '11px', color: 'var(--danger)' }}>
+                  <span style={{ fontSize: 'var(--font-xs)', color: 'var(--danger)' }}>
                     No active allotment PAN slots configured. Add account slots in the Family Rotator tab first!
                   </span>
                 ) : (
@@ -3829,7 +3948,7 @@ export default function App() {
                               opacity: alreadyBid ? 0.6 : 1
                             }}
                           >
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: alreadyBid ? 'not-allowed' : 'pointer', width: '100%', fontSize: '11px', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: alreadyBid ? 'not-allowed' : 'pointer', width: '100%', fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text-h)', margin: 0 }}>
                               <input
                                 type="checkbox"
                                 checked={isChecked || alreadyBid}
@@ -3845,13 +3964,13 @@ export default function App() {
                               />
                               <div>
                                 <span>{acc.account_holder_name}</span>
-                                <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', fontWeight: 'normal', fontFamily: 'var(--mono)' }}>
-                                  PAN: {acc.pan_mask} {activeBlocked > 0 && <span style={{ color: 'var(--warning)', fontWeight: 'bold' }}>(Blocked: ₹{activeBlocked.toLocaleString('en-IN')})</span>}
+                                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)', display: 'block', fontWeight: 'normal', fontFamily: 'var(--mono)' }}>
+                                  PAN: {acc.pan_mask} {activeBlocked > 0 && <span style={{ color: 'var(--warning)', fontWeight: '600' }}>(Blocked: ₹{activeBlocked.toLocaleString('en-IN')})</span>}
                                 </span>
                               </div>
                             </label>
                             
-                            <span style={{ fontSize: '11px', fontWeight: '700', color: alreadyBid ? 'var(--text-muted)' : 'var(--text-h)' }}>
+                            <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: alreadyBid ? 'var(--text-muted)' : 'var(--text-h)' }}>
                               {alreadyBid ? 'Applied' : `₹${selectedIpo.retail_lot_cost?.toLocaleString('en-IN')}`}
                             </span>
                           </div>
@@ -3859,11 +3978,11 @@ export default function App() {
                       })}
                     </div>
                     
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--font-sm)' }}>
                       <span style={{ color: 'var(--text-muted)' }}>
                         Selected: <strong>{selectedBidAccounts.length} slot(s)</strong>
                       </span>
-                      <span style={{ fontWeight: '800', color: 'var(--text-h)' }}>
+                      <span style={{ fontWeight: '600', color: 'var(--text-h)' }}>
                         Total: ₹{(selectedBidAccounts.length * selectedIpo.retail_lot_cost).toLocaleString('en-IN')}
                       </span>
                     </div>
@@ -3877,7 +3996,7 @@ export default function App() {
                       }}
                       disabled={selectedBidAccounts.length === 0 || (selectedBidAccounts.length * selectedIpo.retail_lot_cost) > liquidCapital}
                       className="btn btn-primary"
-                      style={{ padding: '10px 14px', fontSize: '13px', width: '100%', marginTop: '6px' }}
+                      style={{ padding: '10px 14px', fontSize: 'var(--font-sm)', width: '100%', marginTop: '6px' }}
                     >
                       { (selectedBidAccounts.length * selectedIpo.retail_lot_cost) > liquidCapital 
                         ? 'Insufficient Liquid Capital' 
@@ -3893,7 +4012,7 @@ export default function App() {
             <button
               onClick={() => setSelectedIpo(null)}
               className="btn btn-secondary"
-              style={{ width: '100%', padding: '10px', fontSize: '11px' }}
+              style={{ width: '100%', padding: '10px', fontSize: 'var(--font-xs)' }}
             >
               Close Drawer View
             </button>
@@ -3923,34 +4042,34 @@ export default function App() {
             borderRadius: '16px',
             maxWidth: '400px',
             width: '100%',
-            padding: '24px',
+            padding: '16px',
             boxShadow: 'var(--shadow-lg)'
           }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 16px 0', color: 'var(--text-h)' }}>
+            <h3 style={{ fontSize: 'var(--font-md)', fontWeight: '600', margin: '0 0 16px 0', color: 'var(--text-h)' }}>
               Add Allotment Slot (PAN Profile)
             </h3>
 
             <form onSubmit={handleAddAccountSlot} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text)' }}>Account Holder Name</label>
+                <label style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text)' }}>Account Holder Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Sahil (Brother)"
                   value={newAccountName}
                   onChange={(e) => setNewAccountName(e.target.value)}
-                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '13px' }}
+                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: 'var(--font-sm)' }}
                   required
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text)' }}>PAN (Masked / Format: ABCDE***1F)</label>
+                <label style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text)' }}>PAN (Masked / Format: ABCDE***1F)</label>
                 <input
                   type="text"
                   placeholder="e.g. ABCDE***1F"
                   value={newAccountPan}
                   onChange={(e) => setNewAccountPan(e.target.value)}
                   maxLength={10}
-                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '13px' }}
+                  style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: 'var(--font-sm)' }}
                   required
                 />
               </div>
@@ -3959,13 +4078,13 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setShowAddAccountModal(false)}
-                  style={{ flexGrow: 1, padding: '10px', border: 'none', borderRadius: '8px', backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text)', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+                  style={{ flexGrow: 1, padding: '10px', border: 'none', borderRadius: '8px', backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text)', cursor: 'pointer', fontWeight: '600', fontSize: 'var(--font-sm)' }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  style={{ flexGrow: 2, padding: '10px', border: 'none', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'white', cursor: 'pointer', fontWeight: '700', fontSize: '13px' }}
+                  style={{ flexGrow: 2, padding: '10px', border: 'none', borderRadius: '8px', backgroundColor: 'var(--accent)', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: 'var(--font-sm)' }}
                 >
                   Create Account Slot
                 </button>
@@ -4002,7 +4121,7 @@ function renderDrawerGmpChart(ipo) {
 
   if (history.length === 0) {
     return (
-      <div style={{ height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', borderRadius: '10px', fontSize: '11px', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
+      <div style={{ height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', borderRadius: '10px', fontSize: 'var(--font-xs)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
         No GMP premium trend history available.
       </div>
     );
@@ -4060,9 +4179,9 @@ function renderDrawerGmpChart(ipo) {
   return (
     <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '14px 16px', border: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)' }}>GMP Premium Curve</span>
+        <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text-h)' }}>GMP Premium Curve</span>
         <span style={{
-          fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px',
+          fontSize: 'var(--font-xs)', fontWeight: '600', padding: '2px 8px', borderRadius: '20px',
           backgroundColor: isPositive ? 'var(--accent-bg)' : 'var(--danger-bg)',
           color: lineColor
         }}>
@@ -4147,9 +4266,9 @@ function renderDrawerPeersChart(ipo) {
   return (
     <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '16px', padding: '14px 16px', border: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-h)' }}>Valuation P/E vs Peers</span>
+        <span style={{ fontSize: 'var(--font-xs)', fontWeight: '600', color: 'var(--text-h)' }}>Valuation P/E vs Peers</span>
         <span style={{
-          fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px',
+          fontSize: 'var(--font-xs)', fontWeight: '600', padding: '2px 8px', borderRadius: '20px',
           backgroundColor: isDiscount ? 'var(--accent-bg)' : 'var(--danger-bg)',
           color: isDiscount ? 'var(--accent)' : 'var(--danger)'
         }}>

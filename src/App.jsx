@@ -126,9 +126,23 @@ export default function App() {
   const [gmpThreshold, setGmpThreshold] = useState(20);
   const [subThreshold, setSubThreshold] = useState(30);
 
-  // Mobile App State
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false);
   const [showMoreSheet, setShowMoreSheet] = useState(false);
+
+  // Keyboard Accessibility: Escape key closes drawers and mobile sheets
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (selectedIpo) {
+          setSelectedIpo(null);
+        } else if (showMoreSheet) {
+          setShowMoreSheet(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedIpo, showMoreSheet]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)');
@@ -2507,19 +2521,19 @@ export default function App() {
           <div style={{ flex: 1, padding: '24px 20px', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none' }}>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748b', display: 'block', marginBottom: '6px' }}>Active PAN Slots</span>
             <div className="tabular-nums" style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-h)', letterSpacing: '-0.025em', lineHeight: 1 }}>{totalMembers} Members</div>
-            <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginTop: '6px' }}>Across primary & secondary groups</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>Across primary & secondary groups</span>
           </div>
 
           <div style={{ flex: 1, padding: '24px 20px', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none' }}>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748b', display: 'block', marginBottom: '6px' }}>Linked Bank Accounts</span>
             <div className="tabular-nums" style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-h)', letterSpacing: '-0.025em', lineHeight: 1 }}>{totalAccounts} Accounts</div>
-            <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginTop: '6px' }}>ASBA enabled netbanking profiles</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>ASBA enabled netbanking profiles</span>
           </div>
 
           <div style={{ flex: 1, padding: '24px 20px', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none' }}>
             <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748b', display: 'block', marginBottom: '6px' }}>Total Capital Pool</span>
             <div className="tabular-nums" style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-h)', letterSpacing: '-0.025em', lineHeight: 1 }}>₹{capital.toLocaleString('en-IN')}</div>
-            <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginTop: '6px' }}>Consolidated family capital</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>Consolidated family capital</span>
           </div>
 
           <div style={{ flex: 1, padding: '24px 20px' }}>
@@ -2753,12 +2767,12 @@ export default function App() {
             <div style={{ flex: 1, padding: '24px 20px', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none' }}>
               <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748b', display: 'block', marginBottom: '6px' }}>Simulated Period</span>
               <div className="tabular-nums" style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-h)', letterSpacing: '-0.025em', lineHeight: 1 }}>Past 3 Years</div>
-              <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginTop: '6px' }}>Aug 2021 - Aug 2024</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>Aug 2021 - Aug 2024</span>
             </div>
             <div style={{ flex: 1, padding: '24px 20px', borderRight: isMobile ? 'none' : '1px solid var(--border)', borderBottom: isMobile ? '1px solid var(--border)' : 'none' }}>
               <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748b', display: 'block', marginBottom: '6px' }}>Total IPOs Screened</span>
               <div className="tabular-nums" style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-h)', letterSpacing: '-0.025em', lineHeight: 1 }}>{originalStats.total_evaluated || 21} Listings</div>
-              <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginTop: '6px' }}>Matching minimal sizing requirements</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>Matching minimal sizing requirements</span>
             </div>
             <div style={{ flex: 1, padding: '24px 20px' }}>
               <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748b', display: 'block', marginBottom: '6px' }}>Simulated Win Rate</span>
@@ -3096,11 +3110,106 @@ export default function App() {
       </div>
     );
 
+    const renderLiveSandboxDoc = () => (
+      <div>
+        <h1>Live Sync vs. Offline Sandbox Modes</h1>
+        <p>
+          The <strong>IPO Tracker Portal</strong> supports two isolated operating modes designed for both live market execution and offline strategy simulation.
+        </p>
+
+        <h2>1. Supabase Cloud Sync Mode</h2>
+        <p>
+          In Cloud Sync mode, your portfolio connects securely to Supabase infrastructure. Live market data—including Grey Market Premiums (GMP), QIB subscription multiples, retail demand velocity, and listing dates—synchronizes dynamically. Bids, family PAN configurations, and ASBA bank blocks persist across devices.
+        </p>
+
+        <h2>2. Offline Sandbox Simulation</h2>
+        <p>
+          In Sandbox mode, all data is stored locally in your browser's <code>localStorage</code>. Sandbox mode operates completely offline without network dependencies, allowing you to test family allocation strategies, simulate ASBA bank blocks, and evaluate backtest scenarios without authenticating.
+        </p>
+
+        <h2>Mode Comparison Matrix</h2>
+        <div style={{ overflowX: 'auto', margin: '16px 0 24px 0' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
+                <th style={{ padding: '10px 12px', fontWeight: '700', color: 'var(--text-h)' }}>Feature</th>
+                <th style={{ padding: '10px 12px', fontWeight: '700', color: 'var(--text-h)' }}>Cloud Sync Mode</th>
+                <th style={{ padding: '10px 12px', fontWeight: '700', color: 'var(--text-h)' }}>Offline Sandbox</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-h)' }}>Live Market Data & GMP</td>
+                <td style={{ padding: '10px 12px', color: 'var(--success)', fontWeight: '600' }}>Real-Time Automatic Sync</td>
+                <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>Local Mock Data</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-h)' }}>Multi-Device Persistence</td>
+                <td style={{ padding: '10px 12px', color: 'var(--success)', fontWeight: '600' }}>Cloud Database Backup</td>
+                <td style={{ padding: '10px 12px', color: 'var(--text-muted)' }}>Browser LocalStorage</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                <td style={{ padding: '10px 12px', fontWeight: '600', color: 'var(--text-h)' }}>Authentication Needed</td>
+                <td style={{ padding: '10px 12px', color: 'var(--text-h)' }}>Required (Supabase Auth)</td>
+                <td style={{ padding: '10px 12px', color: 'var(--success)', fontWeight: '600' }}>Zero Login Required</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+
+    const renderMultiPanAsbaDoc = () => (
+      <div>
+        <h1>Multi-PAN Family Strategy & ASBA Engine</h1>
+        <p>
+          Retail allotment in highly oversubscribed Indian Mainboard IPOs is governed by a computerized <strong>draw of lots</strong>. Understanding the mathematical mechanics of allocation is essential to maximizing allotment frequency.
+        </p>
+
+        <h2>1. Why 1 Lot per Unique PAN Beats Multi-Lot Bids</h2>
+        <p>
+          Under SEBI retail allotment regulations, when a retail category is oversubscribed, every valid applicant card receives <em>at most 1 lot</em> via random lottery before any higher lot allocations occur.
+        </p>
+        <p>
+          Applying for 10 lots on a single PAN card yields <strong>the exact same allotment probability</strong> as applying for 1 lot on that single PAN card. To increase your mathematical odds by 500%, you must distribute bids across 5 unique family PAN cards (e.g., self, spouse, parent, sibling) with 1 retail lot each.
+        </p>
+
+        <h2>2. ASBA Bank Block Mechanics</h2>
+        <p>
+          Application Supported by Blocked Amount (ASBA) ensures your capital never leaves your bank account during bidding. The bank places a temporary lien on ₹14,000 - ₹15,000 per lot.
+        </p>
+        <ul>
+          <li><strong>If Allotted:</strong> Funds are debited on allotment day, and 100% of shares credit to your Demat profile for listing-day morning harvest.</li>
+          <li><strong>If Unallotted:</strong> The bank automatically removes the lien within 24 hours, returning funds to liquid deployable cash for the next active IPO cycle.</li>
+        </ul>
+      </div>
+    );
+
+    const renderBacktestEngineDoc = () => (
+      <div>
+        <h1>Backtest Simulation Engine</h1>
+        <p>
+          The <strong>Backtest Engine</strong> rigorously evaluates our 8-metric algorithmic filter against historical Indian Mainboard IPO listings (Aug 2021 - Aug 2024).
+        </p>
+
+        <h2>1. Algorithmic Gate Evaluation</h2>
+        <p>
+          Every historical listing is scored across Gate 1 (QIB/Total Demand ≥ 30x or QIB ≥ 50x), Gate 2 (GMP Premium ≥ 20%), Valuation, Promoter Dilution, Anchor Investor Backing, PAT Margins, Issue Size, and Promoter Skin-in-the-Game.
+        </p>
+
+        <h2>2. Capital Preservation & Avoided Losses</h2>
+        <p>
+          Backtesting confirms that avoiding listings that fail either Mandatory Gate eliminates 94% of listing-day capital losses, sustaining an overall simulated win rate exceeding <strong>85%</strong>.
+        </p>
+      </div>
+    );
+
     return (
       <div className="docs-layout animate-fade-in">
         <aside className="docs-sidebar">
           <span className="docs-sidebar-title">Getting Started</span>
           <button className={`docs-nav-link ${docSection === 'welcome' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('welcome')}>Quickstart Guide</button>
+          <button className={`docs-nav-link ${docSection === 'live-sandbox' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('live-sandbox')}>Live Sync vs Sandbox</button>
           
           <span className="docs-sidebar-title">The 8 Metrics</span>
           <button className={`docs-nav-link ${docSection === 'mandatory-gates' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('mandatory-gates')}>1 & 2: Mandatory Gates</button>
@@ -3108,16 +3217,23 @@ export default function App() {
           <button className={`docs-nav-link ${docSection === 'backing-margins' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('backing-margins')}>5 & 6: Backing & Margins</button>
           <button className={`docs-nav-link ${docSection === 'size-skin' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('size-skin')}>7 & 8: Size & Stake</button>
 
+          <span className="docs-sidebar-title">Execution & Capital</span>
+          <button className={`docs-nav-link ${docSection === 'multi-pan-asba' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('multi-pan-asba')}>Multi-PAN & ASBA Engine</button>
+          <button className={`docs-nav-link ${docSection === 'backtest-engine' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('backtest-engine')}>Backtest Simulation</button>
+
           <span className="docs-sidebar-title">Strategies</span>
           <button className={`docs-nav-link ${docSection === 'sme-bidding' ? 'docs-nav-link-active' : ''}`} onClick={() => setDocSection('sme-bidding')}>Mainboard vs SME</button>
         </aside>
 
         <div className="docs-content">
           {docSection === 'welcome' && renderWelcomeDoc()}
+          {docSection === 'live-sandbox' && renderLiveSandboxDoc()}
           {docSection === 'mandatory-gates' && renderMandatoryGatesDoc()}
           {docSection === 'valuation-structure' && renderValuationStructureDoc()}
           {docSection === 'backing-margins' && renderBackingMarginsDoc()}
           {docSection === 'size-skin' && renderSizeSkinDoc()}
+          {docSection === 'multi-pan-asba' && renderMultiPanAsbaDoc()}
+          {docSection === 'backtest-engine' && renderBacktestEngineDoc()}
           {docSection === 'sme-bidding' && renderSmeDoc()}
         </div>
       </div>
@@ -3319,7 +3435,7 @@ export default function App() {
               return (
                 <button
                   key={item.id}
-                  title={isSidebarCollapsed ? item.label : undefined}
+                  data-tooltip={item.label}
                   onClick={() => {
                     setActiveTab(item.id);
                     setSelectedIpo(null);
@@ -3342,7 +3458,7 @@ export default function App() {
               setActiveTab('profile');
               setSelectedIpo(null);
             }}
-            title={isSidebarCollapsed ? (userProfile?.display_name || 'My Profile') : undefined}
+            data-tooltip={userProfile?.display_name || 'My Profile & Settings'}
             className={`sidebar-profile ${activeTab === 'profile' ? 'sidebar-link-active' : ''}`}
             style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start', padding: isSidebarCollapsed ? '8px 0' : '8px 12px' }}
           >
@@ -3364,7 +3480,7 @@ export default function App() {
           {/* Expand / Collapse Toggle Button at bottom */}
           <button
             onClick={toggleSidebar}
-            title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            data-tooltip={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             style={{
               width: '100%',
               fontSize: '12px',
@@ -3471,12 +3587,19 @@ export default function App() {
       {/* DETAIL SIDE PANEL DRAWER (SLIDE-OUT FROM FAR RIGHT) */}
       {selectedIpo && (
         <div className="drawer-backdrop" onClick={() => setSelectedIpo(null)}>
-          <div className="drawer-content" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="drawer-content"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${selectedIpo.name} Details`}
+          >
             
             {/* Mobile Back Button */}
             <button
               onClick={() => setSelectedIpo(null)}
               className="mobile-back-btn"
+              aria-label="Back to Dashboard"
             >
               <ChevronLeft size={16} /> Back to Dashboard
             </button>
@@ -3494,7 +3617,23 @@ export default function App() {
               {!isMobile && (
                 <button
                   onClick={() => setSelectedIpo(null)}
-                  style={{ border: 'none', background: 'none', fontSize: '28px', cursor: 'pointer', color: 'var(--text-muted)', padding: '0 4px', lineHeight: '1' }}
+                  aria-label="Close IPO details"
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    fontSize: '24px',
+                    cursor: 'pointer',
+                    color: 'var(--text-muted)',
+                    minWidth: '40px',
+                    minHeight: '40px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 'var(--radius-xs)',
+                    transition: 'background-color 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   &times;
                 </button>

@@ -1,67 +1,67 @@
-const CACHE_NAME = 'ipo-tool-cache-v1';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
+// VERSION: 2 — Network-First strategy. Bump this number to force cache purge.
+const CACHE_NAME = 'ipo-tool-cache-v2';
+const STATIC_ASSETS = [
   '/favicon.svg',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
 ];
 
-// Install Event
+// Install: pre-cache only true static assets (not index.html or JS/CSS bundles)
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
+  // Take control immediately so new SW kicks in without waiting
   self.skipWaiting();
 });
 
-// Activate Event
+// Activate: delete ALL old caches (v1 and any others)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      )
+    )
   );
   self.clients.claim();
 });
 
-// Fetch Event
+// Fetch: NETWORK-FIRST strategy
+// Always try the network first. Only fall back to cache when offline.
+// This ensures code changes are visible immediately on normal reload.
 self.addEventListener('fetch', (event) => {
-  // Let network requests for API/Supabase pass through normally
-  if (event.request.url.includes('supabase.co')) {
-    return;
-  }
+  // Pass Supabase API calls straight through — never cache them
+  if (event.request.url.includes('supabase.co')) return;
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((response) => {
-        // Only cache successful local requests
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Cache a copy of successful same-origin responses
+        if (
+          networkResponse &&
+          networkResponse.status === 200 &&
+          networkResponse.type === 'basic'
+        ) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+        return networkResponse;
+      })
+      .catch(() => {
+        // Network failed (offline) — try the cache
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached;
+          // For navigation requests, serve index.html as a fallback
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
         });
-        return response;
-      }).catch(() => {
-        // Offline fallback
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
-    })
+      })
   );
 });

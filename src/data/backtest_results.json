@@ -27,7 +27,8 @@
                     "fundamentals": false,
                     "issue_size": false,
                     "promoter_stake": false
-                }
+                },
+                "est_gmp_pct": -10.0
             },
             {
                 "name": "Life Insurance Corporation of India (LIC)",
@@ -48,7 +49,8 @@
                     "fundamentals": true,
                     "issue_size": false,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": -5.0
             },
             {
                 "name": "IdeaForge Technology Limited",
@@ -69,7 +71,8 @@
                     "fundamentals": false,
                     "issue_size": true,
                     "promoter_stake": false
-                }
+                },
+                "est_gmp_pct": 78.1
             },
             {
                 "name": "Honasa Consumer Limited (Mamaearth)",
@@ -90,7 +93,8 @@
                     "fundamentals": false,
                     "issue_size": true,
                     "promoter_stake": false
-                }
+                },
+                "est_gmp_pct": 10.0
             },
             {
                 "name": "Tata Technologies Limited",
@@ -111,7 +115,8 @@
                     "fundamentals": true,
                     "issue_size": false,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 84.0
             },
             {
                 "name": "DOMS Industries Limited",
@@ -132,7 +137,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 67.0
             },
             {
                 "name": "Inox India Limited",
@@ -153,7 +159,8 @@
                     "fundamentals": false,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 45.0
             },
             {
                 "name": "Happy Forgings Limited",
@@ -174,7 +181,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 35.0
             },
             {
                 "name": "Mufti Menswear (Credo Brands) Limited",
@@ -195,7 +203,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 25.0
             },
             {
                 "name": "Azad Engineering Limited",
@@ -216,7 +225,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 55.0
             },
             {
                 "name": "Innova Captab Limited",
@@ -237,7 +247,8 @@
                     "fundamentals": false,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 18.1
             },
             {
                 "name": "Jyoti CNC Automation Limited",
@@ -258,7 +269,8 @@
                     "fundamentals": false,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 15.0
             },
             {
                 "name": "EPACK Durable Limited",
@@ -279,7 +291,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": false
-                }
+                },
+                "est_gmp_pct": 5.0
             },
             {
                 "name": "Nova AgriTech Limited",
@@ -300,7 +313,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 45.0
             },
             {
                 "name": "BLS E-Services Limited",
@@ -321,7 +335,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 116.0
             },
             {
                 "name": "Apeejay Surrendra Park Hotels Limited",
@@ -342,7 +357,8 @@
                     "fundamentals": false,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 18.0
             },
             {
                 "name": "Rashi Peripherals Limited",
@@ -363,7 +379,8 @@
                     "fundamentals": false,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 8.2
             },
             {
                 "name": "Jana Small Finance Bank Limited",
@@ -384,7 +401,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": false
-                }
+                },
+                "est_gmp_pct": 5.0
             },
             {
                 "name": "Capital Small Finance Bank Limited",
@@ -405,7 +423,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": false
-                }
+                },
+                "est_gmp_pct": -6.3
             },
             {
                 "name": "Vibhor Steel Tubes Limited",
@@ -426,7 +445,8 @@
                     "fundamentals": true,
                     "issue_size": true,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": 105.0
             },
             {
                 "name": "Hyundai Motor India Limited",
@@ -447,7 +467,8 @@
                     "fundamentals": true,
                     "issue_size": false,
                     "promoter_stake": true
-                }
+                },
+                "est_gmp_pct": -2.0
             }
         ],
         "metric_counts": {

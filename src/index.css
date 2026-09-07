@@ -845,6 +845,36 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   display: none;
 }
 
+/* Safe area insets & touch utility classes */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+.pt-safe {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+}
+.mb-safe {
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+.mobile-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+.mobile-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--border-strong);
+  margin: 4px auto 14px auto;
+}
+
+
 
 @media (max-width: 768px) {
 

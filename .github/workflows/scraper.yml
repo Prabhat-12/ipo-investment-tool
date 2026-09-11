@@ -1,11 +1,10 @@
-name: Run IPO Scraper Sync
+name: Run IPO Scraper & Real-Time Sync
 
 on:
   schedule:
-    # Runs hourly during Indian market hours (3:30 AM to 11:30 AM UTC, Mon-Fri)
-    # This maps to 9:00 AM to 5:00 PM IST
-    - cron: '30 3-11 * * 1-5'
-  workflow_dispatch: # Allows manual trigger from the GitHub Actions UI
+    # Runs every 3 hours daily (UTC) to capture market updates, GMP shifts, & upcoming IPOs
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # Allows manual one-click trigger from GitHub Actions UI
 
 jobs:
   run-scraper:
@@ -26,10 +25,18 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run Sync and Alert Job
+      - name: Run Sync, Analysis Engine & Alert Dispatcher
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python sync_and_alert.py
+
+      - name: Auto-commit updated local JSON cache
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add src/data/db_local.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "auto: update db_local.json cache [skip ci]" && git push)
+

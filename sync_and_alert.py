@@ -124,7 +124,15 @@ def process_sync_and_alerts():
                 )
                 send_alert(alert_title, alert_message)
 
+    # 3. Always dump updated cloud data to local JSON cache
+    try:
+        import dump_supabase_to_json
+        dump_supabase_to_json.dump()
+    except Exception as e:
+        print(f"Notice: Local JSON dump skipped or failed: {e}")
+
     print("--- Automation Job Finished ---")
 
 if __name__ == "__main__":
     process_sync_and_alerts()
+

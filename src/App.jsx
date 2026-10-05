@@ -1195,6 +1195,8 @@ export default function App() {
                   <input
                     type="text"
                     placeholder="Full Name"
+                    aria-label="Full Name"
+                    autoComplete="name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="input-field"
@@ -1205,6 +1207,8 @@ export default function App() {
                 <input
                   type="email"
                   placeholder="email@example.com"
+                  aria-label="Email address"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field"
@@ -1214,6 +1218,8 @@ export default function App() {
                 <input
                   type="password"
                   placeholder="Password"
+                  aria-label="Password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input-field"
@@ -1729,14 +1735,14 @@ export default function App() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'rgba(0,0,0,0.015)', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Company</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>GMP Premium</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>QIB Demand</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Allotment Odds</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Issue Size</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Lot Cost</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Timeline</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Recommendation</th>
+                    <th scope="col" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Company</th>
+                    <th scope="col" className="tabular-nums" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>GMP Premium</th>
+                    <th scope="col" className="tabular-nums" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>QIB Demand</th>
+                    <th scope="col" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Allotment Odds</th>
+                    <th scope="col" className="tabular-nums" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Issue Size</th>
+                    <th scope="col" className="tabular-nums" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Lot Cost</th>
+                    <th scope="col" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Timeline</th>
+                    <th scope="col" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Recommendation</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2310,14 +2316,14 @@ export default function App() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'rgba(0,0,0,0.015)', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Company</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>GMP Premium</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Subscription</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Allotment Chance</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Issue Size</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Lot Cost</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Closing Date</th>
-                    <th style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Signal</th>
+                    <th scope="col" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Company</th>
+                    <th scope="col" className="tabular-nums" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>GMP Premium</th>
+                    <th scope="col" className="tabular-nums" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Subscription</th>
+                    <th scope="col" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Allotment Chance</th>
+                    <th scope="col" className="tabular-nums" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Issue Size</th>
+                    <th scope="col" className="tabular-nums" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Lot Cost</th>
+                    <th scope="col" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Closing Date</th>
+                    <th scope="col" style={{ padding: '14px 18px', fontWeight: '800', color: 'var(--text-h)' }}>Signal</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -3635,7 +3641,7 @@ export default function App() {
           </div>
 
           {/* Navigation vertical list */}
-          <nav className="sidebar-menu">
+          <nav role="tablist" className="sidebar-menu">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: Layers },
               { id: 'capital', label: 'Family Rotator', icon: Users },
@@ -3646,6 +3652,8 @@ export default function App() {
               return (
                 <button
                   key={item.id}
+                  role="tab"
+                  aria-selected={activeTab === item.id}
                   data-tooltip={item.label}
                   onClick={() => {
                     setActiveTab(item.id);

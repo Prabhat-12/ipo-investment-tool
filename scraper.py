@@ -6,8 +6,10 @@ import re
 from datetime import datetime, timedelta
 import random
 
-# Load database client
+# Load database client & clients
 import db_client
+import ipoguru_client
+from decision_engine import evaluate_ipo
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -310,22 +312,128 @@ def _scrape_ipo_list_from_detail_links(html):
                             ipo_data["status"] = "listed"
 
             ipos_list.append(ipo_data)
-            print(f"  Parsed detail page: {name} (status={ipo_data['status']})")
         except Exception as e:
             print(f"  Error parsing detail page {detail_url}: {e}")
 
     return ipos_list
 
 
+def _fetch_chittorgarh_detail_link_map():
+    """
+    Fetches Chittorgarh report 83 (Mainboard) and report 82 (All IPOs)
+    to build a lookup map: key_slug/token -> (detail_url, chittorgarh_id, full_name)
+    """
+    link_map = {}
+    for url in [
+        "https://www.chittorgarh.com/report/mainboard-ipo-list-in-india-bse-nse/83/",
+        "https://www.chittorgarh.com/report/ipo-in-india-list-main-board-sme/82/"
+    ]:
+        html = fetch_page(url)
+        if not html:
+            continue
+        soup = BeautifulSoup(html, "lxml")
+        for a in soup.find_all("a", href=re.compile(r'/ipo/[a-z0-9\-]+/\d+/?')):
+            href = a.get("href", "")
+            if not href.startswith("http"):
+                href = "https://www.chittorgarh.com" + href
+            slug, ipo_id = _extract_slug_id_from_url(href)
+            if slug and ipo_id:
+                name = clean_text(a.text)
+                link_map[slug] = (href, ipo_id, name)
+                token = slug.replace("-ipo", "").split("-")[0]
+                if token and token not in link_map:
+                    link_map[token] = (href, ipo_id, name)
+    return link_map
+
+
 def scrape_main_list():
     """
-    Scrapes the list of Mainboard IPOs from Chittorgarh.
-    Strategy:
-      1. Try standard table parse (works if Chittorgarh serves SSR table).
-      2. If table is empty, extract IPO detail-page links from static HTML cards
-         and fetch each detail page individually (detail pages are always SSR).
-      3. Fall back to mock data if both fail, marking records with is_fallback=True.
+    Hybrid Mainboard IPO Discovery:
+    1. Primary Source: IPO Guru Developer API (Paid Basic Plan)
+       Fetches live upcoming/active mainboard issues with rich terms & GMP.
+       Cross-references with Chittorgarh detail URLs for DRHP tables.
+    2. Fallback 1: Chittorgarh SSR table parser.
+    3. Fallback 2: Chittorgarh static card links extractor.
+    4. Fallback 3: Mock upcoming issues (marked is_fallback=True).
     """
+    # 1. PRIMARY SOURCE: IPO Guru Developer API
+    guru_ipos = ipoguru_client.fetch_active_ipos(ipo_type="mainboard", limit=20)
+    if guru_ipos:
+        print(f"IPO Guru API: Successfully retrieved {len(guru_ipos)} active mainboard IPOs.")
+        chittorgarh_map = _fetch_chittorgarh_detail_link_map()
+        today = datetime.now().date()
+        ipos_list = []
+
+        for item in guru_ipos:
+            slug = item.get("slug", "")
+            name = item.get("name") or item.get("display_name", "")
+
+            # Match Chittorgarh detail URL
+            matched_url, matched_id = None, None
+            if slug in chittorgarh_map:
+                matched_url, matched_id, _ = chittorgarh_map[slug]
+            else:
+                token = slug.replace("-ipo", "").split("-")[0]
+                if token in chittorgarh_map:
+                    matched_url, matched_id, _ = chittorgarh_map[token]
+
+            # Normalize summary item directly from /ipos payload (no extra API call needed)
+            norm = ipoguru_client.normalize_ipoguru_record(item) or {}
+
+            open_d = norm.get("open_date") or item.get("open_date")
+            close_d = norm.get("close_date") or item.get("close_date")
+            list_d = norm.get("listing_date") or item.get("listing_date")
+
+            # Determine status accurately
+            status = "upcoming"
+            if open_d and close_d:
+                try:
+                    od = datetime.strptime(open_d, "%Y-%m-%d").date()
+                    cd = datetime.strptime(close_d, "%Y-%m-%d").date()
+                    if od <= today <= cd:
+                        status = "bidding"
+                    elif today > cd:
+                        status = "closed"
+                        if list_d and today >= datetime.strptime(list_d, "%Y-%m-%d").date():
+                            status = "listed"
+                    else:
+                        status = "upcoming"
+                except Exception:
+                    pass
+            elif item.get("status"):
+                status = item.get("status").lower()
+
+            ipo_rec = {
+                "name": norm.get("name") or name,
+                "slug": slug,
+                "symbol": norm.get("symbol") or slug[:10].upper().replace("-", ""),
+                "price_band_low": norm.get("price_band_low", 0.0),
+                "price_band_high": norm.get("price_band_high", 0.0),
+                "issue_size_cr": norm.get("issue_size_cr", 0.0),
+                "lot_size": norm.get("lot_size", 1),
+                "retail_lot_cost": norm.get("retail_lot_cost", 0.0),
+                "open_date": open_d,
+                "close_date": close_d,
+                "listing_date": list_d,
+                "detail_url": matched_url or f"https://www.chittorgarh.com/ipo/{slug}/",
+                "chittorgarh_id": matched_id,
+                "status": status,
+                "gmp_pct": norm.get("gmp_pct", 0.0),
+                "gmp_rs": norm.get("gmp_rs", 0.0),
+                "estimated_listing": norm.get("estimated_listing", 0.0),
+                "pe_ratio": norm.get("ipo_pe", 0.0),
+                "post_ipo_promoter_holding_pct": norm.get("post_ipo_promoter_holding_pct", 0.0),
+                "financials": norm.get("financials", []),
+                "is_fallback": False
+            }
+            ipos_list.append(ipo_rec)
+
+        if ipos_list:
+            print(f"Hybrid pipeline constructed {len(ipos_list)} active mainboard IPOs from IPO Guru API.")
+            return ipos_list
+
+    # 2. FALLBACK: Chittorgarh Scraping
+    print("IPO Guru API returned no records. Attempting Chittorgarh report 83 scrape...")
     url = "https://www.chittorgarh.com/report/mainboard-ipo-list-in-india-bse-nse/83/"
     html = fetch_page(url)
 
@@ -405,7 +513,6 @@ def scrape_main_list():
                 print(f"Scraped {len(ipos_list)} IPOs from Chittorgarh main board table.")
                 return ipos_list
 
-            # Table was empty (Next.js hydration shell) — try via static card links
             print("Main board table is empty (JS-rendered). Trying detail-page link extraction...")
             ipos_list = _scrape_ipo_list_from_detail_links(html)
             if ipos_list:
@@ -415,8 +522,8 @@ def scrape_main_list():
         except Exception as e:
             print(f"Error parsing main IPO list: {e}")
 
-    # FALLBACK MODE
-    print("Warning: All Chittorgarh scraping strategies failed. Activating Fallback Mock Data (is_fallback=True)...")
+    # 3. FALLBACK MODE
+    print("Warning: All live scraping strategies failed. Activating Fallback Mock Data (is_fallback=True)...")
     fallback = get_fallback_upcoming_ipos()
     for ipo in fallback:
         ipo["is_fallback"] = True
@@ -426,107 +533,155 @@ def scrape_main_list():
 # ----------------------------------------------------
 # 2. DETAIL PAGE SCRAPER (Financials, Peers, Anchors)
 # ----------------------------------------------------
-def scrape_ipo_details(detail_url, name=""):
+def scrape_ipo_details(detail_url, name="", slug=""):
     """
-    Scrapes specific parameters from the IPO detail page on Chittorgarh.
-    Includes Fresh issue size, OFS size, promoter holding, median P/E, 3y financials, and anchor book.
+    Hybrid Details Fetcher:
+    1. IPO Guru API: Financials (3-yr PAT & Revenue), Post-IPO Promoter Holding, IPO P/E.
+    2. Chittorgarh HTML Parser:
+       - Table 1: Fresh Issue (₹ Cr) & Offer for Sale (OFS ₹ Cr)
+       - /ipo-recommendation/{slug}/{id}/: SEBI Listed Peers table & mathematical median P/E
+       - Table 7/8/9: Market Cap (₹ Cr), Promoter stake fallback, Marquee Anchor investor detection.
     """
     details = {
         "fresh_issue_cr": 0.0,
         "ofs_cr": 0.0,
         "market_cap_cr": 0.0,
-        "post_ipo_promoter_holding_pct": 55.0, # default
-        "pe_ratio": 25.0, # default
-        "peers_median_pe": 32.0, # default
+        "post_ipo_promoter_holding_pct": 0.0,
+        "pe_ratio": 0.0,
+        "peers_median_pe": 0.0,
+        "anchor_marquee_score": 0,
         "financials": [],
         "peers": [],
         "anchors": []
     }
-    
+
+    # 1. Fetch rich document from IPO Guru API if slug available
+    guru_norm = None
+    if slug:
+        guru_det = ipoguru_client.fetch_ipo_detail(slug)
+        if guru_det:
+            guru_norm = ipoguru_client.normalize_ipoguru_record(guru_det)
+            if guru_norm:
+                details["pe_ratio"] = guru_norm.get("ipo_pe", 0.0)
+                details["post_ipo_promoter_holding_pct"] = guru_norm.get("post_ipo_promoter_holding_pct", 0.0)
+                details["financials"] = guru_norm.get("financials", [])
+
+    # 2. Scrape Chittorgarh for Fresh vs OFS, Peers, Market Cap
     html = fetch_page(detail_url) if detail_url else None
-    
     if html:
         try:
             soup = BeautifulSoup(html, "lxml")
-            
-            # Scrape issue breakdown (Fresh vs OFS)
-            # Typically search in text content for patterns like "Fresh Issue of... Rs ... Crore"
-            text_content = soup.get_text()
-            fresh_match = re.search(r'Fresh Issue\s*(?:of)?\s*(?:[\w\s]*)\s*aggregate\s*up\s*to\s*₹?(\d+\.?\d*)\s*Cr', text_content, re.IGNORECASE)
-            ofs_match = re.search(r'Offer for Sale\s*(?:of)?\s*(?:[\w\s]*)\s*aggregate\s*up\s*to\s*₹?(\d+\.?\d*)\s*Cr', text_content, re.IGNORECASE)
-            
-            if fresh_match:
-                details["fresh_issue_cr"] = float(fresh_match.group(1))
-            if ofs_match:
-                details["ofs_cr"] = float(ofs_match.group(1))
-                
-            # Search for Market Cap
-            mcap_match = re.search(r'Market Cap\s*(?:[\w\s]*)\s*₹?(\d+\.?\d*)\s*Cr', text_content, re.IGNORECASE)
-            if mcap_match:
-                details["market_cap_cr"] = float(mcap_match.group(1))
-                
-            # Scrape tables: Financials & Peers
             tables = soup.find_all("table")
+
+            # Parse Table 1 / first tables for Fresh Issue and OFS
+            for t in tables[:4]:
+                for tr in t.find_all("tr"):
+                    txt = tr.get_text(" ")
+                    if "Fresh Issue" in txt:
+                        m = re.search(r'\(agg\.\s*up\s*to\s*₹?\s*([\d\.,]+)\s*Cr\)', txt)
+                        if not m:
+                            m = re.search(r'₹\s*([\d\.,]+)\s*Cr', txt)
+                        if m:
+                            details["fresh_issue_cr"] = float(m.group(1).replace(',', ''))
+                    elif "Offer for Sale" in txt or "OFS" in txt:
+                        m = re.search(r'\(agg\.\s*up\s*to\s*₹?\s*([\d\.,]+)\s*Cr\)', txt)
+                        if not m:
+                            m = re.search(r'₹\s*([\d\.,]+)\s*Cr', txt)
+                        if m:
+                            details["ofs_cr"] = float(m.group(1).replace(',', ''))
+
+            # Parse Market Cap & Promoter stake / PE fallbacks
             for t in tables:
-                headers = [clean_text(th.text).lower() for th in t.find_all("th")]
-                
-                # Identify Financials table
-                if any("revenue" in h or "pat" in h or "profit after tax" in h for h in headers):
-                    rows = t.find_all("tr")
-                    for row in rows[1:]:
-                        cols = [clean_text(td.text) for td in row.find_all("td")]
-                        if len(cols) >= 3:
-                            # Usually cols[0] is year (e.g. FY24), revenue in some column, pat in some column
-                            year = cols[0]
-                            # Clean and parse numbers
-                            nums = []
-                            for c in cols[1:]:
-                                val = re.findall(r'-?\d+\.?\d*', c.replace(",", ""))
-                                nums.append(float(val[0]) if val else 0.0)
-                            
-                            # Standard layout is: Year | Assets | Revenue | PAT | Net Worth
-                            if len(nums) >= 3:
-                                revenue = nums[1]
-                                pat = nums[2]
-                                margin = (pat / revenue * 100) if revenue > 0 else 0.0
-                                details["financials"].append({
-                                    "fiscal_year": year,
-                                    "revenue_cr": revenue,
-                                    "pat_cr": pat,
-                                    "pat_margin_pct": round(margin, 2)
-                                })
-                                
-                # Identify Peer comparison table
-                elif "peer" in headers or any("p/e" in h for h in headers):
-                    rows = t.find_all("tr")
-                    for row in rows[1:]:
-                        cols = [clean_text(td.text) for td in row.find_all("td")]
-                        if len(cols) >= 2:
-                            peer_name = cols[0]
-                            pe_vals = re.findall(r'\d+\.?\d*', cols[-1])
-                            peer_pe = float(pe_vals[0]) if pe_vals else 0.0
-                            details["peers"].append({
-                                "peer_name": peer_name,
-                                "peer_pe": peer_pe
+                for tr in t.find_all("tr"):
+                    txt = tr.get_text(" ")
+                    if details["post_ipo_promoter_holding_pct"] == 0.0 and "Promoter and Promoter Group" in txt:
+                        pcts = re.findall(r'([\d\.]+)%', txt)
+                        if len(pcts) >= 2:
+                            details["post_ipo_promoter_holding_pct"] = float(pcts[1])
+                        elif len(pcts) == 1:
+                            details["post_ipo_promoter_holding_pct"] = float(pcts[0])
+                    if details["pe_ratio"] == 0.0 and ("P/E (x)" in txt or "PE Ratio" in txt):
+                        nums = re.findall(r'[\d\.]+', txt)
+                        if len(nums) >= 2:
+                            details["pe_ratio"] = float(nums[-1])
+                    if details["market_cap_cr"] == 0.0 and "Market Cap" in txt and "Cr" in txt:
+                        nums = re.findall(r'[\d\.,]+', txt)
+                        if nums:
+                            details["market_cap_cr"] = float(nums[-1].replace(',', ''))
+
+            # Parse Anchor book if available
+            marquee_keywords = ['sbi', 'hdfc', 'icici', 'nippon', 'kotak', 'axis', 'mirae', 'uti', 'dsp', 'tata', 'aditya birla', 'goldman', 'morgan stanley', 'nomura', 'blackrock', 'fidelity', 'sovereign', 'abu dhabi', 'singapore', 'temasek', 'norway', 'gic']
+            anchor_found_marquee = False
+            for t in tables[8:12]:
+                headers = [th.get_text().strip().lower() for th in t.find_all("th")]
+                if any("anchor" in h or "investor" in h for h in headers):
+                    for tr in t.find_all("tr")[1:]:
+                        cols = [td.get_text().strip() for td in tr.find_all("td")]
+                        if cols:
+                            a_name = cols[0]
+                            is_marq = any(mk in a_name.lower() for mk in marquee_keywords)
+                            if is_marq:
+                                anchor_found_marquee = True
+                            details["anchors"].append({
+                                "investor_name": a_name,
+                                "shares_allocated": 0,
+                                "amount_allocated_cr": 0.0,
+                                "is_marquee": is_marq
                             })
-                            
-            # Compute PE stats
-            if details["peers"]:
-                pe_list = [p["peer_pe"] for p in details["peers"] if p["peer_pe"] > 0]
-                if pe_list:
-                    # Calculate median PE
-                    pe_list.sort()
-                    mid = len(pe_list) // 2
-                    details["peers_median_pe"] = pe_list[mid] if len(pe_list) % 2 != 0 else (pe_list[mid-1] + pe_list[mid]) / 2.0
-                    
-            print(f"Scraped details for {name} from {detail_url}")
+            if anchor_found_marquee:
+                details["anchor_marquee_score"] = 85
+            elif details["anchors"]:
+                details["anchor_marquee_score"] = 65
+
+            # Scrape Listed Peers from Chittorgarh Recommendation sub-page
+            slug_part, id_part = _extract_slug_id_from_url(detail_url)
+            if slug_part and id_part:
+                rec_url = f"https://www.chittorgarh.com/ipo-recommendation/{slug_part}/{id_part}/"
+                rec_html = fetch_page(rec_url)
+                if rec_html:
+                    rec_soup = BeautifulSoup(rec_html, "lxml")
+                    for t in rec_soup.find_all("table"):
+                        headers = [th.get_text().strip().lower() for th in t.find_all("th")]
+                        if "company name" in headers and any("p/e" in h for h in headers):
+                            pe_idx = next(i for i, h in enumerate(headers) if "p/e" in h)
+                            for tr in t.find_all("tr")[1:]:
+                                cols = [td.get_text().strip() for td in tr.find_all("td")]
+                                if len(cols) > pe_idx:
+                                    peer_company = cols[0]
+                                    pe_str = cols[pe_idx]
+                                    pe_match = re.findall(r'[\d\.]+', pe_str)
+                                    if pe_match:
+                                        try:
+                                            p_val = float(pe_match[0])
+                                            # Don't add if it's the IPO itself
+                                            if p_val > 0 and (name.lower() not in peer_company.lower()):
+                                                details["peers"].append({
+                                                    "peer_name": peer_company,
+                                                    "peer_pe": p_val,
+                                                    "ipo_pe": details["pe_ratio"]
+                                                })
+                                        except Exception:
+                                            pass
+
+            # Compute true mathematical median of peers
+            pe_vals = [p["peer_pe"] for p in details["peers"] if p.get("peer_pe", 0) > 0]
+            if pe_vals:
+                pe_vals.sort()
+                mid = len(pe_vals) // 2
+                details["peers_median_pe"] = pe_vals[mid] if len(pe_vals) % 2 != 0 else (pe_vals[mid-1] + pe_vals[mid]) / 2.0
+
+            print(f"Hybrid Scraped: {name} (Fresh=₹{details['fresh_issue_cr']}Cr, OFS=₹{details['ofs_cr']}Cr, PE={details['pe_ratio']}x, Peers Median PE={details['peers_median_pe']:.1f}x)")
             return details
+
         except Exception as e:
-            print(f"Error parsing details page: {e}")
-            
-    # Mock details fallback
-    print(f"Generating mock detail parameters for: {name} (Fallback)")
-    return get_fallback_ipo_details(name)
+            print(f"Error parsing details for {name}: {e}")
+
+    # Fallback only if both failed
+    if not guru_norm:
+        print(f"Generating mock detail parameters for: {name} (Fallback)")
+        return get_fallback_ipo_details(name)
+
+    return details
 
 
 # ----------------------------------------------------
@@ -607,6 +762,12 @@ def scrape_subscriptions(detail_url, name="", chittorgarh_id=None):
 
         except Exception as e:
             print(f"Error parsing subscription page {sub_url}: {e}")
+
+    # If the subscription page exists but bidding has not opened yet (upcoming IPO),
+    # return zeros cleanly rather than generating mock numbers.
+    if html:
+        print(f"Subscription page found for {name}, but bidding has not opened yet (0.0x).")
+        return {"qib": 0.0, "nii": 0.0, "retail": 0.0, "total": 0.0, "is_fallback": False}
 
     # Fall back to IPOWatch subscriptions if Chittorgarh is unavailable/empty
     sub_data_watch = scrape_subscriptions_from_ipowatch(name)
@@ -794,22 +955,34 @@ def scrape_subscriptions_from_ipowatch(name):
         
     return None
 
-def scrape_gmp(name, detail_url=None):
+def scrape_gmp(name, detail_url=None, slug=None):
     """
     Scrapes the current Grey Market Premium (GMP) for a given IPO.
-    We try IPOWatch first, then fall back to InvestorGain, and then get the mock fallback.
+    Priority:
+      1. IPO Guru Developer API (Paid Basic Plan - Live GMP)
+      2. IPOWatch
+      3. InvestorGain
+      4. Fallback
     """
-    # 1. Try IPOWatch
+    # 1. Primary: IPO Guru API
+    if slug:
+        guru_det = ipoguru_client.fetch_ipo_detail(slug)
+        if guru_det and guru_det.get("gmp"):
+            pct = ipoguru_client.parse_percentage(guru_det["gmp"].get("percentage"))
+            if pct > 0:
+                print(f"Retrieved GMP for {name} from IPO Guru API: {pct}%")
+                return pct
+
+    # 2. Try IPOWatch
     gmp_data = scrape_gmp_from_ipowatch(name)
     if gmp_data and (gmp_data["gmp_pct"] > 0.0 or gmp_data["gmp_rs"] > 0.0):
         return gmp_data["gmp_pct"]
 
-    # 2. Fall back to InvestorGain
+    # 3. Fall back to InvestorGain
     gmp_result = {"gmp_pct": 0.0, "gmp_rs": 0.0, "is_fallback": False}
 
     # Derive slug from Chittorgarh detail URL or construct from name
-    slug = None
-    if detail_url:
+    if not slug and detail_url:
         s, _ = _extract_slug_id_from_url(detail_url)
         slug = s  # e.g. 'juniper-green-energy-ipo'
 
@@ -1252,22 +1425,45 @@ def sync_active_ipos():
         key=lambda x: 0 if x.get("status") == "bidding" else (1 if x.get("status") == "upcoming" else 2)
     )
     
-    for ipo in upcoming_list[:10]: # prioritize and raise limit to top 10 current mainboard IPOs
+    for ipo in upcoming_list[:10]: # prioritize top 10 current mainboard IPOs
         print(f"Processing IPO: {ipo['name']}")
         
-        # 2. Get specific details (financials, peers, promoter stake, mcap)
-        details = scrape_ipo_details(ipo["detail_url"], ipo["name"])
+        # 2. Get specific details (financials, peers, promoter stake, mcap, fresh vs ofs)
+        details = scrape_ipo_details(ipo.get("detail_url", ""), ipo["name"], slug=ipo.get("slug", ""))
         ipo.update(details)
         
         # 3. Get live subscription levels
-        sub_levels = scrape_subscriptions(ipo["detail_url"], ipo["name"])
+        sub_levels = scrape_subscriptions(ipo.get("detail_url", ""), ipo["name"])
         ipo.update(sub_levels)
         
         # 4. Get GMP premium
-        gmp_pct = scrape_gmp(ipo["name"], detail_url=ipo.get("detail_url", ""))
+        gmp_pct = ipo.get("gmp_pct") or scrape_gmp(ipo["name"], detail_url=ipo.get("detail_url", ""), slug=ipo.get("slug"))
         ipo["gmp_pct"] = gmp_pct
         
-        # 5. Save/Update IPO master table
+        # 5. Evaluate IPO using 8 Decision Metrics
+        eval_payload = {
+            "name": ipo["name"],
+            "status": ipo["status"],
+            "open_date": ipo.get("open_date"),
+            "total_sub": ipo.get("total", 0.0),
+            "qib_sub": ipo.get("qib", 0.0),
+            "retail_sub": ipo.get("retail", 0.0),
+            "issue_size_cr": ipo.get("issue_size_cr", 0.0),
+            "ofs_cr": ipo.get("ofs_cr", 0.0),
+            "pe_ratio": ipo.get("pe_ratio", 0.0),
+            "peers_median_pe": ipo.get("peers_median_pe", 0.0),
+            "gmp_pct": ipo.get("gmp_pct", 0.0),
+            "anchor_marquee_score": ipo.get("anchor_marquee_score", 0),
+            "financials": ipo.get("financials", []),
+            "market_cap_cr": ipo.get("market_cap_cr", 0.0),
+            "post_ipo_promoter_holding_pct": ipo.get("post_ipo_promoter_holding_pct", 0.0)
+        }
+        eval_res = evaluate_ipo(eval_payload)
+        ipo["decision"] = eval_res["decision"]
+        ipo["decision_notes"] = eval_res["notes"]
+        print(f"  Decision Signal: {eval_res['decision']} (Score: {eval_res['score']}/8) - {eval_res['notes']}")
+        
+        # 6. Save/Update IPO master table
         ipo_id = db_client.upsert_ipo({
             "name": ipo["name"],
             "symbol": ipo.get("symbol", ipo["name"][:10].upper().replace(" ", "")),
@@ -1283,11 +1479,13 @@ def sync_active_ipos():
             "listing_date": ipo["listing_date"],
             "status": ipo["status"],
             "market_cap_cr": ipo["market_cap_cr"],
-            "post_ipo_promoter_holding_pct": ipo["post_ipo_promoter_holding_pct"]
+            "post_ipo_promoter_holding_pct": ipo["post_ipo_promoter_holding_pct"],
+            "decision": ipo["decision"],
+            "decision_notes": ipo["decision_notes"]
         })
         
         if ipo_id:
-            # 6. Save subscriptions (using current timestamp for twice-daily logging)
+            # 7. Save subscriptions (using current timestamp for twice-daily logging)
             today_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             db_client.upsert_subscription({
                 "ipo_id": ipo_id,
@@ -1298,7 +1496,7 @@ def sync_active_ipos():
                 "total": ipo["total"]
             })
             
-            # 7. Save GMP history
+            # 8. Save GMP history
             est_listing = ipo["price_band_high"] * (1 + gmp_pct / 100.0) if ipo["price_band_high"] > 0 else 0.0
             db_client.upsert_gmp({
                 "ipo_id": ipo_id,
@@ -1308,20 +1506,23 @@ def sync_active_ipos():
                 "implied_gain_pct": gmp_pct
             })
             
-            # 8. Save peers
+            # 9. Save peers
             if ipo["peers"]:
                 db_client.save_peers(ipo_id, ipo["peers"])
                 
-            # 9. Save financials
+            # 10. Save financials
             if ipo["financials"]:
                 db_client.save_financials(ipo_id, ipo["financials"])
                 
-            # 10. Save anchors
+            # 11. Save anchors
             if ipo["anchors"]:
                 db_client.save_anchors(ipo_id, ipo["anchors"])
                 
     # Update existing database records that have expired/closed/opened
     update_existing_ipo_statuses()
+    
+    # Mirror latest cloud state to db_local.json for offline resilience
+    db_client.export_supabase_to_local_db()
     
     print("--- Sync Job Completed ---")
 

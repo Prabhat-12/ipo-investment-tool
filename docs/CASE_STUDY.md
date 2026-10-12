@@ -112,12 +112,15 @@ Modern web aggregators are highly dynamic. We faced two major issues:
 1.  **Next.js Hydration:** Chittorgarh shifted its layout to load pages via Next.js client-side hydration. When the python scraper retrieved the HTML using `requests`, it received an empty Javascript shell with no table rows, causing standard DOM selectors (`BeautifulSoup`) to fail.
 2.  **Rate-Limiting & Cloudflare:** The scraper was occasionally blocked or rate-limited, writing empty data to the DB and causing missing stats on the dashboard.
 
-#### The Multi-Tiered Fallback Solution
-We refactored [scraper.py](file:///Users/prabhat/IPO%20Investment%20Tool/scraper.py) to use a resilient, multi-stage fallback strategy:
-*   **Tier 1 (DOM Parser):** Standard HTML selector parsing.
-*   **Tier 2 (Regex extraction):** If the DOM is missing elements, the script runs a regex sweep directly on the raw text content of the page script objects to extract pricing and dates.
-*   **Tier 3 (Graceful Mock Fallback):** If all scraping strategies fail due to blockages, the scraper catches the error, generates mock listings (such as FirstCry, Ola Electric, Unicommerce), marks them with `is_fallback=True`, and proceeds. This guarantees that a scraping failure never breaks the frontend application UI.
-*   **API Transition Plan:** During our strategy reviews, we mapped out a plan to transition from fragile scraping to dedicated REST APIs (e.g., IPO Guru or Indian IPO Wallah API) to ensure production-grade data consistency.
+#### The Solution: Hybrid Dual-Engine Ingestion Architecture
+We integrated a production-grade **Hybrid Architecture** combining a paid **IPO Guru Developer API** with targeted **Chittorgarh DRHP HTML parsing**:
+*   **Tier 1 (IPO Guru Developer REST API):** Provides authoritative master data for mainboard IPO calendar discovery (`/ipos`), price bands, issue size (M7), live Grey Market Premium (M4), post-IPO promoter holdings (M8), and 3-year audited financial trajectories (M6).
+*   **Tier 2 (Chittorgarh Targeted DRHP Parser):** Scrapes the specific data points absent from the API Basic plan:
+    *   **Table 1 Parsing:** Extracts the exact Fresh Issue vs Offer for Sale (OFS ₹ Cr) breakdown (M2).
+    *   **SEBI Listed Peer Table:** Queries `/ipo-recommendation/{slug}/{id}/#analysisTable` to extract listed peer competitors, their live P/E multiples, and computes the true mathematical median P/E (M3).
+    *   **Live Subscription Sub-Pages:** Polls `/ipo_subscription/{slug}/{id}/` for live QIB, NII, and Retail subscription multiples during active bidding windows (M1).
+*   **Tier 3 (Rate-Limiting & Caching Guard):** Integrated client-side request throttling, 5-minute memory caching, and automatic exponential backoff on HTTP 429 to respect the Basic plan's 10 req/min limit.
+*   **Tier 4 (Offline Mirroring & Resilient Fallback):** Real-time data synced to Supabase Cloud is automatically mirrored to `src/data/db_local.json`, allowing the dashboard to operate seamlessly offline with real data without needing mock listings.
 
 ---
 

@@ -18,10 +18,12 @@ if SUPABASE_URL and SUPABASE_KEY:
     if "your-project-id" not in SUPABASE_URL and "your-supabase-anon" not in SUPABASE_KEY:
         try:
             supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+            # Verify connectivity to verify project is active and reachable
+            supabase_client.table("ipos").select("id").limit(1).execute()
             IS_CLOUD_MODE = True
             print("Database Status: ONLINE (Supabase Cloud Connected)")
         except Exception as e:
-            print(f"Database Connection Error: {e}. Falling back to OFFLINE Mode.")
+            print(f"Database Connection Notice: {e}. Supabase is paused or unreachable. Falling back to OFFLINE Mode.")
             IS_CLOUD_MODE = False
 
 if not IS_CLOUD_MODE:
@@ -454,6 +456,29 @@ def upsert_user_application(app_data):
             db["user_applications"].append(copy_data)
             _save_local_db(db)
             return new_id
+
+
+def export_supabase_to_local_db():
+    """
+    Exports core tables from Supabase into src/data/db_local.json so the offline
+    and frontend views always have the latest synced data.
+    """
+    if not IS_CLOUD_MODE:
+        return
+    try:
+        tables = ["ipos", "subscriptions", "gmp_history", "peers", "financials", "anchor_investors", "user_profiles", "family_groups", "family_members", "user_accounts", "user_applications"]
+        local_data = _load_local_db()
+        for tbl in tables:
+            try:
+                res = supabase_client.table(tbl).select("*").execute()
+                if res.data is not None:
+                    local_data[tbl] = res.data
+            except Exception as te:
+                pass
+        _save_local_db(local_data)
+        print("Successfully mirrored Supabase Cloud data to src/data/db_local.json")
+    except Exception as e:
+        print(f"Error mirroring Supabase to local db: {e}")
 
 
 # Debug print

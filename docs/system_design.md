@@ -4,26 +4,31 @@ A detailed walkthrough of how data moves through the four-stage pipeline, from t
 
 ---
 
-## Stage 1: Data Ingestion (`scraper.py`)
+## Stage 1: Data Ingestion (`scraper.py` + `ipoguru_client.py`)
 
 ### What it's actually doing
-Think of this stage as a continuously-refreshing cache of ground truth about every live and upcoming Mainboard IPO. It isn't a single fetch — it's a scheduled job that re-pulls data at different cadences depending on how fast that data moves.
+The system uses a **Hybrid Dual-Engine Ingestion Architecture** combining the **IPO Guru Developer API (Basic Plan)** with targeted **Chittorgarh HTML scraping** to obtain 100% real-world data coverage for all 8 decision metrics without relying on hardcoded mock values.
 
-**Sources it needs to hit:**
-- **NSE/BSE official IPO portals** for price band, issue size, OFS vs fresh issue split, and the open/close dates.
-- **Subscription data feeds** (updated multiple times a day while an IPO is live) for QIB, NII, and Retail multiples.
-- **Grey market tracker sites** for GMP, since this isn't available through any official exchange feed.
-- **RHP/DRHP filings** for anchor investor allocation and use-of-funds, which feed into your qualitative scoring metrics.
+**Division of Responsibilities:**
+- **IPO Guru API (`https://www.ipoguru.in/api/v2`)**:
+  - Mainboard IPO calendar discovery (`/ipos?type=mainboard`)
+  - Issue price bands, lot sizes, timeline dates (open, close, listing)
+  - Issue size in ₹ Crores (Metric 7)
+  - Live Grey Market Premium (GMP % and ₹) updated hourly (Metric 4)
+  - Post-IPO Promoter Holding percentage (Metric 8)
+  - 3-year historical Profit After Tax (PAT) and revenue trajectory (Metric 6)
+  - IPO Post-Issue P/E ratio (Metric 3 part 1)
+- **Chittorgarh Deep HTML Parser (`https://www.chittorgarh.com`)**:
+  - Issue structure breakdown from Table 1: exact **Fresh Issue vs Offer for Sale (OFS)** in ₹ Crores (Metric 2)
+  - DRHP Listed Peers comparison from `/ipo-recommendation/{slug}/{id}/#analysisTable`: extracts listed peer competitor names, competitor P/E ratios, and computes true mathematical median P/E (Metric 3 part 2)
+  - Category-wise live subscription multiples from `/ipo_subscription/{slug}/{id}/`: QIB, NII, Retail multiples updated on bidding days (Metric 1)
+  - Anchor Investor allocation table from Table 9: scans for blue-chip/marquee domestic mutual funds and sovereign funds (Metric 5)
 
-### Scheduling logic — the detail that matters
-Not every data point needs the same refresh rate. A sensible design:
-- **Static fields** (price band, issue size, dates, OFS ratio) — fetched once when the IPO first appears in the pipeline, then only re-checked daily in case of amendments.
-- **Subscription multiples** — these move fast on Day 2 and especially Day 3 (closing day), so during an active IPO's open window, poll every 30–60 minutes. Outside the open window, no need to poll at all.
-- **GMP** — fetched daily is usually enough pre-listing, but tighten to every few hours in the 24 hours before closing day since this is one of your two mandatory gate conditions.
-
-> [!TIP]
-> **Scraper Efficiency Enhancement: Conditional HTTP Requests**
-> To avoid getting rate-limited or blocked by financial portals, the scraper should use **ETags** and **Last-Modified headers** in HTTP requests. If the site returns a `304 Not Modified`, the scraper skips downloading the page body, saving network overhead and avoiding bot detection triggers.
+### Rate Limiting & Quota Management
+- **Basic Plan Constraint**: 10 requests / minute, 250 requests / day.
+- **Smart Throttling**: The `/ipos` endpoint provides full summary data for all 20 active IPOs in a single call. Full detail documents (`/ipos/{slug}`) are fetched exclusively for the top active/bidding issues.
+- **Backoff & Caching**: All requests are routed through `_get_api` with an in-memory cache and automatic exponential backoff on HTTP 429 (`retry_after`).
+- **Resilience**: Synced data is simultaneously persisted to Supabase Cloud and mirrored to `src/data/db_local.json` so the app remains fully operational offline.
 
 ### Happy path scenario
 1. A new IPO gets announced. The scraper picks it up from the listing calendar and creates a new record with static fields populated, status = `upcoming`.

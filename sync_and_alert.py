@@ -53,14 +53,24 @@ def process_sync_and_alerts():
                 sub_data = sub_res.data[0] if sub_res.data else {}
                 gmp_data = gmp_res.data[0] if gmp_res.data else {}
                 
+                # Compute true mathematical median of peers
+                peer_pes = [float(p["peer_pe"]) for p in (peer_res.data or []) if p.get("peer_pe") and float(p["peer_pe"]) > 0]
+                peer_pes.sort()
+                median_pe = 0.0
+                if peer_pes:
+                    mid = len(peer_pes) // 2
+                    median_pe = peer_pes[mid] if len(peer_pes) % 2 != 0 else (peer_pes[mid-1] + peer_pes[mid]) / 2.0
+                
+                real_pe = float(ipo.get("pe_ratio") or (peer_res.data[0].get("ipo_pe") if peer_res.data and peer_res.data[0].get("ipo_pe") else 0.0))
+                
                 ipo_eval_data = {
                     **ipo,
                     "total_sub": float(sub_data.get("total", 0.0)),
                     "qib_sub": float(sub_data.get("qib", 0.0)),
                     "retail_sub": float(sub_data.get("retail", 0.0)),
                     "gmp_pct": float(gmp_data.get("implied_gain_pct", 0.0)),
-                    "pe_ratio": float(ipo.get("price_band_high", 500) / 2.0), # dummy PE
-                    "peers_median_pe": float(peer_res.data[0].get("peer_pe", 35.0)) if peer_res.data else 35.0,
+                    "pe_ratio": real_pe,
+                    "peers_median_pe": median_pe,
                     "financials": fin_res.data
                 }
             else:
@@ -76,14 +86,23 @@ def process_sync_and_alerts():
                 fin_data = [x for x in db["financials"] if x["ipo_id"] == ipo["id"]]
                 peer_data = [x for x in db["peers"] if x["ipo_id"] == ipo["id"]]
                 
+                peer_pes = [float(p["peer_pe"]) for p in peer_data if p.get("peer_pe") and float(p["peer_pe"]) > 0]
+                peer_pes.sort()
+                median_pe = 0.0
+                if peer_pes:
+                    mid = len(peer_pes) // 2
+                    median_pe = peer_pes[mid] if len(peer_pes) % 2 != 0 else (peer_pes[mid-1] + peer_pes[mid]) / 2.0
+                
+                real_pe = float(ipo.get("pe_ratio") or (peer_data[0].get("ipo_pe") if peer_data and peer_data[0].get("ipo_pe") else 0.0))
+                
                 ipo_eval_data = {
                     **ipo,
                     "total_sub": float(sub_data.get("total", 0.0)),
                     "qib_sub": float(sub_data.get("qib", 0.0)),
                     "retail_sub": float(sub_data.get("retail", 0.0)),
                     "gmp_pct": float(gmp_data.get("implied_gain_pct", 0.0)),
-                    "pe_ratio": float(ipo.get("price_band_high", 500) / 2.0),
-                    "peers_median_pe": float(peer_data[0].get("peer_pe", 35.0)) if peer_data else 35.0,
+                    "pe_ratio": real_pe,
+                    "peers_median_pe": median_pe,
                     "financials": fin_data
                 }
                 

@@ -137,25 +137,34 @@ def evaluate_ipo(ipo_data):
         score += 1
 
     # Final Decision Calculation:
-    # 1. Listing gains are mechanical and highly driven by short-term demand.
-    # 2. Thus, Demand (Subscription > 30x) AND Sentiment (GMP > 20%) are MANDATORY.
-    # 3. Plus, the overall score must be >= 5 (passed at least 5 of the 8 metrics).
-    mandatory_passed = rules["demand"]["passed"] and rules["sentiment"]["passed"]
-    is_yes = mandatory_passed and (score >= 5)
-    
-    decision = "YES" if is_yes else "NO"
-    
-    # Generate notes explaining the reasoning
-    notes = []
-    if is_yes:
-        notes.append(f"Strong listing potential. Passed {score}/8 metrics including QIB/retail demand and GMP premiums.")
+    status = ipo_data.get("status", "").lower()
+    if status == "upcoming":
+        decision = "PENDING"
+        notes = [f"Bidding opens on {ipo_data.get('open_date', 'scheduled date')}. Pre-bidding score: {score}/8."]
+        if rules["sentiment"]["passed"]:
+            notes.append(f"GMP (+{gmp_pct}%) indicates solid listing interest.")
+        else:
+            notes.append(f"GMP ({gmp_pct}%) currently below 20% target.")
+        if rules["capital"]["passed"]:
+            notes.append("Healthy capital structure (<50% OFS).")
+        if rules["valuation"]["passed"]:
+            notes.append("Favorable valuation discount to peers.")
     else:
-        if not rules["demand"]["passed"]:
-            notes.append("Failed Demand: Bidding subscriptions did not cross the 30x threshold.")
-        if not rules["sentiment"]["passed"]:
-            notes.append("Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.")
-        if score < 5:
-            notes.append(f"Passed only {score}/8 metrics. Core fundamentals or valuation discount checks failed.")
+        mandatory_passed = rules["demand"]["passed"] and rules["sentiment"]["passed"]
+        is_yes = mandatory_passed and (score >= 5)
+        decision = "YES" if is_yes else "NO"
+        
+        # Generate notes explaining the reasoning
+        notes = []
+        if is_yes:
+            notes.append(f"Strong listing potential. Passed {score}/8 metrics including QIB/retail demand and GMP premiums.")
+        else:
+            if not rules["demand"]["passed"]:
+                notes.append("Failed Demand: Bidding subscriptions did not cross the 30x threshold.")
+            if not rules["sentiment"]["passed"]:
+                notes.append("Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.")
+            if score < 5:
+                notes.append(f"Passed only {score}/8 metrics. Core fundamentals or valuation discount checks failed.")
 
     return {
         "score": score,

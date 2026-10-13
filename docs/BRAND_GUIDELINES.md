@@ -1,50 +1,57 @@
-# IPO Tracker — Brand Guidelines v1.0
+# Divergen — Brand Guidelines v2.0
 > Status: **Established** — Source of truth for all design decisions
-> Last updated: September 2026
+> Last updated: October 2026
 
 ---
 
 ## 1. Brand Identity
 
 ### 1.1 Product Name
-**IPO Tracker**
+**Divergen**
 
 ### 1.2 Tagline
 **Systematic Listing Gain Engine**
 
-### 1.3 Mission
-A programmatic decision system built strictly to harvest listing-day gains on Mainboard IPO allocations in the Indian stock market. It strips emotion and hype from investing by enforcing a data-driven 8-metric filter.
+### 1.3 Core Philosophy & Narrative
+Divergen represents a systematic, disciplined approach to IPO investing. In a market driven by hype, speculation, and emotional decisions, Divergen follows a different path — using data, defined rules, and a repeatable decision-making process to identify opportunities and determine where capital should go next.
 
-### 1.4 Brand Voice
+The core philosophy is **continuous capital rotation**: evaluate an IPO, make a disciplined decision, participate when the criteria are met, exit according to the strategy, and recycle capital into the next opportunity.
+
+### 1.4 Brand Principle
+> **Find the signal. Take a different path. Keep the capital moving.**
+
+The logo represents the product's philosophy, not a promise of guaranteed returns. Growth is an aspiration of the system, while disciplined decisions and repeatable execution are its foundation.
+
+### 1.5 Brand Voice
 - **Tone**: Precise, calm, data-first. No hype. No speculation.
 - **Audience**: Retail investors in India managing family-scale capital rotation on a fixed ₹1 Lakh pool.
 - **We are not**: A trading app. Not flashy. Not emotional. Not a tip service.
 
-### 1.5 Operating Modes
+### 1.6 Operating Modes
 - **Cloud Sync** — Authenticated via Supabase. Live market data, persistent across devices.
 - **Offline Sandbox** — No login required. All data in localStorage. For strategy simulation.
 
 ---
 
-## 2. Logo & Mark
+## 2. Logo & Mark: D + Infinity
 
-### 2.1 Current Mark
-- Icon: `TrendingUp` (Lucide React, 20px, `strokeWidth={1.5}`)
-- Icon container: `border-radius: var(--radius-md)` (12px), `background: var(--accent-bg)`, `border: 1px solid var(--accent-border)`, padding 8px
-- Wordmark: "IPO Tracker" in Geist, 16px, weight 700, `letter-spacing: -0.4px`
-- Sub-label: Mode indicator ("Offline Sandbox" / "Cloud Connected") in 10px, weight 700, uppercase, `var(--text-muted)`
+### 2.1 The Concept
+The logo combines the letter **D**, representing Divergen, with an infinity-inspired loop representing continuous movement and capital rotation.
+The smaller loop flowing into the larger D-shaped loop introduces a second idea: **growth through repeated cycles**. It symbolizes the potential for capital to progress through successive opportunities, while the continuous connection represents a repeatable system rather than a one-time investment decision.
 
-### 2.2 Logo Status
-A custom logo variation is in progress. This section will be updated once the final logomark is finalized.
+The mark is intentionally designed around one central idea: **capital in motion, guided by a system**.
 
-### 2.3 Usage Rules
-- Always display the icon and wordmark together in the sidebar (expanded state)
-- In collapsed sidebar mode: icon only, wordmark hidden
-- On mobile header: wordmark only, rendered as a gradient text treatment
-- Do not alter icon stroke width, color, or size ratio
-- Do not place on busy backgrounds or dark backgrounds without an `--accent-bg` container
+### 2.2 Asset References
+- Brand Mark: `src/assets/divergen-logo.png`
+- Public/Web Asset: `public/divergen-logo.png`
+- Logo Component: `src/components/ui/DivergenLogo.jsx`
 
----
+### 2.3 Implementation & Usage Rules
+- **Desktop Sidebar (Expanded):** Mark container (34×34px) with `Divergen` wordmark in Geist (16px, weight 700, `letter-spacing: -0.4px`) and operating mode indicator.
+- **Desktop Sidebar (Collapsed):** Optically centered 36×36px container showing the D + Infinity mark with concentric border radius and tooltip.
+- **Mobile Responsive Header:** Compact mark (18-20px) next to `Divergen` title, alongside the live status pill.
+- **Login / Hero View:** Large 36px mark inside a dedicated padded container with high-impact typography.
+- **Surface Depth:** 1px outline at low opacity (`rgba(0,0,0,0.06)` or `oklch(0 0 0 / 0.1)`), never placed directly on busy or unfiltered backgrounds.
 
 ## 3. Color System
 

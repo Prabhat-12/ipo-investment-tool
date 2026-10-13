@@ -1,7 +1,7 @@
 {
-  "name": "IPO Investment Tool",
-  "short_name": "IPO Tool",
-  "description": "Family IPO investment portal with smart decision engine, capital rotator, and backtest simulator.",
+  "name": "Divergen",
+  "short_name": "Divergen",
+  "description": "Divergen — Systematic IPO investment engine with smart decision rules, capital rotator, and backtest simulator.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

@@ -40,6 +40,7 @@ import dbLocal from './data/db_local.json';
 import backtestData from './data/backtest_results.json';
 import { supabase } from './supabaseClient';
 import { MobileDataCard } from './components/ui/mobile-data-card';
+import { DivergenLogo } from './components/ui/DivergenLogo';
 
 // Import BKlit UI Charts
 import AreaChart from '@/components/charts/area-chart';
@@ -206,7 +207,7 @@ export default function App() {
 
     // 1. Fetch Global Market Data (IPOs, Subs, GMP)
     let activeIposList = [];
-    if (supabase) {
+    if (supabase && typeof navigator !== 'undefined' && navigator.onLine !== false) {
       try {
         const { data: cloudIpos, error: ipoError } = await supabase.from('ipos').select('*');
         if (!ipoError && cloudIpos && cloudIpos.length > 0) {
@@ -228,8 +229,18 @@ export default function App() {
             const retail_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].retail) : 0.0;
             const gmp_pct = gmpRecs.length > 0 ? parseFloat(gmpRecs[gmpRecs.length - 1].implied_gain_pct) : 0.0;
 
-            const pe_ratio = ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0;
-            const peers_median_pe = peers.length > 0 ? peers[0].peer_pe : 35.0;
+            const pe_ratio = (ipo.pe_ratio && ipo.pe_ratio > 0) 
+              ? parseFloat(ipo.pe_ratio) 
+              : (peers.length > 0 && peers[0].ipo_pe ? parseFloat(peers[0].ipo_pe) : (ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0));
+            
+            let peers_median_pe = 35.0;
+            if (peers.length > 0) {
+              const validPeers = peers.map(p => parseFloat(p.peer_pe)).filter(p => !isNaN(p) && p > 0).sort((a,b) => a - b);
+              if (validPeers.length > 0) {
+                const mid = Math.floor(validPeers.length / 2);
+                peers_median_pe = validPeers.length % 2 !== 0 ? validPeers[mid] : (validPeers[mid - 1] + validPeers[mid]) / 2.0;
+              }
+            }
 
             // Dynamically adjust status based on date (defense-in-depth UI logic)
             let currentStatus = ipo.status;
@@ -295,8 +306,18 @@ export default function App() {
         const retail_sub = subs.length > 0 ? parseFloat(subs[subs.length - 1].retail) : 0.0;
         const gmp_pct = gmpRecs.length > 0 ? parseFloat(gmpRecs[gmpRecs.length - 1].implied_gain_pct) : 0.0;
 
-        const pe_ratio = ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0;
-        const peers_median_pe = peers.length > 0 ? peers[0].peer_pe : 35.0;
+        const pe_ratio = (ipo.pe_ratio && ipo.pe_ratio > 0) 
+          ? parseFloat(ipo.pe_ratio) 
+          : (peers.length > 0 && peers[0].ipo_pe ? parseFloat(peers[0].ipo_pe) : (ipo.price_band_high ? ipo.price_band_high / 2.0 : 25.0));
+        
+        let peers_median_pe = 35.0;
+        if (peers.length > 0) {
+          const validPeers = peers.map(p => parseFloat(p.peer_pe)).filter(p => !isNaN(p) && p > 0).sort((a,b) => a - b);
+          if (validPeers.length > 0) {
+            const mid = Math.floor(validPeers.length / 2);
+            peers_median_pe = validPeers.length % 2 !== 0 ? validPeers[mid] : (validPeers[mid - 1] + validPeers[mid]) / 2.0;
+          }
+        }
 
         // Dynamically adjust status based on date (defense-in-depth UI logic)
         let currentStatus = ipo.status;
@@ -651,8 +672,8 @@ export default function App() {
     if (!name) return;
     setGuestLoading(true);
     // Fire-and-forget: log the guest visit to Supabase for tracking
-    if (supabase) {
-      supabase.from('guest_visits').insert({ name, visited_at: new Date().toISOString() }).then(() => {});
+    if (supabase && typeof navigator !== 'undefined' && navigator.onLine !== false) {
+      supabase.from('guest_visits').insert({ name, visited_at: new Date().toISOString() }).then(() => {}).catch(() => {});
     }
     const guestId = `guest-${Date.now()}`;
     setIsGuestMode(true);
@@ -1126,19 +1147,10 @@ export default function App() {
 
           {/* Logo & Product Concept */}
           <div className="login-branding" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ padding: '10px', borderRadius: '50%', backgroundColor: 'var(--accent-bg)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <TrendingUp size={32} style={{ color: 'var(--accent)' }} />
-              </div>
-              <div>
-                <h1 style={{ fontSize: '30px', fontWeight: '900', margin: 0, letterSpacing: '-1px', color: 'var(--text-h)' }}>
-                  IPO Tracker
-                </h1>
-                <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  Systematic Listing Gain Engine
-                </span>
-              </div>
-            </div>
+            <DivergenLogo 
+              variant="login"
+              subtitle="Systematic Listing Gain Engine"
+            />
 
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
               An algorithmic analyzer that strips emotion from IPO bidding in India. By tracking real-time QIB/retail subscriptions, GMP premium curves, and promoters' post-IPO stakes, the engine provides clear YES/NO investment signals.
@@ -2081,7 +2093,7 @@ export default function App() {
         </div>
 
         {/* Middle Section: Cumulative Profit Growth & Allotment Win Rate */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+        <div className="dashboard-metrics-grid-21">
           {/* Cumulative Profit Chart */}
           {renderDashboardCharts()}
 
@@ -2121,7 +2133,7 @@ export default function App() {
         </div>
 
         {/* Bottom Section: Capital Pool & Active Bids Checklist */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div className="dashboard-metrics-grid-11">
           {/* Family Capital Pool */}
           <div className="premium-card" style={{ padding: '24px' }}>
             <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: '0 0 16px 0' }}>Family Capital Pool</h3>
@@ -2197,7 +2209,7 @@ export default function App() {
 
     return (
       <div className="premium-card" style={{ padding: '24px', flexGrow: 1, minHeight: '260px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
           <h3 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-h)', margin: 0 }}>
             Cumulative Profit Growth (₹)
           </h3>
@@ -2278,7 +2290,7 @@ export default function App() {
         if (!b.open_date) return -1;
         return new Date(a.open_date) - new Date(b.open_date);
       })
-      .slice(0, 5);
+      .slice(0, 12);
     const closedList = ipos
       .filter(i => i.status !== 'bidding' && i.status !== 'upcoming')
       .sort((a, b) => {
@@ -2286,7 +2298,7 @@ export default function App() {
         if (!b.close_date) return -1;
         return new Date(b.close_date) - new Date(a.close_date);
       })
-      .slice(0, 8);
+      .slice(0, 20);
 
     const handleForceRefresh = async () => {
       setDbLoading(true);
@@ -3127,9 +3139,9 @@ export default function App() {
 
     const renderWelcomeDoc = () => (
       <div>
-        <h1>IPO Tracker Quickstart</h1>
+        <h1>Divergen Quickstart</h1>
         <p>
-          Welcome to the <strong>IPO Tracker Guide</strong>. This programmatic system is built strictly to harvest <strong>listing-day gains</strong> on Mainboard IPO allocations in the Indian stock market. It strips emotion and hype from investing by enforcing a data-driven <strong>8-metric filter</strong>.
+          Welcome to the <strong>Divergen Guide</strong>. This programmatic system is built strictly to harvest <strong>listing-day gains</strong> on Mainboard IPO allocations in the Indian stock market. It strips emotion and hype from investing by enforcing a data-driven <strong>8-metric filter</strong>.
         </p>
         <div style={{ padding: '16px', border: '1px solid var(--accent-border)', borderRadius: '16px', backgroundColor: 'var(--accent-bg)', marginBottom: '24px' }}>
           <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}><Sparkles size={14} /> The Capital Rotation Cycle</h4>
@@ -3322,7 +3334,7 @@ export default function App() {
           </table>
         </div>
         <p>
-          Because SME IPOs require a minimum block of over ₹1 Lakh per bid, they do not facilitate easy capital rotation inside a ₹1 Lakh budget pool, and present extremely high liquidity risks. Therefore, <strong>IPO Tracker focuses strictly on Mainboard IPOs</strong> where listing-day volatility can be systematically harvested.
+          Because SME IPOs require a minimum block of over ₹1 Lakh per bid, they do not facilitate easy capital rotation inside a ₹1 Lakh budget pool, and present extremely high liquidity risks. Therefore, <strong>Divergen focuses strictly on Mainboard IPOs</strong> where listing-day volatility can be systematically harvested.
         </p>
       </div>
     );
@@ -3331,7 +3343,7 @@ export default function App() {
       <div>
         <h1>Live Sync vs. Offline Sandbox Modes</h1>
         <p>
-          The <strong>IPO Tracker Portal</strong> supports two isolated operating modes designed for both live market execution and offline strategy simulation.
+          The <strong>Divergen Portal</strong> supports two isolated operating modes designed for both live market execution and offline strategy simulation.
         </p>
 
         <h2>1. Supabase Cloud Sync Mode</h2>
@@ -3613,7 +3625,7 @@ export default function App() {
 
       {/* MOBILE HEADER BAR */}
       <div className="mobile-header">
-        <span className="mobile-header-title">IPO Tracker</span>
+        <DivergenLogo variant="mobile" />
         <span className="mobile-header-status">
           <Sparkles size={10} />
           {isGuestMode ? 'Offline' : 'Live Sync'}
@@ -3625,19 +3637,10 @@ export default function App() {
         <div>
           {/* Brand header */}
           <div className="sidebar-brand" style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
-            <div className="img-outline icon-optical" style={{ padding: '8px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--accent-bg)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <TrendingUp size={20} style={{ color: 'var(--accent)' }} />
-            </div>
-            {!isSidebarCollapsed && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <h1 className="sidebar-brand-name">IPO Tracker</h1>
-                </div>
-                <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', whiteSpace: 'nowrap' }}>
-                  {isGuestMode ? 'Offline Sandbox' : 'Cloud Connected'}
-                </span>
-              </div>
-            )}
+            <DivergenLogo 
+              variant={isSidebarCollapsed ? 'collapsed' : 'expanded'} 
+              subtitle={isGuestMode ? 'Offline Sandbox' : 'Cloud Connected'} 
+            />
           </div>
 
           {/* Navigation vertical list */}

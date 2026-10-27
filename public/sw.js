@@ -1,7 +1,7 @@
-// VERSION: 2 — Network-First strategy. Bump this number to force cache purge.
-const CACHE_NAME = 'ipo-tool-cache-v2';
+// VERSION: 3 — Network-First strategy. Bump this number to force cache purge.
+const CACHE_NAME = 'divergen-cache-v3';
 const STATIC_ASSETS = [
-  '/favicon.svg',
+  '/divergen-logo.png',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'

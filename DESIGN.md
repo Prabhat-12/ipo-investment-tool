@@ -1,35 +1,33 @@
 ---
-version: alpha
-name: Antigravity IPO Tracker Design System
-description: Official design system for the Antigravity IPO Tracker application.
+version: 2.0
+name: Divergen Design System
+description: Official design system for the Divergen IPO Investment Platform.
 colors:
-  primary: "#e55c3c"
-  background-main: "#f8f8f8"
+  primary: "#0f172a"
+  background-main: "#F8F9FA"
   background-card: "#ffffff"
   background-sidebar: "#ffffff"
-  text-primary: "#4b5563"
-  text-muted: "#9ca3af"
-  text-heading: "#111827"
-  accent-coral: "#e55c3c"
-  accent-coral-hover: "#d24e2f"
-  accent-coral-bg: "rgba(229, 92, 60, 0.08)"
-  accent-coral-border: "rgba(229, 92, 60, 0.15)"
+  text-primary: "#475569"
+  text-muted: "#64748b"
+  text-heading: "#0f172a"
+  accent: "#0f172a"
+  accent-hover: "#1e293b"
+  accent-bg: "#f1f5f9"
+  accent-border: "#cbd5e1"
   status-success: "#10b981"
-  status-success-bg: "rgba(16, 185, 129, 0.08)"
-  status-success-border: "rgba(16, 185, 129, 0.15)"
-  status-danger: "#ef4444"
-  status-danger-bg: "rgba(239, 68, 68, 0.06)"
-  status-danger-border: "rgba(239, 68, 68, 0.15)"
-  status-warning: "#f59e0b"
-  status-warning-bg: "rgba(245, 158, 11, 0.08)"
-  status-warning-border: "rgba(245, 158, 11, 0.2)"
-  status-info: "#3b82f6"
-  status-info-bg: "rgba(59, 130, 246, 0.08)"
-  border-light: "rgba(0, 0, 0, 0.05)"
+  status-success-dark: "#047857"
+  status-success-bg: "#ecfdf5"
+  status-danger: "#be123c"
+  status-danger-bg: "#fff1f2"
+  status-warning: "#b45309"
+  status-warning-bg: "#fffbeb"
+  status-info: "#1d4ed8"
+  status-info-bg: "#eff6ff"
+  border-light: "rgba(0, 0, 0, 0.06)"
   border-strong: "rgba(0, 0, 0, 0.1)"
 typography:
   sans:
-    fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
   mono:
     fontFamily: "'JetBrains Mono', ui-monospace, monospace"
   display:
@@ -63,25 +61,37 @@ spacing:
   sidebar-width: 280px
 ---
 
-# Antigravity Design System Specification
+# Divergen Design System Specification
 
-This document establishes the UI design language for the **Antigravity IPO Tracker** portal. It guides layout structures, micro-interactions, and charts design to deliver a premium, user-intuitive financial tool.
+This document establishes the UI design language for the **Divergen** IPO Investment Platform. It guides layout structures, micro-interactions, and chart design to deliver a premium, user-intuitive financial tool.
+
+## Brand Identity
+
+**Divergen** represents disciplined, data-driven IPO investing through continuous capital rotation. The brand mark — the **D + Infinity** logo — combines the letter D with an infinity-inspired loop symbolizing capital in perpetual motion, guided by a systematic process.
+
+- **Brand Principle:** *Find the signal. Take a different path. Keep the capital moving.*
+- **Logo Asset:** `public/divergen-logo.png` / `src/assets/divergen-logo.png`
+- **Responsive Component:** `src/components/ui/DivergenLogo.jsx` — adapts for expanded sidebar (34px), collapsed sidebar (36px), mobile header (28px), and login hero contexts.
 
 ## Overview
 
-The Antigravity IPO Tracker dashboard is designed to provide a premium, modern, and high-fidelity interface for monitoring initial public offerings. The design evokes a professional yet accessible aesthetic using a clean light-mode theme, soft shadows, vibrant status badges, and precise typographic scales.
+The Divergen dashboard provides a premium, modern, and high-fidelity interface for monitoring initial public offerings. The design uses a clean light-mode theme with a neutral slate color system, soft shadows, vibrant status badges, and precise typographic scales powered by the **Geist** variable font family.
 
 ## Colors
 
-The interface uses a tailored color palette:
-* **Backgrounds**: A soft neutral gray (`#f8f8f8`) for the main canvas, and pure white (`#ffffff`) for sidebar and card containers.
-* **Typography**: Deep slate (`#111827`) for headings, neutral gray (`#4b5563`) for readable body text, and a light gray (`#9ca3af`) for captions/sub-labels.
-* **Accent**: Brand-identifying Coral (`#e55c3c`), which transitions to `#d24e2f` on hover, used for primary action targets and highlight sections.
-* **Status Tints**: Color-coded badges use custom semi-transparent background opacities to ensure contrast without creating clutter.
+The interface uses a refined neutral palette:
+* **Backgrounds**: Soft warm gray (`#F8F9FA`) for the main canvas, pure white (`#ffffff`) for sidebar and card containers.
+* **Typography**: Deep slate (`#0f172a`) for headings, neutral slate (`#475569`) for readable body text, and medium slate (`#64748b`) for captions/sub-labels.
+* **Accent**: Dark neutral (`#0f172a`), transitioning to `#1e293b` on hover, used for primary action buttons and key interactive targets.
+* **Status Tints**: Semantic color-coded badges with opaque light backgrounds for contrast:
+  - **Success**: Emerald green (`#10b981` / `#047857` on light bg) for positive signals, live indicators, and YES decisions.
+  - **Danger**: Rose (`#be123c`) for NO decisions, failed metrics, and critical warnings.
+  - **Warning**: Amber (`#b45309`) for PENDING states, upcoming items, and caution indicators.
+  - **Info**: Blue (`#1d4ed8`) for informational badges and neutral status.
 
 ## Typography
 
-* **Sans Font Family**: `Outfit` (primary UI font — all text)
+* **Sans Font Family**: `Geist Variable` (primary UI font — all text)
 * **Mono Font Family**: `JetBrains Mono` (numeric metrics, data points, PAN codes)
 * **Type Scale** (5 steps — no other values permitted):
 
@@ -98,15 +108,18 @@ The interface uses a tailored color palette:
 ## Layout
 
 * **Grid Boundaries**: A max-width container of `1440px`.
-* **Sidebar Layout**: Enforces a constant width of `280px`.
+* **Sidebar Layout**: Enforces a constant width of `280px` when expanded, `72px` when collapsed.
 * **Spacing Hierarchy**:
   - Section-to-section: `32px` (`lg`)
   - Inside card containers: `24px` (`md`)
   - List items and element groupings: `16px` (`sm`)
+* **Responsive Breakpoints**:
+  - `≤ 768px`: Mobile layout — sidebar hidden, bottom-sheet modals, stacked cards
+  - `≤ 720px`: Login grid switches to `column-reverse` for CTA-first ordering
 
 ## Elevation & Depth
 
-To create visual depth, elements utilize layered shadow offsets:
+Elements utilize layered shadow offsets for visual depth:
 * Small shadow (`sm`): `0 1px 3px rgba(0, 0, 0, 0.02)` for subtle outline boundaries.
 * Medium card shadow (`md`): `0 12px 30px -10px rgba(0, 0, 0, 0.06)` for normal cards.
 * Large hover/modal shadow (`lg`): `0 24px 50px -12px rgba(0, 0, 0, 0.12)` to lift active interactive states.
@@ -123,8 +136,8 @@ All UI cards, widgets, search inputs, and action buttons use smooth, rounded cor
 Active tracking components utilize a glassmorphism style combined with micro-interactions:
 ```css
 .premium-card {
-  background: var(--background-card);
-  border: 1px solid var(--border-light);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-md);
   border-radius: var(--rounded-lg);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -141,9 +154,19 @@ Active tracking components utilize a glassmorphism style combined with micro-int
 * **GMP Trend Lines**: Smooth cubic interpolation curve styling with a fading green-to-transparent area fill underneath.
 * **Subscription Speedometers**: Bullet-shaped progress indicator tracks with a low-contrast background track (`rgba(0, 0, 0, 0.05)`) and numbers styled in monospace.
 
+## Accessibility
+
+* **Focus rings**: All interactive elements display a `2px solid var(--accent)` focus ring with `2px` offset on `:focus-visible`.
+* **ARIA attributes**: Drawer panels use `role="dialog"`, navigation uses semantic landmarks.
+* **Touch targets**: Minimum `44×44px` hit area on all interactive mobile elements.
+* **Color contrast**: Body text meets WCAG 2.1 AA (4.5:1 ratio minimum).
+* **iOS Safari**: Input font-size is `max(16px, 1em)` to prevent auto-zoom.
+
 ## Do's and Don'ts
 
-* **Do** use `Outfit` for text and `JetBrains Mono` for tabular metrics and financial rates.
-* **Do** use the status background tint opacity (e.g. `rgba(16, 185, 129, 0.08)`) with matching solid status colors.
+* **Do** use `Geist Variable` for text and `JetBrains Mono` for tabular metrics and financial rates.
+* **Do** use semantic status background tints (`--success-bg`, `--danger-bg`, etc.) with matching solid text colors.
+* **Do** use concentric border-radius (outer radius > inner radius by the padding amount).
+* **Don't** use Outfit, Inter, or other fonts that were part of earlier design iterations.
 * **Don't** use standard sharp border-radius defaults; always map layouts to the rounded corner system.
-* **Don't** introduce dark themes or raw saturated background colors that disrupt the lightweight design system.
+* **Don't** introduce raw saturated accent colors (coral, bright red, electric blue) — the palette is intentionally neutral.

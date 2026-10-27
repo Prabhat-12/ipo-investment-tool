@@ -41,6 +41,8 @@ import backtestData from './data/backtest_results.json';
 import { supabase } from './supabaseClient';
 import { MobileDataCard } from './components/ui/mobile-data-card';
 import { DivergenLogo } from './components/ui/DivergenLogo';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import LoginPage from './pages/LoginPage';
 
 // Import BKlit UI Charts
 import AreaChart from '@/components/charts/area-chart';
@@ -104,16 +106,6 @@ export default function App() {
 
   // 8 Rules Doc Sub-Section Selection State
   const [docSection, setDocSection] = useState('welcome');
-
-  // Auth Screen State
-  const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState(null);
-  const [guestName, setGuestName] = useState('');
-  const [guestLoading, setGuestLoading] = useState(false);
 
   // Capital Rotator State
   const [capital, setCapital] = useState(100000);
@@ -634,57 +626,6 @@ export default function App() {
     };
   }
 
-  // Auth Operations
-  const handleAuthSubmit = async (e) => {
-    e.preventDefault();
-    if (!email || !password) return;
-    setAuthLoading(true);
-    setAuthError(null);
-
-    if (supabase) {
-      try {
-        if (authMode === 'login') {
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-        } else {
-          const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: { display_name: displayName }
-            }
-          });
-          if (error) throw error;
-          alert("Signup successful! Please log in.");
-          setAuthMode('login');
-        }
-      } catch (err) {
-        setAuthError(err.message);
-      }
-    } else {
-      setAuthError("Supabase client is offline. Please use Recruiter Guest Login.");
-    }
-    setAuthLoading(false);
-  };
-
-  const handleGuestLogin = async (nameOverride) => {
-    const name = (nameOverride || guestName).trim();
-    if (!name) return;
-    setGuestLoading(true);
-    // Fire-and-forget: log the guest visit to Supabase for tracking
-    if (supabase && typeof navigator !== 'undefined' && navigator.onLine !== false) {
-      supabase.from('guest_visits').insert({ name, visited_at: new Date().toISOString() }).then(() => {}).catch(() => {});
-    }
-    const guestId = `guest-${Date.now()}`;
-    setIsGuestMode(true);
-    setSession({
-      id: guestId,
-      display_name: name,
-      user: { id: guestId, email: `${name.toLowerCase().replace(/\s+/g, '.')}@guest.local` }
-    });
-    setGuestLoading(false);
-  };
-
   const handleLogout = async () => {
     if (supabase && !isGuestMode) {
       await supabase.auth.signOut();
@@ -1132,178 +1073,12 @@ export default function App() {
   // ==========================================
   if (!session) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'var(--bg)',
-        backgroundImage: 'radial-gradient(ellipse at top right, rgba(139,130,115,0.04), transparent 50%), radial-gradient(ellipse at bottom left, rgba(139,130,115,0.05), transparent 50%)',
-        padding: '24px',
-        color: 'var(--text)'
-      }}>
-        <div className="login-grid">
-
-          {/* Logo & Product Concept */}
-          <div className="login-branding" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <DivergenLogo 
-              variant="login"
-              subtitle="Systematic Listing Gain Engine"
-            />
-
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
-              An algorithmic analyzer that strips emotion from IPO bidding in India. By tracking real-time QIB/retail subscriptions, GMP premium curves, and promoters' post-IPO stakes, the engine provides clear YES/NO investment signals.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
-                <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
-                <span><strong>8 strict quantitative rules</strong> evaluating demand, metrics, and anchors.</span>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
-                <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
-                <span><strong>Multi-PAN Account Management</strong> to optimize retail allotment odds.</span>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
-                <CheckCircle2 size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '2px' }} />
-                <span><strong>Telegram Push Notifications</strong> delivering closing alerts to your phone.</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Login / Guest Selector Card */}
-          <div style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--theme-border-radius)',
-            padding: '40px 32px',
-            boxShadow: 'var(--shadow-lg)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '24px',
-            backdropFilter: 'blur(16px)'
-          }}>
-
-            {/* Authenticated Mode Login */}
-            <div>
-              <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '20px', paddingBottom: '2px' }}>
-                <button
-                  onClick={() => setAuthMode('login')}
-                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'login' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'login' ? '2px solid var(--accent)' : 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => setAuthMode('signup')}
-                  style={{ flexGrow: 1, paddingBottom: '12px', border: 'none', background: 'none', color: authMode === 'signup' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: authMode === 'signup' ? '2px solid var(--accent)' : 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
-                >
-                  Create Account
-                </button>
-              </div>
-
-              <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {authMode === 'signup' && (
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    aria-label="Full Name"
-                    autoComplete="name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="input-field"
-                    style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
-                    required
-                  />
-                )}
-                <input
-                  type="email"
-                  placeholder="email@example.com"
-                  aria-label="Email address"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-field"
-                  style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
-                  required
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  aria-label="Password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input-field"
-                  style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: 'rgba(139, 130, 115, 0.04)', border: '1px solid var(--border-strong)', color: 'var(--text-h)', fontSize: '13px' }}
-                  required
-                />
-
-                {authError && <div style={{ fontSize: '11px', color: 'var(--danger)' }}>{authError}</div>}
-
-                <button
-                  type="submit"
-                  disabled={authLoading}
-                  className="btn btn-primary"
-                  style={{
-                    padding: '12px',
-                    borderRadius: '999px',
-                    fontSize: '13px',
-                    fontWeight: '700',
-                    width: '100%',
-                    opacity: authLoading ? 0.6 : 1
-                  }}
-                >
-                  {authLoading ? 'Authorizing...' : authMode === 'login' ? 'Sign In Securely' : 'Register Account'}
-                </button>
-              </form>
-            </div>
-
-            {/* Guest Access — name entry */}
-            <div style={{ borderTop: '1px dashed var(--border-strong)', paddingTop: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <Sparkles size={14} style={{ color: 'var(--accent)' }} />
-                <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--accent)', letterSpacing: '0.5px' }}>
-                  Guest Access
-                </span>
-              </div>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 14px 0', lineHeight: '1.5' }}>
-                Want to explore the portfolio? Enter your name — no email or password needed.
-              </p>
-              <form
-                onSubmit={(e) => { e.preventDefault(); handleGuestLogin(); }}
-                style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}
-              >
-                <input
-                  type="text"
-                  placeholder="Your name..."
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  className="input-field"
-                  style={{
-                    flex: 1,
-                    padding: '11px 16px',
-                    borderRadius: '16px',
-                    backgroundColor: 'rgba(139, 130, 115, 0.04)',
-                    border: '1px solid var(--border-strong)',
-                    color: 'var(--text-h)',
-                    fontSize: '13px'
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={guestLoading || !guestName.trim()}
-                  className="btn btn-primary"
-                  style={{ padding: '11px 20px', borderRadius: '16px', fontSize: '13px', whiteSpace: 'nowrap' }}
-                >
-                  {guestLoading ? 'Entering...' : 'Enter →'}
-                </button>
-              </form>
-            </div>
-
-          </div>
-        </div>
-      </div>
+      <LoginPage
+        onLoginSuccess={({ session: newSession, isGuestMode: guestMode }) => {
+          setIsGuestMode(guestMode);
+          setSession(newSession);
+        }}
+      />
     );
   }
 
@@ -2253,25 +2028,41 @@ export default function App() {
 
             {/* SVG Visual Trajectory Curve */}
             <div style={{ width: '100%', height: '70px', marginTop: '10px' }}>
-              <svg width="100%" height="70" viewBox="0 0 400 70" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
-                <defs>
-                  <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--success)" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="var(--success)" stopOpacity="0.0" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M 0,65 Q 100,50 200,35 T 400,10 L 400,70 L 0,70 Z"
-                  fill="url(#profitGrad)"
-                />
-                <path
-                  d="M 0,65 Q 100,50 200,35 T 400,10"
-                  fill="none"
-                  stroke="var(--success)"
-                  strokeWidth="2.5"
-                />
-                <circle cx="400" cy="10" r="4.5" fill="var(--success)" stroke="#ffffff" strokeWidth="2" />
-              </svg>
+              {(() => {
+                const svgW = 400;
+                const svgH = 70;
+                const padY = 8;
+                const maxVal = Math.max(...profitPoints.map(p => p.value), 1);
+                const minVal = 0;
+                const range = maxVal - minVal || 1;
+
+                // Build points with smooth progressive steps
+                const pts = [
+                  { x: 0, y: svgH - padY },
+                  ...profitPoints.map((p, idx) => ({
+                    x: ((idx + 1) / profitPoints.length) * svgW,
+                    y: (svgH - padY) - ((p.value - minVal) / range) * (svgH - 2 * padY)
+                  }))
+                ];
+
+                const lineD = pts.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' ');
+                const areaD = `${lineD} L ${svgW} ${svgH} L 0 ${svgH} Z`;
+                const lastPt = pts[pts.length - 1];
+
+                return (
+                  <svg width="100%" height="70" viewBox="0 0 400 70" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+                    <defs>
+                      <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--success)" stopOpacity="0.25" />
+                        <stop offset="100%" stopColor="var(--success)" stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+                    <path d={areaD} fill="url(#profitGrad)" />
+                    <path d={lineD} fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx={lastPt.x} cy={lastPt.y} r="4.5" fill="var(--success)" stroke="#ffffff" strokeWidth="2" />
+                  </svg>
+                );
+              })()}
             </div>
           </div>
         )}
@@ -3738,11 +3529,31 @@ export default function App() {
 
       {/* MAIN VIEW PORTAL CONTENT SECTION */}
       <main className="main-content">
-        {activeTab === 'dashboard' && renderDashboardTab()}
-        {activeTab === 'capital' && renderCapitalTab()}
-        {activeTab === 'backtest' && renderBacktestTab()}
-        {activeTab === 'guide' && renderGuideTab()}
-        {activeTab === 'profile' && renderProfileTab()}
+        {activeTab === 'dashboard' && (
+          <ErrorBoundary inline sectionName="Dashboard">
+            {renderDashboardTab()}
+          </ErrorBoundary>
+        )}
+        {activeTab === 'capital' && (
+          <ErrorBoundary inline sectionName="Capital Rotator">
+            {renderCapitalTab()}
+          </ErrorBoundary>
+        )}
+        {activeTab === 'backtest' && (
+          <ErrorBoundary inline sectionName="Backtest Engine">
+            {renderBacktestTab()}
+          </ErrorBoundary>
+        )}
+        {activeTab === 'guide' && (
+          <ErrorBoundary inline sectionName="Documentation">
+            {renderGuideTab()}
+          </ErrorBoundary>
+        )}
+        {activeTab === 'profile' && (
+          <ErrorBoundary inline sectionName="Settings & Profile">
+            {renderProfileTab()}
+          </ErrorBoundary>
+        )}
       </main>
 
       {/* MOBILE BOTTOM TAB BAR */}
@@ -4312,7 +4123,7 @@ function renderDrawerGmpChart(ipo) {
           </linearGradient>
         </defs>
         {/* Horizontal grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
+        {[0, 0.5, 1].map((t, i) => {
           const y = padT + t * chartH;
           const v = maxV - t * range;
           return (

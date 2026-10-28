@@ -1,16 +1,20 @@
-# React + Vite
+# Divergen Documentation Hub
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This directory contains the core product, architectural, brand, and integration documentation for **Divergen**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 📚 Core Documents
 
-## React Compiler
+| Document | Purpose | Target Audience |
+|---|---|---|
+| **[CASE_STUDY.md](./CASE_STUDY.md)** | Comprehensive design and engineering case study detailing the origin, thesis, UX breakthroughs, architectural decomposition, and systems challenges. | Recruiters, Product Managers, Senior Engineers |
+| **[PRD.md](./PRD.md)** | Official Product Requirements Document (Divergen v2.0) defining the user problem, hybrid ingestion pipeline, 8-metric rules, and multi-user roadmap. | Engineering & Product Teams |
+| **[BRAND_CONCEPT.md](./BRAND_CONCEPT.md)** | Core brand narrative, design philosophy, and D + Infinity logo symbology. | Design Teams & Stakeholders |
+| **[BRAND_GUIDELINES.md](./BRAND_GUIDELINES.md)** | Detailed brand token specifications, color palettes, and component usage rules. | Frontend Engineers & UI Designers |
+| **[KITE_API_INTEGRATION_GUIDE.md](./KITE_API_INTEGRATION_GUIDE.md)** | Architectural blueprint evaluating Zerodha Kite Connect and Kite Publisher integration within SEBI retail regulations. | Backend Engineers & Integrators |
+| **[system_design.md](./system_design.md)** | Deep-dive technical system design specification covering data schemas, ingestion jobs, and scaling models. | Systems Architects & DevOps |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+*For project overview, installation, and quick start instructions, please refer to the [Root README.md](../README.md).*

@@ -15,6 +15,8 @@ import {
 // Import JSON data compiled by Python engine
 import dbLocal from './data/db_local.json';
 import { supabase } from './supabaseClient';
+import toast, { Toaster } from 'react-hot-toast';
+import { fetchLiveMarketIpos } from './lib/marketSync';
 import { DivergenLogo } from './components/ui/DivergenLogo';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import LoginPage from './pages/LoginPage';
@@ -124,11 +126,29 @@ export default function App() {
 
   const handleForceRefresh = async () => {
     setDbLoading(true);
+    const toastId = isGuestMode 
+      ? toast.loading('Refreshing local market storage...')
+      : toast.loading('Connecting to IPO Guru live feed...');
     try {
-      await loadData();
+      if (!isGuestMode && typeof navigator !== 'undefined' && navigator.onLine !== false) {
+        try {
+          const liveIpos = await fetchLiveMarketIpos();
+          await loadData();
+          const openCount = liveIpos ? liveIpos.filter(i => i.status === 'bidding').length : 0;
+          toast.success(`Market Synced: ${openCount} IPOs active for bidding today`, { id: toastId });
+        } catch (apiErr) {
+          console.warn("Direct live fetch fallback to Supabase:", apiErr);
+          await loadData();
+          toast.success('Market Synced with Supabase Cloud', { id: toastId });
+        }
+      } else {
+        await loadData();
+        toast.success('Offline Sandbox: Refreshed from local storage', { id: toastId });
+      }
       setLastRefreshedDate(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: 'numeric', month: 'short' }));
     } catch (err) {
       console.error(err);
+      toast.error('Sync Failed: Unable to refresh market feed', { id: toastId });
     } finally {
       setDbLoading(false);
     }
@@ -591,6 +611,7 @@ export default function App() {
       setSession(null);
       setIsGuestMode(false);
     }
+    toast.success("Signed out: Switched to Offline Sandbox mode.");
   };
 
   // Capital Rotator Computations
@@ -620,14 +641,16 @@ export default function App() {
         .insert(newAcc)
         .select();
       if (error) {
-        alert("Failed to insert account slot: " + error.message);
+        toast.error("Failed to add account slot: " + error.message);
       } else {
         setUserAccounts(prev => [...prev, data[0]]);
+        toast.success(`Account Added: ${newAccountName} (${newAccountPan.toUpperCase()}) linked to family rotator.`);
       }
     } else {
       const updated = [...userAccounts, { ...newAcc, id: `acc-${Date.now()}` }];
       setUserAccounts(updated);
       localStorage.setItem(`ipo_accounts_${userId}`, JSON.stringify(updated));
+      toast.success(`Account Added: ${newAccountName} (${newAccountPan.toUpperCase()}) linked to family rotator.`);
     }
 
     setNewAccountName('');
@@ -668,9 +691,11 @@ export default function App() {
 
       setFamilyGroup(newGroup);
       setGroupMembers(memberData || []);
+      const createdName = newGroupName.trim();
       setNewGroupName('');
+      toast.success(`Group Created: "${createdName}" is now active.`);
     } catch (err) {
-      alert("Failed to create Investment Group: " + err.message);
+      toast.error("Failed to create Investment Group: " + err.message);
     }
   };
 
@@ -717,13 +742,14 @@ export default function App() {
 
       if (joinErr) throw joinErr;
 
-      alert(`Successfully joined Investment Group: ${group.group_name}!`);
+      toast.success(`Joined Pool! Welcome to "${group.group_name}".`);
       setFamilyGroup(group);
       setGroupMembers(memberData || []);
       setInviteCodeInput('');
       loadData();
     } catch (err) {
       setJoinError(err.message);
+      toast.error(err.message);
     } finally {
       setJoinLoading(false);
     }
@@ -765,11 +791,14 @@ export default function App() {
 
       if (memberErr) throw memberErr;
 
+      const sentEmail = inviteEmail.trim();
       setGroupMembers(prev => [...prev, memberData[0]]);
       setInviteEmail('');
       setInviteSuccess(true);
+      toast.success(`Invitation Sent: Shared group access with ${sentEmail}.`);
     } catch (err) {
       setInviteError(err.message);
+      toast.error(err.message);
     } finally {
       setInviteLoading(false);
     }
@@ -789,8 +818,9 @@ export default function App() {
       if (error) throw error;
 
       setGroupMembers(prev => prev.filter(m => m.user_id !== memberUserId));
+      toast.success("Member removed from investment syndicate.");
     } catch (err) {
-      alert("Failed to remove member: " + err.message);
+      toast.error("Failed to remove member: " + err.message);
     }
   };
 
@@ -810,8 +840,9 @@ export default function App() {
 
       setFamilyGroup(null);
       setGroupMembers([]);
+      toast.success("Left group: Reverted to individual portfolio.");
     } catch (err) {
-      alert("Failed to leave group: " + err.message);
+      toast.error("Failed to leave group: " + err.message);
     }
   };
 
@@ -820,7 +851,7 @@ export default function App() {
     // Check if slot has active blocked applications
     const activeBids = userApplications.filter(app => app.account_id === accountId && app.status === 'PENDING');
     if (activeBids.length > 0) {
-      alert("Cannot delete account slot with active pending bids! Please resolve allotments first.");
+      toast.error("Cannot delete slot with active pending bids! Please resolve allotments first.");
       return;
     }
 
@@ -830,24 +861,29 @@ export default function App() {
         .delete()
         .eq('id', accountId);
       if (error) {
-        alert("Failed to delete slot: " + error.message);
+        toast.error("Failed to delete slot: " + error.message);
       } else {
         setUserAccounts(prev => prev.filter(a => a.id !== accountId));
+        toast.success("Account slot removed from family pool.");
       }
     } else {
       const updated = userAccounts.filter(a => a.id !== accountId);
       setUserAccounts(updated);
       localStorage.setItem(`ipo_accounts_${userId}`, JSON.stringify(updated));
+      toast.success("Account slot removed from family pool.");
     }
   };
 
   const handlePlaceBids = async (ipoId, accountIds, lots) => {
     const ipo = ipos.find(i => i.id === ipoId);
-    if (!ipo || accountIds.length === 0) return;
+    if (!ipo || accountIds.length === 0) {
+      toast.error("Select Accounts: Please select at least one family account to bid.");
+      return;
+    }
 
     const totalCost = ipo.retail_lot_cost * lots * accountIds.length;
     if (totalCost > liquidCapital) {
-      alert("Insufficient liquid cash in family pool to place these applications!");
+      toast.error(`Insufficient Liquid Capital: Required ₹${totalCost.toLocaleString('en-IN')}, Available ₹${liquidCapital.toLocaleString('en-IN')}`);
       return;
     }
 
@@ -868,15 +904,17 @@ export default function App() {
         .insert(newApps)
         .select();
       if (error) {
-        alert("Failed to place applications: " + error.message);
+        toast.error("Failed to place applications: " + error.message);
       } else {
         setUserApplications(prev => [...prev, ...data]);
+        toast.success(`Bid Placed: Applied for ${accountIds.length} account${accountIds.length > 1 ? 's' : ''} (₹${totalCost.toLocaleString('en-IN')} blocked via ASBA)`);
       }
     } else {
       const localApps = newApps.map((app, idx) => ({ ...app, id: `app-${Date.now()}-${idx}` }));
       const updated = [...userApplications, ...localApps];
       setUserApplications(updated);
       localStorage.setItem(`ipo_applications_${userId}`, JSON.stringify(updated));
+      toast.success(`Bid Placed: Applied for ${accountIds.length} account${accountIds.length > 1 ? 's' : ''} (₹${totalCost.toLocaleString('en-IN')} blocked via ASBA)`);
     }
   };
 
@@ -899,7 +937,7 @@ export default function App() {
         .update({ status: success ? 'ALLOTTED' : 'REFUNDED', listing_profit_rs: profit })
         .eq('id', appId);
       if (error) {
-        alert("Failed to resolve allotment: " + error.message);
+        toast.error("Failed to resolve allotment: " + error.message);
       } else {
         setUserApplications(prev => prev.map(a => {
           if (a.id === appId) {
@@ -910,6 +948,9 @@ export default function App() {
         if (success) {
           const newCap = capital + profit;
           setCapital(newCap);
+          toast.success(`Allotment Confirmed! +₹${Math.round(profit).toLocaleString('en-IN')} listing gain harvested.`);
+        } else {
+          toast.success(`Refund Logged: ₹${Math.round(app.bid_amount).toLocaleString('en-IN')} ASBA funds released to liquid pool.`);
         }
       }
     } else {
@@ -927,6 +968,9 @@ export default function App() {
         const newCap = capital + profit;
         setCapital(newCap);
         localStorage.setItem(`ipo_capital_${userId}`, JSON.stringify(newCap));
+        toast.success(`Allotment Confirmed! +₹${Math.round(profit).toLocaleString('en-IN')} listing gain harvested.`);
+      } else {
+        toast.success(`Refund Logged: ₹${Math.round(app.bid_amount).toLocaleString('en-IN')} ASBA funds released to liquid pool.`);
       }
     }
   };
@@ -939,12 +983,14 @@ export default function App() {
         supabase.from('user_applications').delete().eq('user_id', userId).then(() => {
           setUserApplications([]);
           setCapital(100000);
+          toast.success("Capital Pool Reset: Total pool re-initialized to ₹1,00,000.");
         });
       } else {
         setUserApplications([]);
         setCapital(100000);
         localStorage.setItem(`ipo_applications_${userId}`, JSON.stringify([]));
         localStorage.setItem(`ipo_capital_${userId}`, JSON.stringify(100000));
+        toast.success("Capital Pool Reset: Total pool re-initialized to ₹1,00,000.");
       }
     }
   };
@@ -974,7 +1020,7 @@ export default function App() {
         <DivergenLogo variant="mobile" />
         <span className="mobile-header-status">
           <Sparkles size={10} />
-          {isGuestMode ? 'Offline' : 'Live Sync'}
+          {isGuestMode ? 'Offline Sandbox' : 'Cloud Connected'}
         </span>
       </div>
 
@@ -985,7 +1031,6 @@ export default function App() {
           <div className="sidebar-brand" style={{ justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}>
             <DivergenLogo 
               variant={isSidebarCollapsed ? 'collapsed' : 'expanded'} 
-              subtitle={isGuestMode ? 'Offline Sandbox' : 'Cloud Connected'} 
             />
           </div>
 
@@ -1091,6 +1136,7 @@ export default function App() {
               userApplications={userApplications}
               userAccounts={userAccounts}
               userProfile={userProfile}
+              isGuestMode={isGuestMode}
               isMobile={isMobile}
               capital={capital}
               liquidCapital={liquidCapital}
@@ -1222,6 +1268,35 @@ export default function App() {
         selectedBidAccounts={selectedBidAccounts}
         setSelectedBidAccounts={setSelectedBidAccounts}
         onPlaceBids={handlePlaceBids}
+      />
+
+      {/* GLOBAL TOAST FEEDBACK SYSTEM */}
+      <Toaster 
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: '#0f172a',
+            color: '#f8fafc',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            padding: '10px 18px',
+            borderRadius: '999px',
+            fontSize: '12px',
+            fontWeight: '600',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2)'
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#ffffff'
+            }
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#ffffff'
+            }
+          }
+        }}
       />
     </div>
   );

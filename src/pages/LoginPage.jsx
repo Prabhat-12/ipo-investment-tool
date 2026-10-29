@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Sparkles, AlertCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { DivergenLogo } from '../components/ui/DivergenLogo';
 import { supabase } from '../supabaseClient';
 
@@ -25,6 +26,7 @@ export default function LoginPage({ onLoginSuccess }) {
         if (authMode === 'login') {
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
+          toast.success("Welcome back! Signed in to Cloud Connected portal.");
           if (onLoginSuccess) {
             onLoginSuccess({ session: data.session, isGuestMode: false });
           }
@@ -37,14 +39,16 @@ export default function LoginPage({ onLoginSuccess }) {
             }
           });
           if (error) throw error;
-          alert("Account created successfully! Please sign in with your credentials.");
+          toast.success("Account created successfully! Please sign in with your credentials.");
           setAuthMode('login');
         }
       } catch (err) {
         setAuthError(err.message);
+        toast.error("Authentication failed: " + err.message);
       }
     } else {
       setAuthError("Supabase client is offline. Please use Guest Access below.");
+      toast.error("Supabase client is offline. Please use Guest Access below.");
     }
     setAuthLoading(false);
   };
@@ -74,6 +78,7 @@ export default function LoginPage({ onLoginSuccess }) {
       }
     };
 
+    toast("Entered Offline Sandbox mode", { icon: '🧪' });
     if (onLoginSuccess) {
       onLoginSuccess({ session: guestSession, isGuestMode: true });
     }

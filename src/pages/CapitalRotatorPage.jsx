@@ -1,5 +1,6 @@
 import React from 'react';
 import { Copy, Plus, Trash2, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { MobileDataCard } from '../components/ui/mobile-data-card';
 
 export default function CapitalRotatorPage({
@@ -116,7 +117,10 @@ export default function CapitalRotatorPage({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (account.pan_mask) navigator.clipboard.writeText(account.pan_mask);
+                              if (account.pan_mask) {
+                                navigator.clipboard.writeText(account.pan_mask);
+                                toast.success(`Copied PAN: ${account.pan_mask}`);
+                              }
                             }}
                             title="Copy PAN"
                             style={{ border: 'none', background: 'none', padding: '0', margin: '0 0 0 6px', cursor: 'pointer', color: 'var(--text-muted)', verticalAlign: 'middle', lineHeight: 1 }}
@@ -188,6 +192,18 @@ export default function CapitalRotatorPage({
                             <span style={{ fontWeight: '600', color: 'var(--text-secondary)', fontFamily: 'var(--mono)', fontSize: '12px' }}>
                               {account.pan_mask}
                             </span>
+                            <button
+                              onClick={() => {
+                                if (account.pan_mask) {
+                                  navigator.clipboard.writeText(account.pan_mask);
+                                  toast.success(`Copied PAN: ${account.pan_mask}`);
+                                }
+                              }}
+                              title="Copy PAN"
+                              style={{ border: 'none', background: 'none', padding: '0', margin: '0 0 0 6px', cursor: 'pointer', color: 'var(--text-muted)', verticalAlign: 'middle', lineHeight: 1 }}
+                            >
+                              <Copy size={12} style={{ verticalAlign: 'middle' }} />
+                            </button>
                           </td>
                           <td style={{ padding: '16px 20px', fontWeight: '700', color: 'var(--text-h)' }} className="tabular-nums">
                             ₹{(capital / Math.max(userAccounts.length, 1)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}

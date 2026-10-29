@@ -147,7 +147,7 @@ def parse_issue_size(val):
             pass
             
     # 3. Fallback: find all numbers, ignore the first one if it's followed by "shares"
-    nums = re.findall(r'[\d\.,]+', val_clean)
+    nums = re.findall(r'\d+(?:\.\d+)?', val_clean.replace(',', ''))
     if not nums:
         return 0.0
         
@@ -595,19 +595,31 @@ def scrape_ipo_details(detail_url, name="", slug=""):
                 for tr in t.find_all("tr"):
                     txt = tr.get_text(" ")
                     if details["post_ipo_promoter_holding_pct"] == 0.0 and "Promoter and Promoter Group" in txt:
-                        pcts = re.findall(r'([\d\.]+)%', txt)
+                        pcts = re.findall(r'(\d+(?:\.\d+)?)%', txt)
                         if len(pcts) >= 2:
-                            details["post_ipo_promoter_holding_pct"] = float(pcts[1])
+                            try:
+                                details["post_ipo_promoter_holding_pct"] = float(pcts[1])
+                            except ValueError:
+                                pass
                         elif len(pcts) == 1:
-                            details["post_ipo_promoter_holding_pct"] = float(pcts[0])
+                            try:
+                                details["post_ipo_promoter_holding_pct"] = float(pcts[0])
+                            except ValueError:
+                                pass
                     if details["pe_ratio"] == 0.0 and ("P/E (x)" in txt or "PE Ratio" in txt):
-                        nums = re.findall(r'[\d\.]+', txt)
+                        nums = re.findall(r'\d+(?:\.\d+)?', txt)
                         if len(nums) >= 2:
-                            details["pe_ratio"] = float(nums[-1])
+                            try:
+                                details["pe_ratio"] = float(nums[-1])
+                            except ValueError:
+                                pass
                     if details["market_cap_cr"] == 0.0 and "Market Cap" in txt and "Cr" in txt:
-                        nums = re.findall(r'[\d\.,]+', txt)
+                        nums = re.findall(r'\d+(?:\.\d+)?', txt.replace(',', ''))
                         if nums:
-                            details["market_cap_cr"] = float(nums[-1].replace(',', ''))
+                            try:
+                                details["market_cap_cr"] = float(nums[-1])
+                            except ValueError:
+                                pass
 
             # Parse Anchor book if available
             marquee_keywords = ['sbi', 'hdfc', 'icici', 'nippon', 'kotak', 'axis', 'mirae', 'uti', 'dsp', 'tata', 'aditya birla', 'goldman', 'morgan stanley', 'nomura', 'blackrock', 'fidelity', 'sovereign', 'abu dhabi', 'singapore', 'temasek', 'norway', 'gic']
@@ -649,7 +661,7 @@ def scrape_ipo_details(detail_url, name="", slug=""):
                                 if len(cols) > pe_idx:
                                     peer_company = cols[0]
                                     pe_str = cols[pe_idx]
-                                    pe_match = re.findall(r'[\d\.]+', pe_str)
+                                    pe_match = re.findall(r'\d+(?:\.\d+)?', pe_str)
                                     if pe_match:
                                         try:
                                             p_val = float(pe_match[0])

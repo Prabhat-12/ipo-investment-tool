@@ -1,5 +1,6 @@
 import React from 'react';
-import { ChevronLeft, Users, CheckCircle2, XCircle } from 'lucide-react';
+import { ChevronLeft, Users, CheckCircle2, XCircle, Copy } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function IpoDetailDrawer({
   selectedIpo,
@@ -41,8 +42,35 @@ export default function IpoDetailDrawer({
             <h2 style={{ fontSize: '17px', fontWeight: '800', margin: 0, color: 'var(--text-h)', letterSpacing: '-0.5px', lineHeight: '1.2' }}>
               {selectedIpo.name}
             </h2>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-              Symbol: <span style={{ fontFamily: 'var(--mono)', fontWeight: '600' }}>{selectedIpo.symbol}</span>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Symbol: <span style={{ fontFamily: 'var(--mono)', fontWeight: '600' }}>{selectedIpo.symbol}</span></span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const shareText = `${selectedIpo.name} (${selectedIpo.symbol})\nPrice Band: ₹${selectedIpo.price_band_low} - ₹${selectedIpo.price_band_high}\nGMP: ${selectedIpo.gmp_pct >= 0 ? '+' : ''}${selectedIpo.gmp_pct}%\nLot Cost: ₹${selectedIpo.retail_lot_cost?.toLocaleString('en-IN')}`;
+                  if (navigator?.clipboard?.writeText) {
+                    navigator.clipboard.writeText(shareText);
+                    toast.success(`Copied to clipboard: ${selectedIpo.symbol} details`);
+                  }
+                }}
+                className="btn"
+                style={{
+                  padding: '2px 6px',
+                  fontSize: '10px',
+                  fontWeight: '600',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'rgba(0,0,0,0.03)',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title="Copy IPO Details"
+              >
+                <Copy size={10} /> Copy
+              </button>
             </p>
           </div>
           {!isMobile && (

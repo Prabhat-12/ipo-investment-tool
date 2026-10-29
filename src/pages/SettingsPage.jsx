@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 
 export default function SettingsPage({
@@ -42,15 +43,15 @@ export default function SettingsPage({
         if (onProfileUpdated) {
           onProfileUpdated({ display_name: displayName.trim() });
         }
-        alert("Display name updated successfully!");
+        toast.success(`Profile Saved: Display name updated to "${displayName.trim()}".`);
       } catch (err) {
-        alert("Failed to update profile name: " + err.message);
+        toast.error("Failed to update profile name: " + err.message);
       }
     } else {
       if (onProfileUpdated) {
         onProfileUpdated({ display_name: displayName.trim() });
       }
-      alert("Display name updated (Sandbox Mode)!");
+      toast.success(`Profile Saved: Display name updated (Sandbox Mode).`);
     }
     setIsSaving(false);
   };

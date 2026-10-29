@@ -14,6 +14,7 @@ export default function DashboardPage({
   userApplications = [],
   userAccounts = [],
   userProfile = {},
+  isGuestMode = false,
   isMobile = false,
   capital = 100000,
   liquidCapital = 100000,
@@ -197,13 +198,20 @@ export default function DashboardPage({
             Here is the executive summary of your family IPO investment portal today.
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text)', backgroundColor: '#f8fafc', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: '999px', fontWeight: '500', alignSelf: isMobile ? 'flex-start' : 'center' }}>
-          <span style={{ position: 'relative', display: 'flex', width: '6px', height: '6px' }}>
-            <span className="animate-ping" style={{ position: 'absolute', display: 'inline-flex', height: '100%', width: '100%', borderRadius: '50%', backgroundColor: '#34d399', opacity: 0.75 }}></span>
-            <span style={{ position: 'relative', display: 'inline-flex', borderRadius: '50%', width: '6px', height: '6px', backgroundColor: 'var(--success)' }}></span>
-          </span>
-          Live Workspace Sync
-        </div>
+        {!isGuestMode ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#065f46', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', padding: '6px 14px', borderRadius: '999px', fontWeight: '600', alignSelf: isMobile ? 'flex-start' : 'center' }}>
+            <span style={{ position: 'relative', display: 'flex', width: '6px', height: '6px' }}>
+              <span className="animate-ping" style={{ position: 'absolute', display: 'inline-flex', height: '100%', width: '100%', borderRadius: '50%', backgroundColor: '#34d399', opacity: 0.75 }}></span>
+              <span style={{ position: 'relative', display: 'inline-flex', borderRadius: '50%', width: '6px', height: '6px', backgroundColor: '#10b981' }}></span>
+            </span>
+            Cloud Connected
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#92400e', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '6px 14px', borderRadius: '999px', fontWeight: '600', alignSelf: isMobile ? 'flex-start' : 'center' }}>
+            <span style={{ position: 'relative', display: 'inline-flex', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }}></span>
+            Offline Sandbox
+          </div>
+        )}
       </div>
 
       {/* Top 4 Statistics Grid */}

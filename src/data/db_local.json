@@ -1743,6 +1743,32 @@
             "updated_at": "2026-11-19T11:17:10.678804+00:00"
         },
         {
+            "id": 95,
+            "name": "M.K.Sons Fine Jewels",
+            "symbol": "MKSONSFIN",
+            "price_band_low": 153.0,
+            "price_band_high": 162.0,
+            "issue_size_cr": 275.4,
+            "fresh_issue_cr": 220.32,
+            "ofs_cr": 55.08,
+            "lot_size": 91,
+            "retail_lot_cost": 14742.0,
+            "open_date": "2026-10-28",
+            "close_date": "2026-10-30",
+            "allotment_date": null,
+            "refund_date": null,
+            "listing_date": "2026-11-04",
+            "status": "listed",
+            "listing_price": null,
+            "listing_gains_pct": null,
+            "market_cap_cr": 966.99,
+            "post_ipo_promoter_holding_pct": 69.8,
+            "decision": "NO",
+            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 3/8 metrics. Core fundamentals or valuation discount checks failed.",
+            "created_at": "2026-10-29T08:21:13.534162+00:00",
+            "updated_at": "2026-11-21T18:50:02.287307+00:00"
+        },
+        {
             "id": 94,
             "name": "Bombay Coated and Special Steels",
             "symbol": "BOMBAYCOA",
@@ -1766,7 +1792,7 @@
             "decision": "NO",
             "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 4/8 metrics. Core fundamentals or valuation discount checks failed.",
             "created_at": "2026-10-29T08:21:07.798044+00:00",
-            "updated_at": "2026-11-21T10:45:14.157288+00:00"
+            "updated_at": "2026-11-21T18:49:56.73832+00:00"
         },
         {
             "id": 100,
@@ -1821,188 +1847,6 @@
             "updated_at": "2026-11-13T05:38:37.279882+00:00"
         },
         {
-            "id": 95,
-            "name": "M.K.Sons Fine Jewels",
-            "symbol": "MKSONSFIN",
-            "price_band_low": 153.0,
-            "price_band_high": 162.0,
-            "issue_size_cr": 275.4,
-            "fresh_issue_cr": 220.32,
-            "ofs_cr": 55.08,
-            "lot_size": 91,
-            "retail_lot_cost": 14742.0,
-            "open_date": "2026-10-28",
-            "close_date": "2026-10-30",
-            "allotment_date": null,
-            "refund_date": null,
-            "listing_date": "2026-11-04",
-            "status": "listed",
-            "listing_price": null,
-            "listing_gains_pct": null,
-            "market_cap_cr": 966.99,
-            "post_ipo_promoter_holding_pct": 69.8,
-            "decision": "NO",
-            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 3/8 metrics. Core fundamentals or valuation discount checks failed.",
-            "created_at": "2026-10-29T08:21:13.534162+00:00",
-            "updated_at": "2026-11-21T10:45:21.025171+00:00"
-        },
-        {
-            "id": 101,
-            "name": "Crystal Crop Protection",
-            "symbol": "CRYSTALCR",
-            "price_band_low": 259.0,
-            "price_band_high": 272.0,
-            "issue_size_cr": 455.49,
-            "fresh_issue_cr": 354.77,
-            "ofs_cr": 100.71,
-            "lot_size": 55,
-            "retail_lot_cost": 14960.0,
-            "open_date": "2026-11-18",
-            "close_date": "2026-11-20",
-            "allotment_date": null,
-            "refund_date": null,
-            "listing_date": "2026-11-26",
-            "status": "closed",
-            "listing_price": null,
-            "listing_gains_pct": null,
-            "market_cap_cr": 4438.18,
-            "post_ipo_promoter_holding_pct": 75.85,
-            "decision": "NO",
-            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 4/8 metrics. Core fundamentals or valuation discount checks failed.",
-            "created_at": "2026-11-13T14:07:54.507559+00:00",
-            "updated_at": "2026-11-21T10:45:06.048492+00:00"
-        },
-        {
-            "id": 97,
-            "name": "BLS Polymers",
-            "symbol": "BLSPOLYME",
-            "price_band_low": 142.0,
-            "price_band_high": 150.0,
-            "issue_size_cr": 255.0,
-            "fresh_issue_cr": 255.0,
-            "ofs_cr": 0.0,
-            "lot_size": 100,
-            "retail_lot_cost": 15000.0,
-            "open_date": "2026-10-27",
-            "close_date": "2026-10-29",
-            "allotment_date": null,
-            "refund_date": null,
-            "listing_date": "2026-11-03",
-            "status": "listed",
-            "listing_price": null,
-            "listing_gains_pct": null,
-            "market_cap_cr": 930.48,
-            "post_ipo_promoter_holding_pct": 71.53,
-            "decision": "NO",
-            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Passed only 4/8 metrics. Core fundamentals or valuation discount checks failed.",
-            "created_at": "2026-10-29T08:21:23.194472+00:00",
-            "updated_at": "2026-11-21T10:45:33.640687+00:00"
-        },
-        {
-            "id": 104,
-            "name": "Integris Medtech",
-            "symbol": "INTEGRISM",
-            "price_band_low": 0.0,
-            "price_band_high": 0.0,
-            "issue_size_cr": 0.0,
-            "fresh_issue_cr": 600.0,
-            "ofs_cr": 0.0,
-            "lot_size": 1,
-            "retail_lot_cost": 0.0,
-            "open_date": "2026-11-27",
-            "close_date": "2026-12-01",
-            "allotment_date": null,
-            "refund_date": null,
-            "listing_date": "2026-12-04",
-            "status": "upcoming",
-            "listing_price": null,
-            "listing_gains_pct": null,
-            "market_cap_cr": 0.0,
-            "post_ipo_promoter_holding_pct": 83.24,
-            "decision": "PENDING",
-            "decision_notes": "Bidding opens on 2026-11-27. Pre-bidding score: 4/8.; GMP (8.0%) currently below 20% target.; Healthy capital structure (<50% OFS).",
-            "created_at": "2026-11-20T11:00:38.842677+00:00",
-            "updated_at": "2026-11-21T10:44:50.43555+00:00"
-        },
-        {
-            "id": 103,
-            "name": "Foodlink F&B Holdings (India)",
-            "symbol": "FOODLINKF",
-            "price_band_low": 0.0,
-            "price_band_high": 0.0,
-            "issue_size_cr": 0.0,
-            "fresh_issue_cr": 192.0,
-            "ofs_cr": 0.0,
-            "lot_size": 1,
-            "retail_lot_cost": 0.0,
-            "open_date": "2026-11-26",
-            "close_date": "2026-11-30",
-            "allotment_date": null,
-            "refund_date": null,
-            "listing_date": "2026-12-03",
-            "status": "upcoming",
-            "listing_price": null,
-            "listing_gains_pct": null,
-            "market_cap_cr": 0.0,
-            "post_ipo_promoter_holding_pct": 63.4,
-            "decision": "PENDING",
-            "decision_notes": "Bidding opens on 2026-11-26. Pre-bidding score: 4/8.; GMP (8.0%) currently below 20% target.; Healthy capital structure (<50% OFS).",
-            "created_at": "2026-11-19T20:09:00.686522+00:00",
-            "updated_at": "2026-11-21T10:44:58.172735+00:00"
-        },
-        {
-            "id": 99,
-            "name": "Jio Platforms",
-            "symbol": "JIOPLATFO",
-            "price_band_low": 1065.0,
-            "price_band_high": 1119.0,
-            "issue_size_cr": 30187.65,
-            "fresh_issue_cr": 30187.65,
-            "ofs_cr": 0.0,
-            "lot_size": 12,
-            "retail_lot_cost": 13428.0,
-            "open_date": "2026-10-21",
-            "close_date": "2026-10-23",
-            "allotment_date": null,
-            "refund_date": null,
-            "listing_date": "2026-10-28",
-            "status": "listed",
-            "listing_price": null,
-            "listing_gains_pct": null,
-            "market_cap_cr": 1030490.55,
-            "post_ipo_promoter_holding_pct": 64.48,
-            "decision": "NO",
-            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Passed only 3/8 metrics. Core fundamentals or valuation discount checks failed.",
-            "created_at": "2026-10-29T08:21:30.011143+00:00",
-            "updated_at": "2026-11-21T10:45:46.257212+00:00"
-        },
-        {
-            "id": 98,
-            "name": "EAAA India Alternatives",
-            "symbol": "EAAAINDIA",
-            "price_band_low": 1585.0,
-            "price_band_high": 1665.0,
-            "issue_size_cr": 1200.0,
-            "fresh_issue_cr": 0.0,
-            "ofs_cr": 1200.0,
-            "lot_size": 9,
-            "retail_lot_cost": 14985.0,
-            "open_date": "2026-10-26",
-            "close_date": "2026-10-28",
-            "allotment_date": null,
-            "refund_date": null,
-            "listing_date": "2026-11-02",
-            "status": "listed",
-            "listing_price": null,
-            "listing_gains_pct": null,
-            "market_cap_cr": 10765.1,
-            "post_ipo_promoter_holding_pct": 83.88,
-            "decision": "NO",
-            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 3/8 metrics. Core fundamentals or valuation discount checks failed.",
-            "created_at": "2026-10-29T08:21:26.725446+00:00",
-            "updated_at": "2026-11-21T10:45:40.230034+00:00"
-        },
-        {
             "id": 96,
             "name": "SFC Environmental Technologies",
             "symbol": "SFCENVIRO",
@@ -2026,7 +1870,7 @@
             "decision": "NO",
             "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 2/8 metrics. Core fundamentals or valuation discount checks failed.",
             "created_at": "2026-10-29T08:21:18.228473+00:00",
-            "updated_at": "2026-11-21T10:45:27.439133+00:00"
+            "updated_at": "2026-11-21T18:50:08.03679+00:00"
         },
         {
             "id": 102,
@@ -2052,7 +1896,163 @@
             "decision": "NO",
             "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 2/8 metrics. Core fundamentals or valuation discount checks failed.",
             "created_at": "2026-11-13T21:14:39.950947+00:00",
-            "updated_at": "2026-11-21T10:44:41.59228+00:00"
+            "updated_at": "2026-11-21T18:49:22.749636+00:00"
+        },
+        {
+            "id": 98,
+            "name": "EAAA India Alternatives",
+            "symbol": "EAAAINDIA",
+            "price_band_low": 1585.0,
+            "price_band_high": 1665.0,
+            "issue_size_cr": 1200.0,
+            "fresh_issue_cr": 0.0,
+            "ofs_cr": 1200.0,
+            "lot_size": 9,
+            "retail_lot_cost": 14985.0,
+            "open_date": "2026-10-26",
+            "close_date": "2026-10-28",
+            "allotment_date": null,
+            "refund_date": null,
+            "listing_date": "2026-11-02",
+            "status": "listed",
+            "listing_price": null,
+            "listing_gains_pct": null,
+            "market_cap_cr": 10765.1,
+            "post_ipo_promoter_holding_pct": 83.88,
+            "decision": "NO",
+            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 3/8 metrics. Core fundamentals or valuation discount checks failed.",
+            "created_at": "2026-10-29T08:21:26.725446+00:00",
+            "updated_at": "2026-11-21T18:50:21.04464+00:00"
+        },
+        {
+            "id": 103,
+            "name": "Foodlink F&B Holdings (India)",
+            "symbol": "FOODLINKF",
+            "price_band_low": 0.0,
+            "price_band_high": 0.0,
+            "issue_size_cr": 0.0,
+            "fresh_issue_cr": 192.0,
+            "ofs_cr": 0.0,
+            "lot_size": 1,
+            "retail_lot_cost": 0.0,
+            "open_date": "2026-11-26",
+            "close_date": "2026-11-30",
+            "allotment_date": null,
+            "refund_date": null,
+            "listing_date": "2026-12-03",
+            "status": "upcoming",
+            "listing_price": null,
+            "listing_gains_pct": null,
+            "market_cap_cr": 0.0,
+            "post_ipo_promoter_holding_pct": 63.4,
+            "decision": "PENDING",
+            "decision_notes": "Bidding opens on 2026-11-26. Pre-bidding score: 4/8.; GMP (8.0%) currently below 20% target.; Healthy capital structure (<50% OFS).",
+            "created_at": "2026-11-19T20:09:00.686522+00:00",
+            "updated_at": "2026-11-21T18:49:44.719249+00:00"
+        },
+        {
+            "id": 101,
+            "name": "Crystal Crop Protection",
+            "symbol": "CRYSTALCR",
+            "price_band_low": 259.0,
+            "price_band_high": 272.0,
+            "issue_size_cr": 455.49,
+            "fresh_issue_cr": 354.77,
+            "ofs_cr": 100.71,
+            "lot_size": 55,
+            "retail_lot_cost": 14960.0,
+            "open_date": "2026-11-18",
+            "close_date": "2026-11-20",
+            "allotment_date": null,
+            "refund_date": null,
+            "listing_date": "2026-11-26",
+            "status": "closed",
+            "listing_price": null,
+            "listing_gains_pct": null,
+            "market_cap_cr": 4438.18,
+            "post_ipo_promoter_holding_pct": 75.85,
+            "decision": "NO",
+            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Failed Sentiment: GMP is too low (<20% premium), showing weak listing day demand.; Passed only 4/8 metrics. Core fundamentals or valuation discount checks failed.",
+            "created_at": "2026-11-13T14:07:54.507559+00:00",
+            "updated_at": "2026-11-21T18:49:49.657227+00:00"
+        },
+        {
+            "id": 99,
+            "name": "Jio Platforms",
+            "symbol": "JIOPLATFO",
+            "price_band_low": 1065.0,
+            "price_band_high": 1119.0,
+            "issue_size_cr": 30187.65,
+            "fresh_issue_cr": 30187.65,
+            "ofs_cr": 0.0,
+            "lot_size": 12,
+            "retail_lot_cost": 13428.0,
+            "open_date": "2026-10-21",
+            "close_date": "2026-10-23",
+            "allotment_date": null,
+            "refund_date": null,
+            "listing_date": "2026-10-28",
+            "status": "listed",
+            "listing_price": null,
+            "listing_gains_pct": null,
+            "market_cap_cr": 1030490.55,
+            "post_ipo_promoter_holding_pct": 64.48,
+            "decision": "NO",
+            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Passed only 3/8 metrics. Core fundamentals or valuation discount checks failed.",
+            "created_at": "2026-10-29T08:21:30.011143+00:00",
+            "updated_at": "2026-11-21T18:50:26.148086+00:00"
+        },
+        {
+            "id": 97,
+            "name": "BLS Polymers",
+            "symbol": "BLSPOLYME",
+            "price_band_low": 142.0,
+            "price_band_high": 150.0,
+            "issue_size_cr": 255.0,
+            "fresh_issue_cr": 255.0,
+            "ofs_cr": 0.0,
+            "lot_size": 100,
+            "retail_lot_cost": 15000.0,
+            "open_date": "2026-10-27",
+            "close_date": "2026-10-29",
+            "allotment_date": null,
+            "refund_date": null,
+            "listing_date": "2026-11-03",
+            "status": "listed",
+            "listing_price": null,
+            "listing_gains_pct": null,
+            "market_cap_cr": 930.48,
+            "post_ipo_promoter_holding_pct": 71.53,
+            "decision": "NO",
+            "decision_notes": "Failed Demand: Bidding subscriptions did not cross the 30x threshold.; Passed only 4/8 metrics. Core fundamentals or valuation discount checks failed.",
+            "created_at": "2026-10-29T08:21:23.194472+00:00",
+            "updated_at": "2026-11-21T18:50:14.545157+00:00"
+        },
+        {
+            "id": 104,
+            "name": "Integris Medtech",
+            "symbol": "INTEGRISM",
+            "price_band_low": 0.0,
+            "price_band_high": 0.0,
+            "issue_size_cr": 0.0,
+            "fresh_issue_cr": 600.0,
+            "ofs_cr": 0.0,
+            "lot_size": 1,
+            "retail_lot_cost": 0.0,
+            "open_date": "2026-11-27",
+            "close_date": "2026-12-01",
+            "allotment_date": null,
+            "refund_date": null,
+            "listing_date": "2026-12-04",
+            "status": "upcoming",
+            "listing_price": null,
+            "listing_gains_pct": null,
+            "market_cap_cr": 0.0,
+            "post_ipo_promoter_holding_pct": 83.24,
+            "decision": "PENDING",
+            "decision_notes": "Bidding opens on 2026-11-27. Pre-bidding score: 4/8.; GMP (8.0%) currently below 20% target.; Healthy capital structure (<50% OFS).",
+            "created_at": "2026-11-20T11:00:38.842677+00:00",
+            "updated_at": "2026-11-21T18:49:36.018921+00:00"
         }
     ],
     "subscriptions": [
@@ -5917,56 +5917,6 @@
             "updated_at": "2026-11-20T19:45:18.69596+00:00"
         },
         {
-            "id": 395,
-            "ipo_id": 102,
-            "date": "2026-11-21",
-            "qib": 1.37,
-            "nii": 0.18,
-            "retail": 0.25,
-            "total": 0.49,
-            "updated_at": "2026-11-21T10:44:42.764047+00:00"
-        },
-        {
-            "id": 396,
-            "ipo_id": 104,
-            "date": "2026-11-21",
-            "qib": 24.5,
-            "nii": 18.2,
-            "retail": 12.4,
-            "total": 16.5,
-            "updated_at": "2026-11-21T10:44:51.018722+00:00"
-        },
-        {
-            "id": 397,
-            "ipo_id": 103,
-            "date": "2026-11-21",
-            "qib": 0.0,
-            "nii": 0.0,
-            "retail": 0.0,
-            "total": 0.0,
-            "updated_at": "2026-11-21T10:44:58.764064+00:00"
-        },
-        {
-            "id": 398,
-            "ipo_id": 101,
-            "date": "2026-11-21",
-            "qib": 0.0,
-            "nii": 39.16,
-            "retail": 9.71,
-            "total": 17.68,
-            "updated_at": "2026-11-21T10:45:06.624451+00:00"
-        },
-        {
-            "id": 399,
-            "ipo_id": 94,
-            "date": "2026-11-21",
-            "qib": 24.5,
-            "nii": 18.2,
-            "retail": 12.4,
-            "total": 16.5,
-            "updated_at": "2026-11-21T10:45:15.374903+00:00"
-        },
-        {
             "id": 400,
             "ipo_id": 95,
             "date": "2026-11-21",
@@ -5974,7 +5924,7 @@
             "nii": 18.2,
             "retail": 12.4,
             "total": 16.5,
-            "updated_at": "2026-11-21T10:45:21.601827+00:00"
+            "updated_at": "2026-11-21T18:50:02.824939+00:00"
         },
         {
             "id": 401,
@@ -5984,7 +5934,7 @@
             "nii": 18.2,
             "retail": 12.4,
             "total": 16.5,
-            "updated_at": "2026-11-21T10:45:28.012154+00:00"
+            "updated_at": "2026-11-21T18:50:09.58063+00:00"
         },
         {
             "id": 402,
@@ -5994,7 +5944,7 @@
             "nii": 18.2,
             "retail": 12.4,
             "total": 16.5,
-            "updated_at": "2026-11-21T10:45:34.198848+00:00"
+            "updated_at": "2026-11-21T18:50:15.597872+00:00"
         },
         {
             "id": 403,
@@ -6004,7 +5954,7 @@
             "nii": 18.2,
             "retail": 12.4,
             "total": 16.5,
-            "updated_at": "2026-11-21T10:45:40.800451+00:00"
+            "updated_at": "2026-11-21T18:50:21.59907+00:00"
         },
         {
             "id": 404,
@@ -6014,7 +5964,57 @@
             "nii": 18.2,
             "retail": 12.4,
             "total": 16.5,
-            "updated_at": "2026-11-21T10:45:46.91921+00:00"
+            "updated_at": "2026-11-21T18:50:26.686706+00:00"
+        },
+        {
+            "id": 395,
+            "ipo_id": 102,
+            "date": "2026-11-21",
+            "qib": 1.37,
+            "nii": 0.18,
+            "retail": 0.25,
+            "total": 0.49,
+            "updated_at": "2026-11-21T18:49:24.380225+00:00"
+        },
+        {
+            "id": 396,
+            "ipo_id": 104,
+            "date": "2026-11-21",
+            "qib": 24.5,
+            "nii": 18.2,
+            "retail": 12.4,
+            "total": 16.5,
+            "updated_at": "2026-11-21T18:49:36.571938+00:00"
+        },
+        {
+            "id": 397,
+            "ipo_id": 103,
+            "date": "2026-11-21",
+            "qib": 0.0,
+            "nii": 0.0,
+            "retail": 0.0,
+            "total": 0.0,
+            "updated_at": "2026-11-21T18:49:45.274661+00:00"
+        },
+        {
+            "id": 398,
+            "ipo_id": 101,
+            "date": "2026-11-21",
+            "qib": 0.0,
+            "nii": 39.16,
+            "retail": 9.71,
+            "total": 17.68,
+            "updated_at": "2026-11-21T18:49:50.169808+00:00"
+        },
+        {
+            "id": 399,
+            "ipo_id": 94,
+            "date": "2026-11-21",
+            "qib": 24.5,
+            "nii": 18.2,
+            "retail": 12.4,
+            "total": 16.5,
+            "updated_at": "2026-11-21T18:49:57.272059+00:00"
         }
     ],
     "gmp_history": [
@@ -8944,60 +8944,6 @@
             "updated_at": "2026-11-15T18:36:37.596322+00:00"
         },
         {
-            "id": 394,
-            "ipo_id": 102,
-            "date": "2026-11-21",
-            "gmp_rs": 0.69,
-            "estimated_listing": 136.69,
-            "implied_gain_pct": 0.51,
-            "updated_at": "2026-11-21T10:44:43.372511+00:00"
-        },
-        {
-            "id": 395,
-            "ipo_id": 104,
-            "date": "2026-11-21",
-            "gmp_rs": 0.0,
-            "estimated_listing": 0.0,
-            "implied_gain_pct": 8.0,
-            "updated_at": "2026-11-21T10:44:51.58563+00:00"
-        },
-        {
-            "id": 396,
-            "ipo_id": 103,
-            "date": "2026-11-21",
-            "gmp_rs": 0.0,
-            "estimated_listing": 0.0,
-            "implied_gain_pct": 8.0,
-            "updated_at": "2026-11-21T10:44:59.340278+00:00"
-        },
-        {
-            "id": 397,
-            "ipo_id": 101,
-            "date": "2026-11-21",
-            "gmp_rs": 14.01,
-            "estimated_listing": 286.01,
-            "implied_gain_pct": 5.15,
-            "updated_at": "2026-11-21T10:45:07.195989+00:00"
-        },
-        {
-            "id": 398,
-            "ipo_id": 94,
-            "date": "2026-11-21",
-            "gmp_rs": 8.0,
-            "estimated_listing": 90.0,
-            "implied_gain_pct": 9.76,
-            "updated_at": "2026-11-21T10:45:15.950304+00:00"
-        },
-        {
-            "id": 399,
-            "ipo_id": 95,
-            "date": "2026-11-21",
-            "gmp_rs": 10.0,
-            "estimated_listing": 172.0,
-            "implied_gain_pct": 6.17,
-            "updated_at": "2026-11-21T10:45:22.189956+00:00"
-        },
-        {
             "id": 332,
             "ipo_id": 102,
             "date": "2026-11-15",
@@ -9068,33 +9014,6 @@
             "estimated_listing": 152.0,
             "implied_gain_pct": 0.66,
             "updated_at": "2026-11-15T18:37:13.694254+00:00"
-        },
-        {
-            "id": 400,
-            "ipo_id": 96,
-            "date": "2026-11-21",
-            "gmp_rs": 15.51,
-            "estimated_listing": 345.51,
-            "implied_gain_pct": 4.7,
-            "updated_at": "2026-11-21T10:45:28.57795+00:00"
-        },
-        {
-            "id": 401,
-            "ipo_id": 97,
-            "date": "2026-11-21",
-            "gmp_rs": 67.99,
-            "estimated_listing": 218.0,
-            "implied_gain_pct": 45.33,
-            "updated_at": "2026-11-21T10:45:34.761431+00:00"
-        },
-        {
-            "id": 402,
-            "ipo_id": 98,
-            "date": "2026-11-21",
-            "gmp_rs": 53.95,
-            "estimated_listing": 1718.95,
-            "implied_gain_pct": 3.24,
-            "updated_at": "2026-11-21T10:45:41.357121+00:00"
         },
         {
             "id": 381,
@@ -9475,13 +9394,76 @@
             "updated_at": "2026-11-20T02:04:47.412909+00:00"
         },
         {
-            "id": 403,
-            "ipo_id": 99,
+            "id": 394,
+            "ipo_id": 102,
             "date": "2026-11-21",
-            "gmp_rs": 246.96,
-            "estimated_listing": 1365.96,
-            "implied_gain_pct": 22.07,
-            "updated_at": "2026-11-21T10:45:47.499556+00:00"
+            "gmp_rs": 0.69,
+            "estimated_listing": 136.69,
+            "implied_gain_pct": 0.51,
+            "updated_at": "2026-11-21T18:49:25.459102+00:00"
+        },
+        {
+            "id": 395,
+            "ipo_id": 104,
+            "date": "2026-11-21",
+            "gmp_rs": 0.0,
+            "estimated_listing": 0.0,
+            "implied_gain_pct": 8.0,
+            "updated_at": "2026-11-21T18:49:37.599086+00:00"
+        },
+        {
+            "id": 396,
+            "ipo_id": 103,
+            "date": "2026-11-21",
+            "gmp_rs": 0.0,
+            "estimated_listing": 0.0,
+            "implied_gain_pct": 8.0,
+            "updated_at": "2026-11-21T18:49:45.812457+00:00"
+        },
+        {
+            "id": 397,
+            "ipo_id": 101,
+            "date": "2026-11-21",
+            "gmp_rs": 14.5,
+            "estimated_listing": 286.5,
+            "implied_gain_pct": 5.33,
+            "updated_at": "2026-11-21T18:49:50.714845+00:00"
+        },
+        {
+            "id": 398,
+            "ipo_id": 94,
+            "date": "2026-11-21",
+            "gmp_rs": 8.0,
+            "estimated_listing": 90.0,
+            "implied_gain_pct": 9.76,
+            "updated_at": "2026-11-21T18:49:57.831683+00:00"
+        },
+        {
+            "id": 399,
+            "ipo_id": 95,
+            "date": "2026-11-21",
+            "gmp_rs": 10.0,
+            "estimated_listing": 172.0,
+            "implied_gain_pct": 6.17,
+            "updated_at": "2026-11-21T18:50:03.366806+00:00"
+        },
+        {
+            "id": 400,
+            "ipo_id": 96,
+            "date": "2026-11-21",
+            "gmp_rs": 15.51,
+            "estimated_listing": 345.51,
+            "implied_gain_pct": 4.7,
+            "updated_at": "2026-11-21T18:50:10.128054+00:00"
+        },
+        {
+            "id": 401,
+            "ipo_id": 97,
+            "date": "2026-11-21",
+            "gmp_rs": 67.99,
+            "estimated_listing": 218.0,
+            "implied_gain_pct": 45.33,
+            "updated_at": "2026-11-21T18:50:16.144693+00:00"
         },
         {
             "id": 383,
@@ -9572,6 +9554,24 @@
             "estimated_listing": 1365.96,
             "implied_gain_pct": 22.07,
             "updated_at": "2026-11-20T19:45:19.321203+00:00"
+        },
+        {
+            "id": 402,
+            "ipo_id": 98,
+            "date": "2026-11-21",
+            "gmp_rs": 53.95,
+            "estimated_listing": 1718.95,
+            "implied_gain_pct": 3.24,
+            "updated_at": "2026-11-21T18:50:22.636795+00:00"
+        },
+        {
+            "id": 403,
+            "ipo_id": 99,
+            "date": "2026-11-21",
+            "gmp_rs": 246.96,
+            "estimated_listing": 1365.96,
+            "implied_gain_pct": 22.07,
+            "updated_at": "2026-11-21T18:50:27.207627+00:00"
         }
     ],
     "peers": [
@@ -9877,27 +9877,6 @@
             "ipo_pe": 52.0
         },
         {
-            "id": 497,
-            "ipo_id": 102,
-            "peer_name": "Coal India Ltd",
-            "peer_pe": 7.95,
-            "ipo_pe": 9.22
-        },
-        {
-            "id": 498,
-            "ipo_id": 102,
-            "peer_name": "National Mineral Development Corporation Ltd",
-            "peer_pe": 10.24,
-            "ipo_pe": 9.22
-        },
-        {
-            "id": 499,
-            "ipo_id": 102,
-            "peer_name": "PT Bukit Asam (Persero) Tbk",
-            "peer_pe": 10.0,
-            "ipo_pe": 9.22
-        },
-        {
             "id": 269,
             "ipo_id": 98,
             "peer_name": "360 One Wam Ltd.",
@@ -9982,42 +9961,63 @@
             "ipo_pe": 33.35
         },
         {
-            "id": 500,
+            "id": 506,
+            "ipo_id": 102,
+            "peer_name": "Coal India Ltd",
+            "peer_pe": 7.95,
+            "ipo_pe": 9.22
+        },
+        {
+            "id": 507,
+            "ipo_id": 102,
+            "peer_name": "National Mineral Development Corporation Ltd",
+            "peer_pe": 10.24,
+            "ipo_pe": 9.22
+        },
+        {
+            "id": 508,
+            "ipo_id": 102,
+            "peer_name": "PT Bukit Asam (Persero) Tbk",
+            "peer_pe": 10.0,
+            "ipo_pe": 9.22
+        },
+        {
+            "id": 509,
             "ipo_id": 102,
             "peer_name": "Yancoal Australia Ltd",
             "peer_pe": 20.81,
             "ipo_pe": 9.22
         },
         {
-            "id": 501,
+            "id": 510,
             "ipo_id": 101,
             "peer_name": "Kaveri Seed Co.Ltd.",
             "peer_pe": 12.13,
             "ipo_pe": 8.17
         },
         {
-            "id": 502,
+            "id": 511,
             "ipo_id": 101,
             "peer_name": "Sumitomo Chemical India Ltd.",
             "peer_pe": 31.2,
             "ipo_pe": 8.17
         },
         {
-            "id": 503,
+            "id": 512,
             "ipo_id": 101,
             "peer_name": "Bayer Cropscience Ltd.",
             "peer_pe": 22.73,
             "ipo_pe": 8.17
         },
         {
-            "id": 504,
+            "id": 513,
             "ipo_id": 101,
             "peer_name": "Rallis India Ltd.",
             "peer_pe": 19.93,
             "ipo_pe": 8.17
         },
         {
-            "id": 505,
+            "id": 514,
             "ipo_id": 101,
             "peer_name": "Dhanuka Agritech Ltd.",
             "peer_pe": 14.38,
@@ -10212,22 +10212,6 @@
             "revenue_cr": 610.0,
             "pat_cr": 65.0,
             "pat_margin_pct": 10.66
-        },
-        {
-            "id": 3150,
-            "ipo_id": 102,
-            "fiscal_year": "30 Sep 2026",
-            "revenue_cr": 17107.83,
-            "pat_cr": 4880.66,
-            "pat_margin_pct": 28.53
-        },
-        {
-            "id": 3151,
-            "ipo_id": 102,
-            "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 33899.28,
-            "pat_cr": 10698.12,
-            "pat_margin_pct": 31.56
         },
         {
             "id": 10,
@@ -10734,52 +10718,28 @@
             "pat_margin_pct": 2.1
         },
         {
-            "id": 3152,
+            "id": 3190,
+            "ipo_id": 102,
+            "fiscal_year": "30 Sep 2026",
+            "revenue_cr": 17107.83,
+            "pat_cr": 4880.66,
+            "pat_margin_pct": 28.53
+        },
+        {
+            "id": 3191,
+            "ipo_id": 102,
+            "fiscal_year": "31 Mar 2026",
+            "revenue_cr": 33899.28,
+            "pat_cr": 10698.12,
+            "pat_margin_pct": 31.56
+        },
+        {
+            "id": 3192,
             "ipo_id": 102,
             "fiscal_year": "31 Mar 2025",
             "revenue_cr": 33028.65,
             "pat_cr": 10825.12,
             "pat_margin_pct": 32.77
-        },
-        {
-            "id": 3153,
-            "ipo_id": 102,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 33590.34,
-            "pat_cr": 11841.55,
-            "pat_margin_pct": 35.25
-        },
-        {
-            "id": 3154,
-            "ipo_id": 104,
-            "fiscal_year": "30 Jun 2025",
-            "revenue_cr": 485.25,
-            "pat_cr": 267.57,
-            "pat_margin_pct": 55.14
-        },
-        {
-            "id": 3155,
-            "ipo_id": 104,
-            "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 1902.47,
-            "pat_cr": 70.68,
-            "pat_margin_pct": 3.72
-        },
-        {
-            "id": 3156,
-            "ipo_id": 104,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 1553.38,
-            "pat_cr": 4.88,
-            "pat_margin_pct": 0.31
-        },
-        {
-            "id": 3157,
-            "ipo_id": 104,
-            "fiscal_year": "31 Mar 2023",
-            "revenue_cr": 1348.1,
-            "pat_cr": 40.54,
-            "pat_margin_pct": 3.01
         },
         {
             "id": 3034,
@@ -11046,6 +11006,78 @@
             "pat_margin_pct": -3.6
         },
         {
+            "id": 3193,
+            "ipo_id": 102,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 33590.34,
+            "pat_cr": 11841.55,
+            "pat_margin_pct": 35.25
+        },
+        {
+            "id": 3194,
+            "ipo_id": 104,
+            "fiscal_year": "30 Jun 2025",
+            "revenue_cr": 485.25,
+            "pat_cr": 267.57,
+            "pat_margin_pct": 55.14
+        },
+        {
+            "id": 3195,
+            "ipo_id": 104,
+            "fiscal_year": "31 Mar 2025",
+            "revenue_cr": 1902.47,
+            "pat_cr": 70.68,
+            "pat_margin_pct": 3.72
+        },
+        {
+            "id": 3196,
+            "ipo_id": 104,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 1553.38,
+            "pat_cr": 4.88,
+            "pat_margin_pct": 0.31
+        },
+        {
+            "id": 3197,
+            "ipo_id": 104,
+            "fiscal_year": "31 Mar 2023",
+            "revenue_cr": 1348.1,
+            "pat_cr": 40.54,
+            "pat_margin_pct": 3.01
+        },
+        {
+            "id": 3198,
+            "ipo_id": 103,
+            "fiscal_year": "30 Sep 2026",
+            "revenue_cr": 222.18,
+            "pat_cr": 16.15,
+            "pat_margin_pct": 7.27
+        },
+        {
+            "id": 3199,
+            "ipo_id": 103,
+            "fiscal_year": "31 Mar 2026",
+            "revenue_cr": 572.26,
+            "pat_cr": 29.11,
+            "pat_margin_pct": 5.09
+        },
+        {
+            "id": 3200,
+            "ipo_id": 103,
+            "fiscal_year": "31 Mar 2025",
+            "revenue_cr": 455.4,
+            "pat_cr": 14.26,
+            "pat_margin_pct": 3.13
+        },
+        {
+            "id": 3201,
+            "ipo_id": 103,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 380.17,
+            "pat_cr": 15.35,
+            "pat_margin_pct": 4.04
+        },
+        {
             "id": 151,
             "ipo_id": 46,
             "fiscal_year": "FY24",
@@ -11116,6 +11148,70 @@
             "revenue_cr": 220.0,
             "pat_cr": 10.0,
             "pat_margin_pct": 4.55
+        },
+        {
+            "id": 3222,
+            "ipo_id": 98,
+            "fiscal_year": "30 Jun 2026",
+            "revenue_cr": 275.53,
+            "pat_cr": 80.71,
+            "pat_margin_pct": 29.29
+        },
+        {
+            "id": 3223,
+            "ipo_id": 98,
+            "fiscal_year": "31 Mar 2026",
+            "revenue_cr": 869.54,
+            "pat_cr": 265.2,
+            "pat_margin_pct": 30.5
+        },
+        {
+            "id": 3224,
+            "ipo_id": 98,
+            "fiscal_year": "31 Mar 2025",
+            "revenue_cr": 670.26,
+            "pat_cr": 229.78,
+            "pat_margin_pct": 34.28
+        },
+        {
+            "id": 3225,
+            "ipo_id": 98,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 492.58,
+            "pat_cr": 175.16,
+            "pat_margin_pct": 35.56
+        },
+        {
+            "id": 3226,
+            "ipo_id": 99,
+            "fiscal_year": "30 Jun 2026",
+            "revenue_cr": 0.0,
+            "pat_cr": 7764.1,
+            "pat_margin_pct": 0.0
+        },
+        {
+            "id": 3227,
+            "ipo_id": 99,
+            "fiscal_year": "31 Mar 2026",
+            "revenue_cr": 146885.3,
+            "pat_cr": 30052.7,
+            "pat_margin_pct": 20.46
+        },
+        {
+            "id": 3228,
+            "ipo_id": 99,
+            "fiscal_year": "31 Mar 2025",
+            "revenue_cr": 128218.4,
+            "pat_cr": 26120.3,
+            "pat_margin_pct": 20.37
+        },
+        {
+            "id": 3229,
+            "ipo_id": 99,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 109558.1,
+            "pat_cr": 21434.0,
+            "pat_margin_pct": 19.56
         },
         {
             "id": 2961,
@@ -11190,222 +11286,6 @@
             "pat_margin_pct": 7.33
         },
         {
-            "id": 3158,
-            "ipo_id": 103,
-            "fiscal_year": "30 Sep 2026",
-            "revenue_cr": 222.18,
-            "pat_cr": 16.15,
-            "pat_margin_pct": 7.27
-        },
-        {
-            "id": 3159,
-            "ipo_id": 103,
-            "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 572.26,
-            "pat_cr": 29.11,
-            "pat_margin_pct": 5.09
-        },
-        {
-            "id": 3160,
-            "ipo_id": 103,
-            "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 455.4,
-            "pat_cr": 14.26,
-            "pat_margin_pct": 3.13
-        },
-        {
-            "id": 3161,
-            "ipo_id": 103,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 380.17,
-            "pat_cr": 15.35,
-            "pat_margin_pct": 4.04
-        },
-        {
-            "id": 3162,
-            "ipo_id": 101,
-            "fiscal_year": "30 Jun 2026",
-            "revenue_cr": 1209.21,
-            "pat_cr": 135.78,
-            "pat_margin_pct": 11.23
-        },
-        {
-            "id": 3163,
-            "ipo_id": 101,
-            "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 3180.98,
-            "pat_cr": 144.91,
-            "pat_margin_pct": 4.56
-        },
-        {
-            "id": 3164,
-            "ipo_id": 101,
-            "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 2731.94,
-            "pat_cr": 118.39,
-            "pat_margin_pct": 4.33
-        },
-        {
-            "id": 3165,
-            "ipo_id": 101,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 2271.71,
-            "pat_cr": 87.24,
-            "pat_margin_pct": 3.84
-        },
-        {
-            "id": 3166,
-            "ipo_id": 94,
-            "fiscal_year": "30 Jun 2026",
-            "revenue_cr": 397.55,
-            "pat_cr": 15.08,
-            "pat_margin_pct": 3.79
-        },
-        {
-            "id": 3167,
-            "ipo_id": 94,
-            "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 1269.83,
-            "pat_cr": 30.54,
-            "pat_margin_pct": 2.41
-        },
-        {
-            "id": 3168,
-            "ipo_id": 94,
-            "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 1058.65,
-            "pat_cr": 28.67,
-            "pat_margin_pct": 2.71
-        },
-        {
-            "id": 3169,
-            "ipo_id": 94,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 765.41,
-            "pat_cr": 21.14,
-            "pat_margin_pct": 2.76
-        },
-        {
-            "id": 3170,
-            "ipo_id": 95,
-            "fiscal_year": "30 Jun 2026",
-            "revenue_cr": 101.45,
-            "pat_cr": 15.02,
-            "pat_margin_pct": 14.81
-        },
-        {
-            "id": 3171,
-            "ipo_id": 95,
-            "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 538.86,
-            "pat_cr": 51.8,
-            "pat_margin_pct": 9.61
-        },
-        {
-            "id": 3172,
-            "ipo_id": 95,
-            "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 351.32,
-            "pat_cr": 23.26,
-            "pat_margin_pct": 6.62
-        },
-        {
-            "id": 3173,
-            "ipo_id": 95,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 217.4,
-            "pat_cr": 8.17,
-            "pat_margin_pct": 3.76
-        },
-        {
-            "id": 3174,
-            "ipo_id": 96,
-            "fiscal_year": "30 Jun 2026",
-            "revenue_cr": 137.9,
-            "pat_cr": 1.48,
-            "pat_margin_pct": 1.07
-        },
-        {
-            "id": 3175,
-            "ipo_id": 96,
-            "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 821.27,
-            "pat_cr": 160.21,
-            "pat_margin_pct": 19.51
-        },
-        {
-            "id": 3176,
-            "ipo_id": 96,
-            "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 726.96,
-            "pat_cr": 152.01,
-            "pat_margin_pct": 20.91
-        },
-        {
-            "id": 3177,
-            "ipo_id": 96,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 676.74,
-            "pat_cr": 144.17,
-            "pat_margin_pct": 21.3
-        },
-        {
-            "id": 3178,
-            "ipo_id": 97,
-            "fiscal_year": "30 Jun 2026",
-            "revenue_cr": 107.81,
-            "pat_cr": 10.23,
-            "pat_margin_pct": 9.49
-        },
-        {
-            "id": 3179,
-            "ipo_id": 97,
-            "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 354.41,
-            "pat_cr": 27.01,
-            "pat_margin_pct": 7.62
-        },
-        {
-            "id": 3180,
-            "ipo_id": 97,
-            "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 336.7,
-            "pat_cr": 21.14,
-            "pat_margin_pct": 6.28
-        },
-        {
-            "id": 3181,
-            "ipo_id": 97,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 301.5,
-            "pat_cr": 7.52,
-            "pat_margin_pct": 2.49
-        },
-        {
-            "id": 3182,
-            "ipo_id": 98,
-            "fiscal_year": "30 Jun 2026",
-            "revenue_cr": 275.53,
-            "pat_cr": 80.71,
-            "pat_margin_pct": 29.29
-        },
-        {
-            "id": 3183,
-            "ipo_id": 98,
-            "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 869.54,
-            "pat_cr": 265.2,
-            "pat_margin_pct": 30.5
-        },
-        {
-            "id": 3184,
-            "ipo_id": 98,
-            "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 670.26,
-            "pat_cr": 229.78,
-            "pat_margin_pct": 34.28
-        },
-        {
             "id": 2285,
             "ipo_id": 85,
             "fiscal_year": "30 Jun 2026",
@@ -11438,44 +11318,164 @@
             "pat_margin_pct": 0.81
         },
         {
-            "id": 3185,
-            "ipo_id": 98,
-            "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 492.58,
-            "pat_cr": 175.16,
-            "pat_margin_pct": 35.56
-        },
-        {
-            "id": 3186,
-            "ipo_id": 99,
+            "id": 3202,
+            "ipo_id": 101,
             "fiscal_year": "30 Jun 2026",
-            "revenue_cr": 0.0,
-            "pat_cr": 7764.1,
-            "pat_margin_pct": 0.0
+            "revenue_cr": 1209.21,
+            "pat_cr": 135.78,
+            "pat_margin_pct": 11.23
         },
         {
-            "id": 3187,
-            "ipo_id": 99,
+            "id": 3203,
+            "ipo_id": 101,
             "fiscal_year": "31 Mar 2026",
-            "revenue_cr": 146885.3,
-            "pat_cr": 30052.7,
-            "pat_margin_pct": 20.46
+            "revenue_cr": 3180.98,
+            "pat_cr": 144.91,
+            "pat_margin_pct": 4.56
         },
         {
-            "id": 3188,
-            "ipo_id": 99,
+            "id": 3204,
+            "ipo_id": 101,
             "fiscal_year": "31 Mar 2025",
-            "revenue_cr": 128218.4,
-            "pat_cr": 26120.3,
-            "pat_margin_pct": 20.37
+            "revenue_cr": 2731.94,
+            "pat_cr": 118.39,
+            "pat_margin_pct": 4.33
         },
         {
-            "id": 3189,
-            "ipo_id": 99,
+            "id": 3205,
+            "ipo_id": 101,
             "fiscal_year": "31 Mar 2024",
-            "revenue_cr": 109558.1,
-            "pat_cr": 21434.0,
-            "pat_margin_pct": 19.56
+            "revenue_cr": 2271.71,
+            "pat_cr": 87.24,
+            "pat_margin_pct": 3.84
+        },
+        {
+            "id": 3206,
+            "ipo_id": 94,
+            "fiscal_year": "30 Jun 2026",
+            "revenue_cr": 397.55,
+            "pat_cr": 15.08,
+            "pat_margin_pct": 3.79
+        },
+        {
+            "id": 3207,
+            "ipo_id": 94,
+            "fiscal_year": "31 Mar 2026",
+            "revenue_cr": 1269.83,
+            "pat_cr": 30.54,
+            "pat_margin_pct": 2.41
+        },
+        {
+            "id": 3208,
+            "ipo_id": 94,
+            "fiscal_year": "31 Mar 2025",
+            "revenue_cr": 1058.65,
+            "pat_cr": 28.67,
+            "pat_margin_pct": 2.71
+        },
+        {
+            "id": 3209,
+            "ipo_id": 94,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 765.41,
+            "pat_cr": 21.14,
+            "pat_margin_pct": 2.76
+        },
+        {
+            "id": 3210,
+            "ipo_id": 95,
+            "fiscal_year": "30 Jun 2026",
+            "revenue_cr": 101.45,
+            "pat_cr": 15.02,
+            "pat_margin_pct": 14.81
+        },
+        {
+            "id": 3211,
+            "ipo_id": 95,
+            "fiscal_year": "31 Mar 2026",
+            "revenue_cr": 538.86,
+            "pat_cr": 51.8,
+            "pat_margin_pct": 9.61
+        },
+        {
+            "id": 3212,
+            "ipo_id": 95,
+            "fiscal_year": "31 Mar 2025",
+            "revenue_cr": 351.32,
+            "pat_cr": 23.26,
+            "pat_margin_pct": 6.62
+        },
+        {
+            "id": 3213,
+            "ipo_id": 95,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 217.4,
+            "pat_cr": 8.17,
+            "pat_margin_pct": 3.76
+        },
+        {
+            "id": 3214,
+            "ipo_id": 96,
+            "fiscal_year": "30 Jun 2026",
+            "revenue_cr": 137.9,
+            "pat_cr": 1.48,
+            "pat_margin_pct": 1.07
+        },
+        {
+            "id": 3215,
+            "ipo_id": 96,
+            "fiscal_year": "31 Mar 2026",
+            "revenue_cr": 821.27,
+            "pat_cr": 160.21,
+            "pat_margin_pct": 19.51
+        },
+        {
+            "id": 3216,
+            "ipo_id": 96,
+            "fiscal_year": "31 Mar 2025",
+            "revenue_cr": 726.96,
+            "pat_cr": 152.01,
+            "pat_margin_pct": 20.91
+        },
+        {
+            "id": 3217,
+            "ipo_id": 96,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 676.74,
+            "pat_cr": 144.17,
+            "pat_margin_pct": 21.3
+        },
+        {
+            "id": 3218,
+            "ipo_id": 97,
+            "fiscal_year": "30 Jun 2026",
+            "revenue_cr": 107.81,
+            "pat_cr": 10.23,
+            "pat_margin_pct": 9.49
+        },
+        {
+            "id": 3219,
+            "ipo_id": 97,
+            "fiscal_year": "31 Mar 2026",
+            "revenue_cr": 354.41,
+            "pat_cr": 27.01,
+            "pat_margin_pct": 7.62
+        },
+        {
+            "id": 3220,
+            "ipo_id": 97,
+            "fiscal_year": "31 Mar 2025",
+            "revenue_cr": 336.7,
+            "pat_cr": 21.14,
+            "pat_margin_pct": 6.28
+        },
+        {
+            "id": 3221,
+            "ipo_id": 97,
+            "fiscal_year": "31 Mar 2024",
+            "revenue_cr": 301.5,
+            "pat_cr": 7.52,
+            "pat_margin_pct": 2.49
         }
     ],
     "anchor_investors": [
